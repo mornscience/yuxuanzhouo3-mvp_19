@@ -1,0 +1,47 @@
+[
+  {
+    "id": "6a38bb36-2b9c-4de2-903c-b97fb7237f51",
+    "userId": "6a38bb36-2b9c-4de2-903c-b97fb7237f51",
+    "nickname": "yangfaditao127",
+    "avatar": "",
+    "phone": "",
+    "created_at": "2026-03-30T12:47:52.650Z",
+    "updated_at": "2026-03-30T12:47:52.650Z"
+  },
+  {
+    "id": "61e5ad4b-de58-48f3-9fca-f21ff1ff821e",
+    "userId": "61e5ad4b-de58-48f3-9fca-f21ff1ff821e",
+    "nickname": "yangfaditao125",
+    "avatar": "",
+    "phone": "",
+    "created_at": "2026-03-30T12:38:17.327Z",
+    "updated_at": "2026-03-30T12:38:17.327Z"
+  },
+  {
+    "id": "00d78adc-97cc-45a7-b02c-f11b76fbd4b9",
+    "userId": "00d78adc-97cc-45a7-b02c-f11b76fbd4b9",
+    "nickname": "yangfaditao126",
+    "avatar": "",
+    "phone": "",
+    "created_at": "2026-03-30T12:12:39.175Z",
+    "updated_at": "2026-03-30T12:12:39.175Z"
+  },
+  {
+    "id": "6d29b0d0-5243-4b4b-9ad5-444132f51834",
+    "userId": "6d29b0d0-5243-4b4b-9ad5-444132f51834",
+    "nickname": "yangfaditao124",
+    "avatar": "",
+    "phone": "",
+    "created_at": "2026-03-30T11:57:13.750Z",
+    "updated_at": "2026-03-30T11:57:13.750Z"
+  },
+  {
+    "id": "91ff7085-4d9a-4c51-b099-125257d012c6",
+    "userId": "91ff7085-4d9a-4c51-b099-125257d012c6",
+    "nickname": "yangfaditao123",
+    "avatar": "",
+    "phone": "",
+    "created_at": "2026-03-30T11:03:06.802Z",
+    "updated_at": "2026-03-30T11:03:06.802Z"
+  }
+]

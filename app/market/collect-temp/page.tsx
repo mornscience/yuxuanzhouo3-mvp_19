@@ -1,0 +1,104 @@
+﻿﻿"use client"
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
+import { useSearchParams } from "next/navigation"
+
+export default function CollectTempPage() {
+  const searchParams = useSearchParams()
+  const taskId = searchParams.get("taskId")
+  const [tempData, setTempData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+
+  useEffect(() => { if (taskId) loadTempData() }, [taskId])
+
+  const loadTempData = async () => {
+    if (!taskId) return
+    setLoading(true)
+    try {
+      const res = await fetch("/api/market/admin/acquisition", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "load_collect_temp", taskId })
+      })
+      const json = await res.json()
+      if (json.success) setTempData(json.data || [])
+      else setError(json.error || "加载失败")
+    } catch { setError("加载采集数据失败") }
+    finally { setLoading(false) }
+  }
+
+  const handleSync = async () => {
+    if (!taskId) return
+    setSyncing(true)
+    try {
+      const res = await fetch("/api/market/admin/acquisition", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sync_temp_to_bloggers", taskId })
+      })
+      const json = await res.json()
+      if (json.success) { alert("同步成功"); await loadTempData() }
+      else setError("同步失败")
+    } catch { setError("同步失败") }
+    finally { setSyncing(false) }
+  }
+
+  if (!taskId) return (
+    <div className="container mx-auto px-4 py-8">
+      <Alert variant="destructive"><AlertTitle>缺少参数</AlertTitle><AlertDescription>请从采集任务页面进入</AlertDescription></Alert>
+    </div>
+  )
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">采集临时数据</h1>
+        <Button onClick={handleSync} disabled={syncing || tempData.filter((i: any) => !i.isSync && i.isValid).length === 0}>
+          {syncing ? "同步中..." : "同步到线索池"}
+        </Button>
+      </div>
+      {error && <Alert variant="destructive" className="mb-4"><AlertTitle>错误</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>博主昵称</TableHead><TableHead>平台</TableHead><TableHead>粉丝数</TableHead>
+              <TableHead>邮箱</TableHead><TableHead>主页</TableHead><TableHead>领域</TableHead>
+              <TableHead>状态</TableHead><TableHead>同步状态</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i}>{Array.from({ length: 8 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-24" /></TableCell>)}</TableRow>
+            )) : tempData.length === 0 ? (
+              <TableRow><TableCell colSpan={8} className="text-center py-8">暂无采集数据</TableCell></TableRow>
+            ) : tempData.map((item: any) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.platform}</TableCell>
+                <TableCell>{item.followers}</TableCell>
+                <TableCell>
+                  <span className="flex items-center gap-1">{item.email}
+                    <span className={cn("px-1.5 py-0.5 rounded text-xs", item.isValid || item.is_valid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")}>{item.isValid || item.is_valid ? "有效" : "无效"}</span>
+                  </span>
+                </TableCell>
+                <TableCell><a href={item.homeUrl || item.home_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">查看</a></TableCell>
+                <TableCell>{item.category}</TableCell>
+                <TableCell><span className={cn("px-2 py-1 rounded-full text-xs", item.isValid || item.is_valid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")}>{item.isValid || item.is_valid ? "有效" : "无效"}</span></TableCell>
+                <TableCell><span className={cn("px-2 py-1 rounded-full text-xs", item.isSync || item.is_sync ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800")}>{item.isSync || item.is_sync ? "已同步" : "未同步"}</span></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+      <p className="mt-4 text-sm text-gray-500">提示：只有未同步且有效的数据会被同步到线索池</p>
+    </div>
+  )
+}

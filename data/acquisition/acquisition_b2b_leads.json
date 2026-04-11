@@ -1,0 +1,24 @@
+[
+  {
+    "id": "b2b-002",
+    "name": "杭州某电商团队",
+    "region": "浙江",
+    "contact": "王采购",
+    "source": "官网注册",
+    "status": "已转化",
+    "est_value": "¥12,000",
+    "created_at": "2026-03-30T05:24:53.805Z",
+    "updated_at": "2026-03-30T05:24:53.805Z"
+  },
+  {
+    "id": "b2b-001",
+    "name": "北京某SaaS企业",
+    "region": "北京",
+    "contact": "张总 (VP)",
+    "source": "BD引荐",
+    "status": "合同拟定",
+    "est_value": "¥50,000",
+    "created_at": "2026-03-30T05:24:53.624Z",
+    "updated_at": "2026-03-30T05:24:53.624Z"
+  }
+]

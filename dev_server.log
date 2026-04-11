@@ -1,0 +1,90 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.175.1:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.9s
+ ○ Compiling /api/ai-coder ...
+ ✓ Compiled /api/ai-coder in 988ms (366 modules)
+[AI-Coder] API request received
+[AI-Coder] Mode: refactor, Language: JavaScript, Code length: 29, Prompt: ""
+[AI-Coder] Cache miss, key: 196a79e6ce728aa0ceaf49a391d9250d3026551d
+[AI-Coder] Region: cn, Header: cn, NEXT_PUBLIC_SITE_REGION: cn
+[AI-Coder] API keys - Aliyun: PRESENT, OpenAI: PRESENT
+[AI-Coder] Model selected: qwen-coder-turbo, Region: cn
+[AI-Coder] Calling routed AI with input length: 105
+[AI-Coder] AI response received from provider: aliyun, text length: 575
+ POST /api/ai-coder 200 in 4703ms
+ ○ Compiling /ai-coder/interactive ...
+ ✓ Compiled /ai-coder/interactive in 6s (794 modules)
+ GET /ai-coder/interactive 200 in 6719ms
+ ✓ Compiled /api/ai-coder in 316ms (460 modules)
+[AI-Coder] API request received
+[AI-Coder] Mode: complete, Language: TypeScript, Code length: 11, Prompt: "请实现一个加法函数并添加注释"
+[AI-Coder] Cache miss, key: e2bcc588a910cd28545fbf1d2598c7a131d4f98c
+[AI-Coder] Region: cn, Header: cn, NEXT_PUBLIC_SITE_REGION: cn
+[AI-Coder] API keys - Aliyun: PRESENT, OpenAI: PRESENT
+[AI-Coder] Model selected: qwen-coder-turbo, Region: cn
+[AI-Coder] Calling routed AI with input length: 84
+[AI-Coder] AI response received from provider: aliyun, text length: 279
+ POST /api/ai-coder 200 in 2701ms
+[AI-Coder] API request received
+[AI-Coder] Mode: explain, Language: TypeScript, Code length: 11, Prompt: "请实现一个加法函数并添加注释"
+[AI-Coder] Cache miss, key: 06f8c84eca61cba976a802ae023699d8702d7c21
+[AI-Coder] Region: cn, Header: cn, NEXT_PUBLIC_SITE_REGION: cn
+[AI-Coder] API keys - Aliyun: PRESENT, OpenAI: PRESENT
+[AI-Coder] Model selected: qwen2.5-coder, Region: cn
+[AI-Coder] Calling routed AI with input length: 81
+[AI-Coder] Error calling AI API: Error: Budget exceeded or all providers failed
+    at callRoutedAI (lib\ai\router.ts:41:8)
+    at async POST (app\api\ai-coder\route.ts:67:16)
+  39 |     }
+  40 |   }
+> 41 |   throw new Error("Budget exceeded or all providers failed")
+     |        ^
+  42 | }
+  43 |
+  44 |
+ POST /api/ai-coder 200 in 21459ms
+[AI-Coder] API request received
+[AI-Coder] Mode: complete, Language: TypeScript, Code length: 21, Prompt: "完成除法运算
+"
+[AI-Coder] Cache miss, key: 3c693debe944f55e642b87483add520a11ef4067
+[AI-Coder] Region: cn, Header: cn, NEXT_PUBLIC_SITE_REGION: cn
+[AI-Coder] API keys - Aliyun: PRESENT, OpenAI: PRESENT
+[AI-Coder] Model selected: qwen-coder-turbo, Region: cn
+[AI-Coder] Calling routed AI with input length: 77
+[AI-Coder] AI response received from provider: aliyun, text length: 828
+ POST /api/ai-coder 200 in 4544ms
+[AI-Coder] API request received
+[AI-Coder] Mode: chat, Language: TypeScript, Code length: 21, Prompt: "你好，你是谁
+
+"
+[AI-Coder] Cache miss, key: db6c4ae5d634d648c56d5c0c39a9eaa4d673580a
+[AI-Coder] Region: cn, Header: cn, NEXT_PUBLIC_SITE_REGION: cn
+[AI-Coder] API keys - Aliyun: PRESENT, OpenAI: PRESENT
+[AI-Coder] Model selected: qwen2.5-coder, Region: cn
+[AI-Coder] Calling routed AI with input length: 8
+[AI-Coder] Error calling AI API: Error: Budget exceeded or all providers failed
+    at callRoutedAI (lib\ai\router.ts:41:8)
+    at async POST (app\api\ai-coder\route.ts:67:16)
+  39 |     }
+  40 |   }
+> 41 |   throw new Error("Budget exceeded or all providers failed")
+     |        ^
+  42 | }
+  43 |
+  44 |
+ POST /api/ai-coder 200 in 21327ms
+ ✓ Compiled in 670ms (358 modules)
+ GET /ai-coder/interactive 200 in 551ms
+ ✓ Compiled in 568ms (358 modules)
+ GET /ai-coder/interactive 200 in 401ms
+ ✓ Compiled in 419ms (358 modules)
+ GET /ai-coder/interactive 200 in 38ms
+[?25h

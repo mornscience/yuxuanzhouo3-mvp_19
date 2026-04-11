@@ -1,0 +1,28 @@
+[
+  {
+    "id": "coop-3374d485",
+    "userId": "fb285a1c-a8da-4ea2-a0a0-28b5930e8a18",
+    "bloggerId": "bl-f1155111",
+    "bloggerName": "14",
+    "platform": "小红书",
+    "email": "1171037136@qq.com",
+    "cost": "11",
+    "commission": "12%",
+    "status": "active",
+    "created_at": "2026-04-06T06:15:10.970Z",
+    "updated_at": "2026-04-06T06:15:10.970Z"
+  },
+  {
+    "id": "coop-7ff89551",
+    "userId": "fb285a1c-a8da-4ea2-a0a0-28b5930e8a18",
+    "bloggerId": "bl-2726fb0c",
+    "bloggerName": "11",
+    "platform": "11",
+    "email": "11@qq.com",
+    "cost": "11",
+    "commission": "11",
+    "status": "active",
+    "created_at": "2026-04-06T06:06:08.067Z",
+    "updated_at": "2026-04-06T06:06:08.067Z"
+  }
+]

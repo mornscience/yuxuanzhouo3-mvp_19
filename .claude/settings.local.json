@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(findstr :3000)",
+      "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"complete\"\",\"\"code\"\":\"\"\"\",\"\"prompt\"\":\"\"实现一个加法函数\"\",\"\"language\"\":\"\"TypeScript\"\"}\")",
+      "Bash(timeout 10 pnpm dev)",
+      "Bash(where pnpm:*)",
+      "Bash(where npm:*)",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(tasklist)",
+      "Bash(findstr node:*)",
+      "Bash(taskkill /PID 27936 /F)",
+      "Bash(grep -r \"AI_PROVIDER\\\\|DEFAULT_MODEL\" --include=*.ts --include=*.tsx --include=*.js --include=*.jsx .)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Read(//e/mvp/mvp_33-dev-local/**)",
+      "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"explain\"\",\"\"code\"\":\"\"function test\\(\\) {}\"\",\"\"prompt\"\":\"\"解释这个函数\"\",\"\"language\"\":\"\"TypeScript\"\"}\" -v)",
+      "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"chat\"\",\"\"code\"\":\"\"\"\",\"\"prompt\"\":\"\"你好\"\",\"\"language\"\":\"\"TypeScript\"\"}\" -s)",
+      "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"explain\"\",\"\"code\"\":\"\"function test\\(\\) {}\"\",\"\"prompt\"\":\"\"解释\"\",\"\"language\"\":\"\"TypeScript\"\"}\" -s)",
+      "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"refactor\"\",\"\"code\"\":\"\"var x = 1;\"\",\"\"prompt\"\":\"\"\"\",\"\"language\"\":\"\"TypeScript\"\"}\" -s)",
+      "Bash(curl -X GET http://localhost:3000/api/market/admin/acquisition -H \"Cookie: market_user_id=user_demo_123\" -s)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/auth/me)"
+    ],
+    "additionalDirectories": [
+      "d:\\mvp\\mvp_19\\app\\api\\market\\admin"
+    ]
+  }
+}

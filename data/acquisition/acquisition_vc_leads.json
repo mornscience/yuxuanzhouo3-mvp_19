@@ -1,0 +1,24 @@
+[
+  {
+    "id": "vc-002",
+    "name": "经纬创投",
+    "region": "上海",
+    "contact": "David",
+    "source": "手工录入",
+    "status": "待联系",
+    "focus": "前沿科技 / AI",
+    "created_at": "2026-03-30T05:24:54.354Z",
+    "updated_at": "2026-03-30T05:24:54.354Z"
+  },
+  {
+    "id": "vc-001",
+    "name": "红杉中国",
+    "region": "北京",
+    "contact": "Li Wei (合伙人)",
+    "source": "BD引荐",
+    "status": "初步接触",
+    "focus": "AI / SaaS",
+    "created_at": "2026-03-30T05:24:54.169Z",
+    "updated_at": "2026-03-30T05:24:54.169Z"
+  }
+]

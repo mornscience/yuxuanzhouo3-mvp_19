@@ -1,0 +1,34 @@
+[
+  {
+    "id": "ad-a70d5b9f",
+    "userId": "user_demo_123",
+    "brand": "飞猪",
+    "type": "视频广告",
+    "status": "已下架",
+    "views": "0",
+    "created_at": "2026-03-30T06:05:07.869Z",
+    "updated_at": "2026-03-30T06:42:32.841Z"
+  },
+  {
+    "id": "ad-002",
+    "brand": "某国内云服务",
+    "type": "互动广告",
+    "duration": "30s",
+    "reward": "0.8 RMB",
+    "status": "投放中",
+    "views": "8,320",
+    "created_at": "2026-03-30T05:24:54.962Z",
+    "updated_at": "2026-03-30T05:24:54.962Z"
+  },
+  {
+    "id": "ad-001",
+    "brand": "KFC (肯德基)",
+    "type": "视频广告",
+    "duration": "30s",
+    "reward": "1 RMB",
+    "status": "投放中",
+    "views": "12,450",
+    "created_at": "2026-03-30T05:24:54.766Z",
+    "updated_at": "2026-03-30T05:24:54.766Z"
+  }
+]
