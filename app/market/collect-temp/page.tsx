@@ -1,5 +1,4 @@
-﻿﻿"// mobile-ready
-"use client"
+﻿﻿"use client"
 import { Suspense, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -70,7 +69,7 @@ function CollectTempContent() {
         </Button>
       </div>
       {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
