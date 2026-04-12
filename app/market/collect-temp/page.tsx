@@ -1,4 +1,5 @@
-﻿﻿"use client"
+﻿﻿"// mobile-ready
+"use client"
 import { Suspense, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
