@@ -118,7 +118,7 @@ function VerificationCard({ profile, onVerify }: { profile?: UserMarketProfile; 
             </div>
             <div>
               <p className="text-base font-bold text-slate-800">{t("influencer_verify")}</p>
-              <p className="text-sm text-slate-500 mt-0.5">{profile.isInfluencerVerified ? (profile.isRealInfluencer ? '金牌达人' : t("influencer_verified")) : '未认证达人'}</p>
+              <p className="text-sm text-slate-500 mt-0.5">{profile.isInfluencerVerified ? (profile.isRealInfluencer ? 'Gold Influencer' : t("influencer_verified")) : 'Not Verified'}</p>
             </div>
           </div>
           {!profile.isInfluencerVerified && (
@@ -126,7 +126,7 @@ function VerificationCard({ profile, onVerify }: { profile?: UserMarketProfile; 
               onClick={() => onVerify('influencer')}
               className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-slate-200 text-slate-700 hover:border-blue-300 hover:shadow-md transition-all duration-300"
             >
-              去认证
+              Verify
             </button>
           )}
           {profile.isInfluencerVerified && (
@@ -156,7 +156,7 @@ function VerificationCard({ profile, onVerify }: { profile?: UserMarketProfile; 
             </div>
             <div>
               <p className="text-base font-bold text-slate-800">{t("merchant_verify")}</p>
-              <p className="text-sm text-slate-500 mt-0.5">{profile.isMerchantVerified ? (profile.isRealMerchant ? '金牌商家' : t("merchant_verified")) : '未认证商家'}</p>
+              <p className="text-sm text-slate-500 mt-0.5">{profile.isMerchantVerified ? (profile.isRealMerchant ? 'Gold Merchant' : t("merchant_verified")) : 'Not Verified'}</p>
             </div>
           </div>
           {!profile.isMerchantVerified && (
@@ -164,7 +164,7 @@ function VerificationCard({ profile, onVerify }: { profile?: UserMarketProfile; 
               onClick={() => onVerify('merchant')}
               className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-slate-200 text-slate-700 hover:border-purple-300 hover:shadow-md transition-all duration-300"
             >
-              去认证
+              Verify
             </button>
           )}
           {profile.isMerchantVerified && (
@@ -435,7 +435,7 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
   const router = useRouter()
 
   const handleApplyCooperation = async (blogger: AcquisitionBlogger) => {
-    const msg = prompt(`申请与「${blogger.name}」合作，可留言（可选）：`)
+    const msg = prompt(`Apply to cooperate with "${blogger.name}" (optional message):`)
     if (msg === null) return
     try {
       const res = await fetch("/api/market/blogger-cooperation", {
@@ -450,15 +450,15 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
           cost: blogger.cost,
           commission: blogger.commission,
           message: msg,
-          bloggerOwnerId: blogger.userId,  // 博主录入者（被申请方）
+          bloggerOwnerId: blogger.userId,
           applicantName: profile?.nickname || "",
           applicantEmail: profile?.email || "",
         })
       })
       const json = await res.json()
-      if (json.ok) alert(json.message || "申请已发送！可在「博主合作 → 我发出的申请」中查看")
-      else alert(json.message || "申请失败")
-    } catch { alert("申请失败，请重试") }
+      if (json.ok) alert(json.message || "Application sent! Check 'Blogger Cooperation → Sent Applications'")
+      else alert(json.message || "Application failed")
+    } catch { alert("Application failed, please try again") }
   }
 
   // 博主池页面数据过滤 (Moved to top to follow Hook rules)
@@ -575,7 +575,7 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
             <div className="rounded-lg border bg-blue-50 p-3 text-blue-600"><Users size={20} /></div>
             <div>
               <div className="text-sm text-muted-foreground">{t("influencer_status")}</div>
-              <div className="font-bold text-sm">{!profile?.isInfluencerVerified ? t("uncertified_influencer_label") : profile?.isRealInfluencer ? '🔥 真实达人' : t("influencer_verified")}</div>
+              <div className="font-bold text-sm">{!profile?.isInfluencerVerified ? t("uncertified_influencer_label") : profile?.isRealInfluencer ? '🔥 Verified Influencer' : t("influencer_verified")}</div>
             </div>
           </div>
           <div className="rounded-xl border bg-background p-5 flex items-center space-x-4">
@@ -989,7 +989,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
               <Building2 className="mr-2 h-5 w-5" /> {t("verify_merchant_now")}
             </Button>
             <p className="text-xs text-muted-foreground mt-4">
-              认证后即可使用广告发布、线索管理、VC对接等功能。
+              After verification you can post ads, manage leads, connect with VCs and enjoy exclusive benefits.
             </p>
           </CardContent>
         </Card>
@@ -1004,7 +1004,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
           <div className="rounded-lg border bg-purple-50 p-3 text-purple-600"><Building2 size={20} /></div>
           <div>
             <div className="text-sm text-muted-foreground">{t("merchant_identity")}</div>
-            <div className="font-bold">{!profile?.isMerchantVerified ? t("uncertified_merchant_label") : profile?.isRealMerchant ? '💎 真实商家 (享补贴)' : t("merchant_verified")}</div>
+            <div className="font-bold">{!profile?.isMerchantVerified ? t("uncertified_merchant_label") : profile?.isRealMerchant ? '💎 Verified Merchant (subsidized)' : t("merchant_verified")}</div>
           </div>
         </div>
         <div className="rounded-xl border bg-background p-5 flex items-center space-x-4">
@@ -1145,7 +1145,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                           onClick={() => onUpdateStatus('ad', ad)}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-all duration-200"
                         >
-                          设置
+                          Settings
                         </button>
                       </TableCell>
                     </TableRow>
@@ -1170,7 +1170,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {followLeads.length === 0 ? (
                 <div className="col-span-2 py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-sm bg-slate-50/30">
-                  暂无跟进的客户，点击「录入客户」添加。
+                  No tracked customers yet. Click &quot;Add Customer&quot; to add one.
                 </div>
               ) : (
                 followLeads.map(lead => (
@@ -1201,7 +1201,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                         <User size={14} className="mr-2 opacity-70" /> {lead.contact}
                       </div>
                       <div className="flex items-center">
-                        <span className="text-xs text-slate-400 mr-2">预估价值:</span>
+                        <span className="text-xs text-slate-400 mr-2">Est. Value:</span>
                         <span className="text-emerald-600 font-bold font-mono">¥{lead.estValue}</span>
                       </div>
                     </div>
@@ -1211,10 +1211,10 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                         onClick={() => onUpdateStatus('b2b', lead)}
                         className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-purple-50 text-purple-700 border border-purple-100 hover:bg-purple-100 transition-all duration-300"
                       >
-                        更新进度
+                        Update Progress
                       </button>
                       <a 
-                        href={`mailto:${lead.email}?subject=来自 mornbusiness 的合作邀请`}
+                        href={`mailto:${lead.email}?subject=Cooperation Invitation from mornbusiness`}
                         className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-purple-600 hover:bg-purple-50 border border-slate-100 transition-all duration-300"
                       >
                         <Mail size={18} />
@@ -1250,7 +1250,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {publishLeads.length === 0 ? (
                 <div className="col-span-2 py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-sm bg-slate-50/30">
-                  暂无发布的需求，点击「发布需求」添加。
+                  No demands posted yet. Click &quot;Post Demand&quot; to add one.
                 </div>
               ) : (
                 publishLeads.map(lead => (
@@ -1273,9 +1273,9 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                           <div className="flex items-center gap-2">
                             <h3 className="font-bold text-slate-800">{lead.name}</h3>
                             {lead.isPublic ? (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold">已上线</span>
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold">Published</span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100 text-[10px] font-bold">待发布</span>
+                              <span className="px-2 py-0.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100 text-[10px] font-bold">Draft</span>
                             )}
                           </div>
                         </div>
@@ -1298,11 +1298,11 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <span className="text-xs text-slate-400 mr-2">预估价值:</span>
+                          <span className="text-xs text-slate-400 mr-2">Est. Value:</span>
                           <span className="text-emerald-600 font-bold font-mono">¥{lead.estValue}</span>
                         </div>
                         {lead.cooperationCount! > 0 && (
-                          <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">{lead.cooperationCount} 个合作申请</span>
+                          <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">{lead.cooperationCount} applications</span>
                         )}
                       </div>
                     </div>
@@ -1317,17 +1317,17 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                         }`}
                       >
                         {lead.isPublic ? <EyeOff size={14} /> : <Eye size={14} />}
-                        {lead.isPublic ? "下架" : "上架发布"}
+                        {lead.isPublic ? "Unpublish" : "Publish"}
                       </button>
                       <button
                         onClick={() => requestDelete(lead.id, lead.name)}
                         className="p-2 rounded-xl bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 border border-red-100 transition-all duration-300"
-                        title="从页面移除"
+                        title="Remove from page"
                       >
                         <X size={16} />
                       </button>
                       <a 
-                        href={`mailto:${lead.email}?subject=来自 mornbusiness 的合作邀请`}
+                        href={`mailto:${lead.email}?subject=Cooperation Invitation from mornbusiness`}
                         className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 border border-slate-100 transition-all duration-300"
                       >
                         <Mail size={18} />
@@ -1369,15 +1369,15 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                       borderBottom: '1px solid #dcfce7'
                     }}
                   >
-                    <TableHead className="font-bold text-emerald-900 py-4">机构名称</TableHead>
-                    <TableHead className="font-bold text-emerald-900 py-4">关注领域</TableHead>
-                    <TableHead className="font-bold text-emerald-900 py-4">对接阶段</TableHead>
-                    <TableHead className="text-right font-bold text-emerald-900 py-4">操作</TableHead>
+                    <TableHead className="font-bold text-emerald-900 py-4">Institution</TableHead>
+                    <TableHead className="font-bold text-emerald-900 py-4">Focus</TableHead>
+                    <TableHead className="font-bold text-emerald-900 py-4">Stage</TableHead>
+                    <TableHead className="text-right font-bold text-emerald-900 py-4">{t("operation")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {vcFollowLeads.length === 0 ? (
-                    <TableRow><TableCell colSpan={4} className="h-32 text-center text-slate-500">暂无跟进的 VC 机构</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="h-32 text-center text-slate-500">No tracked VC institutions</TableCell></TableRow>
                   ) : (
                     vcFollowLeads.map((vc, index) => (
                       <TableRow 
@@ -1407,7 +1407,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                             onClick={() => onUpdateStatus('vc', vc)}
                             className="text-emerald-600 hover:text-emerald-700 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-all duration-200"
                           >
-                            推进进度
+                            Update Stage
                           </button>
                         </TableCell>
                       </TableRow>
@@ -1446,15 +1446,15 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                       borderBottom: '1px solid #dcfce7'
                     }}
                   >
-                    <TableHead className="font-bold text-emerald-900 py-4">企业名称</TableHead>
-                    <TableHead className="font-bold text-emerald-900 py-4">融资金额 / 阶段</TableHead>
-                    <TableHead className="font-bold text-emerald-900 py-4">状态</TableHead>
-                    <TableHead className="text-right font-bold text-emerald-900 py-4">操作</TableHead>
+                    <TableHead className="font-bold text-emerald-900 py-4">Company</TableHead>
+                    <TableHead className="font-bold text-emerald-900 py-4">Funding / Stage</TableHead>
+                    <TableHead className="font-bold text-emerald-900 py-4">{t("status")}</TableHead>
+                    <TableHead className="text-right font-bold text-emerald-900 py-4">{t("operation")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {vcPublishLeads.length === 0 ? (
-                    <TableRow><TableCell colSpan={4} className="h-32 text-center text-slate-500">暂无发布的融资需求</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="h-32 text-center text-slate-500">No funding demands posted</TableCell></TableRow>
                   ) : (
                     vcPublishLeads.map((vc, index) => (
                       <TableRow 
@@ -1481,9 +1481,9 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                         </TableCell>
                         <TableCell className="py-4">
                           {vc.isPublic ? (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">已发布</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Published</span>
                           ) : (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200">未发布</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200">Draft</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right py-4">
@@ -1494,7 +1494,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                                 vc.isPublic ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
                               }`}
                             >
-                              {vc.isPublic ? '下架' : '上架发布'}
+                              {vc.isPublic ? 'Unpublish' : 'Publish'}
                             </button>
                             <button
                               onClick={() => requestDelete(vc.id, vc.name)}
@@ -1531,7 +1531,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
               <div className="relative z-10">
                 <h3 className="text-lg font-bold text-white">{t("confirm_delete")}</h3>
                 <p className="text-white/70 text-xs mt-1">
-                  将从页面移除「{confirmDeleteName}」，数据库不受影响
+                  Will remove &quot;{confirmDeleteName}&quot; from view (database unaffected)
                 </p>
               </div>
             </div>
@@ -1599,7 +1599,7 @@ export function AcquisitionClient() {
       console.log("[DEBUG] API response status:", response.status, response.statusText)
       const json = await response.json()
       console.log("[DEBUG] API response:", json)
-      if (!json.success) throw new Error(json.error || "加载数据失败")
+      if (!json.success) throw new Error(json.error || "Failed to load data")
       
       const data: AcquisitionBootstrapData = json.data
       console.log("[DEBUG] Parsed data:", data)
@@ -1614,7 +1614,7 @@ export function AcquisitionClient() {
       setBloggerProfile(data.bloggerProfile)
       setParticipations(data.participations || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "加载数据失败")
+      setError(err instanceof Error ? err.message : "Failed to load data")
     } finally {
       setLoading(false)
     }
@@ -1663,11 +1663,11 @@ export function AcquisitionClient() {
         body: JSON.stringify({ action, ...data }),
       })
       const json = await response.json()
-      if (!json.success) throw new Error(json.error || "操作失败")
+      if (!json.success) throw new Error(json.error || "Action failed")
       await fetchBootstrap() // Refresh data
       return json.result
     } catch (err) {
-      showToast(`❌ ${err instanceof Error ? err.message : "操作失败"}`)
+      showToast(`❌ ${err instanceof Error ? err.message : "Action failed"}`)
       return null
     } finally {
       setActionLoading(false)
@@ -1698,13 +1698,13 @@ export function AcquisitionClient() {
     //   return
     // }
     const result = await postAction("participate_ad", { adId: ad.id, reward: ad.reward })
-    if (result) showToast(`✅ 已开始任务：${ad.brand}`)
+    if (result) showToast(`✅ Started task: ${ad.brand}`)
   }
 
   const handleComplete = async (p: AdParticipation) => {
     if (!ensureLoggedIn()) return
     const result = await postAction("complete_ad_task", { participationId: p.id })
-    if (result) showToast(`🎉 任务完成！获得收益：¥${p.rewardEarned}`)
+    if (result) showToast(`🎉 Task complete! Earned: ¥${p.rewardEarned}`)
   }
 
   const handleVerify = async (type: "realName" | "influencer" | "merchant", data?: any) => {
@@ -1722,16 +1722,15 @@ export function AcquisitionClient() {
           })
           const result = await response.json()
           if (result.ok) {
-            showToast("✅ 达人认证成功！")
-            fetchBootstrap() // 刷新数据
+            showToast("✅ Influencer verification successful!")
+            fetchBootstrap()
           } else {
-            showToast(`❌ ${result.message || "认证失败"}`)
+            showToast(`❌ ${result.message || "Verification failed"}`)
           }
         } catch (err) {
-          showToast("❌ 网络错误，请重试")
+          showToast("❌ Network error, please try again")
         }
       } else if (type === "merchant") {
-        // 调用商家认证API
         try {
           const response = await fetch("/api/profile/merchant-apply", {
             method: "POST",
@@ -1740,13 +1739,13 @@ export function AcquisitionClient() {
           })
           const result = await response.json()
           if (result.ok) {
-            showToast("✅ 商家认证成功！")
-            fetchBootstrap() // 刷新数据
+            showToast("✅ Merchant verification successful!")
+            fetchBootstrap()
           } else {
-            showToast(`❌ ${result.message || "认证失败"}`)
+            showToast(`❌ ${result.message || "Verification failed"}`)
           }
         } catch (err) {
-          showToast("❌ 网络错误，请重试")
+          showToast("❌ Network error, please try again")
         }
       } else if (type === "realName") {
         // 实名认证处理已注释掉，将来再启用
@@ -1771,10 +1770,10 @@ export function AcquisitionClient() {
   const handleStatusUpdate = (type: 'ad' | 'b2b' | 'vc' | 'blogger', item: any) => {
     if (!ensureLoggedIn()) return
     const configs: Record<string, { title: string, statuses: string[], action: string }> = {
-      ad: { title: `设置广告「${item.brand}」`, statuses: ["投放中", "已暂停", "已下架"], action: "update_ad" },
-      b2b: { title: `更新线索「${item.name}」进度`, statuses: ["初步接触", "跟进中", "合同拟定", "已转化", "已流失"], action: "update_b2b_status" },
-      vc: { title: `推进「${item.name}」阶段`, statuses: ["待联系", "初步接触", "深度沟通(Pitch)", "尽职调查", "已投资", "已拒绝"], action: "update_vc_status" },
-      blogger: { title: `更新商单「${item.name}」状态`, statuses: ["未联系", "已联系", "谈判中", "已合作", "已拒绝"], action: "update_blogger_status" },
+      ad: { title: `Ad settings: "${item.brand}"`, statuses: ["投放中", "已暂停", "已下架"], action: "update_ad" },
+      b2b: { title: `Update lead: "${item.name}"`, statuses: ["初步接触", "跟进中", "合同拟定", "已转化", "已流失"], action: "update_b2b_status" },
+      vc: { title: `Advance stage: "${item.name}"`, statuses: ["待联系", "初步接触", "深度沟通(Pitch)", "尽职调查", "已投资", "已拒绝"], action: "update_vc_status" },
+      blogger: { title: `Update order: "${item.name}"`, statuses: ["未联系", "已联系", "谈判中", "已合作", "已拒绝"], action: "update_blogger_status" },
     }
     const config = configs[type]
     setStatusModal({
@@ -1785,7 +1784,7 @@ export function AcquisitionClient() {
       onConfirm: async (newStatus) => {
         const result = await postAction(config.action, { id: item.id, status: newStatus })
         if (result) {
-          showToast(`✅ 已更新为：${newStatus}`)
+          showToast(`✅ Updated to: ${newStatus}`)
           setStatusModal(null)
         }
       }
@@ -1843,8 +1842,8 @@ export function AcquisitionClient() {
     return (
       <div className="space-y-6 max-w-6xl mx-auto">
         <div className="flex items-center justify-center h-64 flex-col gap-4">
-          <div className="text-destructive text-lg font-medium">加载失败: {error}</div>
-          <Button onClick={fetchBootstrap}>重试</Button>
+          <div className="text-destructive text-lg font-medium">Failed to load: {error}</div>
+          <Button onClick={fetchBootstrap}>Retry</Button>
         </div>
       </div>
     )
@@ -1923,14 +1922,14 @@ export function AcquisitionClient() {
             </button>
             {/* Tooltip */}
             <div className="absolute right-0 top-full mt-2 w-64 rounded-xl bg-slate-900 text-white text-xs p-3 shadow-xl z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
-              <p className="font-semibold mb-1.5 text-purple-300">🤖 AI 智能搜索</p>
-              <p className="text-slate-300 leading-relaxed">输入想要合作的博主、企业或 VC 机构信息，AI 自动搜索并提取：</p>
+              <p className="font-semibold mb-1.5 text-purple-300">🤖 AI Smart Search</p>
+              <p className="text-slate-300 leading-relaxed">Enter blogger, enterprise or VC info, AI auto-searches and extracts:</p>
               <ul className="mt-1.5 space-y-0.5 text-slate-400">
-                <li>· 名称 &amp; 联系邮箱</li>
-                <li>· 官网 &amp; 简介</li>
-                <li>· 支持直接发送合作邀约</li>
+                <li>· Name &amp; contact email</li>
+                <li>· Website &amp; bio</li>
+                <li>· Send cooperation invites directly</li>
               </ul>
-              <p className="mt-1.5 text-slate-500">每次 ¥0.1，每月上限 100 次</p>
+              <p className="mt-1.5 text-slate-500">¥0.1 per search, 100/month limit</p>
               <div className="absolute -top-1.5 right-4 w-3 h-3 bg-slate-900 rotate-45" />
             </div>
           </div>

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-
-// 内存存储验证码（生产环境应用 Redis）
-const codeStore = new Map<string, { code: string; expires: number }>()
+import { createHmac, createHash } from "crypto"
 
 async function getSupabase() {
   const { createClient } = await import("@supabase/supabase-js")
@@ -12,24 +10,38 @@ async function getSupabase() {
 export async function POST(req: NextRequest) {
   const { phone } = await req.json()
   if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
-    return NextResponse.json({ ok: false, message: "请输入正确的手机号" }, { status: 400 })
+    return NextResponse.json({ ok: false, message: "Please enter a valid phone number" }, { status: 400 })
   }
 
   const code = String(Math.floor(100000 + Math.random() * 900000))
-  const expires = Date.now() + 5 * 60 * 1000 // 5分钟有效
-  codeStore.set(phone, { code, expires })
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
 
-  // 实际发送短信（腾讯云 SMS）
+  // 存储验证码到数据库（解决 serverless 多实例问题）
+  const sb = await getSupabase()
+  await sb.from("sms_codes").upsert(
+    { phone, code, expires_at: expiresAt },
+    { onConflict: "phone" }
+  )
+
   const secretId = process.env.TENCENT_SMS_SECRET_ID
   const secretKey = process.env.TENCENT_SMS_SECRET_KEY
   const sdkAppId = process.env.TENCENT_SMS_APP_ID
-  const templateId = process.env.TENCENT_SMS_TEMPLATE_ID || "your_template_id"
-  const signName = process.env.TENCENT_SMS_SIGN || "mornbusiness"
+  const templateId = process.env.TENCENT_SMS_TEMPLATE_ID || ""
+  const signName = process.env.TENCENT_SMS_SIGN_NAME || ""
 
   if (secretId && secretKey && sdkAppId) {
     try {
-      // 腾讯云 SMS HTTP API
+      const bodyObj = {
+        SmsSdkAppId: sdkAppId,
+        SignName: signName,
+        TemplateId: templateId,
+        TemplateParamSet: [code, "5"],
+        PhoneNumberSet: [`+86${phone}`],
+      }
+      const bodyStr = JSON.stringify(bodyObj)
       const timestamp = Math.floor(Date.now() / 1000)
+      const authorization = buildTencentAuth(secretId, secretKey, timestamp, bodyStr)
+
       const res = await fetch("https://sms.tencentcloudapi.com/", {
         method: "POST",
         headers: {
@@ -38,40 +50,48 @@ export async function POST(req: NextRequest) {
           "X-TC-Version": "2021-01-11",
           "X-TC-Timestamp": String(timestamp),
           "X-TC-Region": "ap-guangzhou",
-          "Authorization": buildTencentAuth(secretId, secretKey, timestamp, JSON.stringify({
-            SmsSdkAppId: sdkAppId,
-            SignName: signName,
-            TemplateId: templateId,
-            TemplateParamSet: [code, "5"],
-            PhoneNumberSet: [`+86${phone}`],
-          })),
+          "Authorization": authorization,
+          "Host": "sms.tencentcloudapi.com",
         },
-        body: JSON.stringify({
-          SmsSdkAppId: sdkAppId,
-          SignName: signName,
-          TemplateId: templateId,
-          TemplateParamSet: [code, "5"],
-          PhoneNumberSet: [`+86${phone}`],
-        }),
+        body: bodyStr,
       })
       const data = await res.json()
-      console.log("[SMS]", data)
+      console.log("[SMS]", JSON.stringify(data))
     } catch (e) {
       console.error("[SMS send error]", e)
-      // 发送失败不影响开发调试，继续返回成功（开发环境）
     }
   } else {
-    // 开发环境：打印验证码到控制台
-    console.log(`[SMS DEV] 手机号 ${phone} 验证码: ${code}`)
+    console.log(`[SMS DEV] Phone ${phone} code: ${code}`)
   }
 
-  return NextResponse.json({ ok: true, message: "验证码已发送，5分钟内有效" })
+  return NextResponse.json({ ok: true, message: "Verification code sent, valid for 5 minutes" })
+}
+
+function sha256Hex(data: string): string {
+  return createHash("sha256").update(data, "utf8").digest("hex")
+}
+
+function hmacSha256(key: Buffer | string, data: string): Buffer {
+  return createHmac("sha256", key).update(data, "utf8").digest()
 }
 
 function buildTencentAuth(secretId: string, secretKey: string, timestamp: number, body: string): string {
-  // 简化版签名，实际生产应使用腾讯云 SDK
-  return `TC3-HMAC-SHA256 Credential=${secretId}/auth, SignedHeaders=content-type;host, Signature=placeholder`
-}
+  const service = "sms"
+  const host = "sms.tencentcloudapi.com"
+  const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
 
-// 导出供登录接口使用
-export { codeStore }
+  const canonicalHeaders = `content-type:application/json\nhost:${host}\n`
+  const signedHeaders = "content-type;host"
+  const hashedPayload = sha256Hex(body)
+  const canonicalRequest = `POST\n/\n\n${canonicalHeaders}\n${signedHeaders}\n${hashedPayload}`
+
+  const credentialScope = `${date}/${service}/tc3_request`
+  const stringToSign = `TC3-HMAC-SHA256\n${timestamp}\n${credentialScope}\n${sha256Hex(canonicalRequest)}`
+
+  const secretDate = hmacSha256(`TC3${secretKey}`, date)
+  const secretService = hmacSha256(secretDate, service)
+  const secretSigning = hmacSha256(secretService, "tc3_request")
+  const signature = createHmac("sha256", secretSigning).update(stringToSign, "utf8").digest("hex")
+
+  return `TC3-HMAC-SHA256 Credential=${secretId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`
+}

@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { getUserIdFromRequest } from "@/lib/api-utils"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2025-01-27.acacia" })
-
 export async function POST(request: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-01-27.acacia" })
   try {
     const userId = getUserIdFromRequest(request)
     if (!userId) return NextResponse.json({ ok: false, message: "未登录" }, { status: 401 })

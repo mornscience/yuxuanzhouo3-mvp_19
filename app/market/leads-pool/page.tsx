@@ -65,9 +65,9 @@ export default function LeadsPoolPage() {
       params.set("sortBy", b2bFilters.sortBy)
       const res = await fetch(`/api/leads/b2b/public-list?${params}`, { credentials: "include" })
       const json = await res.json()
-      if (!json.ok) throw new Error(json.message || "加载失败")
+      if (!json.ok) throw new Error(json.message || "Failed to load")
       setB2bLeads(json.data?.data || [])
-    } catch (err) { setB2bError(err instanceof Error ? err.message : "加载失败") }
+    } catch (err) { setB2bError(err instanceof Error ? err.message : "Failed to load") }
     finally { setB2bLoading(false) }
   }, [b2bFilters])
 
@@ -80,9 +80,9 @@ export default function LeadsPoolPage() {
       params.set("sortBy", vcFilters.sortBy)
       const res = await fetch(`/api/leads/vc/public-list?${params}`, { credentials: "include" })
       const json = await res.json()
-      if (!json.ok) throw new Error(json.message || "加载失败")
+      if (!json.ok) throw new Error(json.message || "Failed to load")
       setVcLeads(json.data?.data || [])
-    } catch (err) { setVcError(err instanceof Error ? err.message : "加载失败") }
+    } catch (err) { setVcError(err instanceof Error ? err.message : "Failed to load") }
     finally { setVcLoading(false) }
   }, [vcFilters])
 
@@ -108,9 +108,9 @@ export default function LeadsPoolPage() {
         setApplyForm({ applicantName: "", applicantContact: "", applicantEmail: "", message: "" })
         incrementApplyCount(leadId)
         const count = getApplyCount(leadId) + 1
-        showToast(isVC ? `✅ 对接申请已提交！（第 ${count} 次）` : `✅ 合作申请已提交！（第 ${count} 次）`)
-      } else throw new Error(json.message || "申请失败")
-    } catch (err) { showToast(`❌ ${err instanceof Error ? err.message : "申请失败"}`) }
+        showToast(isVC ? `✅ Connection request submitted! (${count})` : `✅ Cooperation request submitted! (${count})`)
+      } else throw new Error(json.message || "Application failed")
+    } catch (err) { showToast(`❌ ${err instanceof Error ? err.message : "Application failed"}`) }
     finally { setSubmitting(false) }
   }
 
@@ -211,7 +211,7 @@ export default function LeadsPoolPage() {
                 <Label className="text-xs text-slate-400 mb-1.5 block">{t("region")}</Label>
                 <div className="relative">
                   <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <Input placeholder="如：北京、深圳" className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={b2bFilters.region} onChange={e => setB2bFilters(p => ({ ...p, region: e.target.value }))} />
+                  <Input placeholder={t("region_placeholder")} className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={b2bFilters.region} onChange={e => setB2bFilters(p => ({ ...p, region: e.target.value }))} />
                 </div>
               </div>
               <div className="w-40">
@@ -219,11 +219,11 @@ export default function LeadsPoolPage() {
                 <Select value={b2bFilters.status || "all"} onValueChange={v => setB2bFilters(p => ({ ...p, status: v === "all" ? "" : v }))}>
                   <SelectTrigger className="h-9 rounded-xl bg-white/60 border-white/60 text-sm"><SelectValue placeholder={t("all")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">全部状态</SelectItem>
-                    <SelectItem value="初步接触">初步接触</SelectItem>
-                    <SelectItem value="跟进中">跟进中</SelectItem>
-                    <SelectItem value="合同拟定">合同拟定</SelectItem>
-                    <SelectItem value="已转化">已转化</SelectItem>
+                    <SelectItem value="all">{t("all")}</SelectItem>
+                    <SelectItem value="初步接触">Initial Contact</SelectItem>
+                    <SelectItem value="跟进中">Following Up</SelectItem>
+                    <SelectItem value="合同拟定">Contract Draft</SelectItem>
+                    <SelectItem value="已转化">Converted</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -233,7 +233,7 @@ export default function LeadsPoolPage() {
                   <SelectTrigger className="h-9 rounded-xl bg-white/60 border-white/60 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">{t("latest")}</SelectItem>
-                    <SelectItem value="highestValue">最高价值</SelectItem>
+                    <SelectItem value="highestValue">Highest Value</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -247,14 +247,14 @@ export default function LeadsPoolPage() {
                 <Label className="text-xs text-slate-400 mb-1.5 block">{t("region")}</Label>
                 <div className="relative">
                   <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <Input placeholder="如：北京、深圳" className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={vcFilters.region} onChange={e => setVcFilters(p => ({ ...p, region: e.target.value }))} />
+                  <Input placeholder={t("region_placeholder")} className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={vcFilters.region} onChange={e => setVcFilters(p => ({ ...p, region: e.target.value }))} />
                 </div>
               </div>
               <div className="flex-1 min-w-[180px]">
                 <Label className="text-xs text-slate-400 mb-1.5 block">{t("industry")}</Label>
                 <div className="relative">
                   <TrendingUp size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <Input placeholder="如：AI、SaaS" className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={vcFilters.focus} onChange={e => setVcFilters(p => ({ ...p, focus: e.target.value }))} />
+                  <Input placeholder={t("industry_placeholder")} className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={vcFilters.focus} onChange={e => setVcFilters(p => ({ ...p, focus: e.target.value }))} />
                 </div>
               </div>
               <div className="w-36">
@@ -263,7 +263,7 @@ export default function LeadsPoolPage() {
                   <SelectTrigger className="h-9 rounded-xl bg-white/60 border-white/60 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">{t("latest")}</SelectItem>
-                    <SelectItem value="highestFunding">最高融资额</SelectItem>
+                    <SelectItem value="highestFunding">Highest Funding</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -278,9 +278,9 @@ export default function LeadsPoolPage() {
         {activeTab === "b2b" ? (
           b2bLoading ? <LoadingState /> :
           b2bError ? (
-            <div className="text-center py-12 text-red-400 text-sm">{b2bError} <button className="ml-2 text-blue-500 underline" onClick={fetchB2BLeads}>重试</button></div>
+            <div className="text-center py-12 text-red-400 text-sm">{b2bError} <button className="ml-2 text-blue-500 underline" onClick={fetchB2BLeads}>Retry</button></div>
           ) : b2bLeads.length === 0 ? (
-            <EmptyState icon={Building2} title="暂无公开线索" sub="还没有企业发布线索到公共池" action="去发布我的线索" />
+            <EmptyState icon={Building2} title="No leads yet" sub="No companies have published leads to the pool" action="Publish My Leads" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {b2bLeads.map(lead => (
@@ -298,11 +298,11 @@ export default function LeadsPoolPage() {
                   </div>
                   <div className="space-y-1.5 text-xs text-slate-500">
                     <div className="flex items-center gap-1.5"><MapPin size={12} className="text-blue-400" />{lead.region}</div>
-                    <div className="flex items-center gap-1.5"><Building2 size={12} className="text-blue-400" />联系人：{lead.contact}</div>
-                    <div className="flex items-center gap-1.5 text-emerald-600 font-semibold"><DollarSign size={12} />预估价值：{lead.estValue}</div>
+                    <div className="flex items-center gap-1.5"><Building2 size={12} className="text-blue-400" />Contact: {lead.contact}</div>
+                    <div className="flex items-center gap-1.5 text-emerald-600 font-semibold"><DollarSign size={12} />Est. Value: {lead.estValue}</div>
                   </div>
                   {(lead.cooperationCount ?? 0) > 0 && (
-                    <p className="text-[11px] text-blue-500 bg-blue-50 rounded-lg px-2.5 py-1">已有 {lead.cooperationCount} 家公司申请合作</p>
+                    <p className="text-[11px] text-blue-500 bg-blue-50 rounded-lg px-2.5 py-1">{t("companies_applied", { n: lead.cooperationCount ?? 0 })}</p>
                   )}
                   {lead.description && <p className="text-xs text-slate-400 line-clamp-2">{lead.description}</p>}
                   <button
@@ -316,9 +316,9 @@ export default function LeadsPoolPage() {
                   >
                     <Handshake size={14} />
                   {getApplyCount(lead.id) >= MAX_APPLY
-                      ? "已达申请上限"
+                      ? "Apply limit reached"
                       : getApplyCount(lead.id) > 0
-                        ? `${t("apply_coop_btn")}（${getApplyCount(lead.id)}/${MAX_APPLY}）`
+                        ? `${t("apply_coop_btn")} (${getApplyCount(lead.id)}/${MAX_APPLY})`
                         : t("apply_coop_btn")
                     }
                   </button>
@@ -329,9 +329,9 @@ export default function LeadsPoolPage() {
         ) : (
           vcLoading ? <LoadingState /> :
           vcError ? (
-            <div className="text-center py-12 text-red-400 text-sm">{vcError} <button className="ml-2 text-blue-500 underline" onClick={fetchVCLeads}>重试</button></div>
+            <div className="text-center py-12 text-red-400 text-sm">{vcError} <button className="ml-2 text-blue-500 underline" onClick={fetchVCLeads}>Retry</button></div>
           ) : vcLeads.length === 0 ? (
-            <EmptyState icon={Landmark} title="暂无融资需求" sub="还没有企业发布融资需求到 VC 线索池" action="去发布融资需求" />
+            <EmptyState icon={Landmark} title="No funding demands yet" sub="No companies have published funding demands to the VC pool" action="Post Funding Demand" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {vcLeads.map(lead => (
@@ -349,11 +349,11 @@ export default function LeadsPoolPage() {
                   </div>
                   <div className="space-y-1.5 text-xs text-slate-500">
                     <div className="flex items-center gap-1.5"><MapPin size={12} className="text-purple-400" />{lead.region}</div>
-                    <div className="flex items-center gap-1.5"><TrendingUp size={12} className="text-purple-400" />行业：{lead.focus}</div>
-                    <div className="flex items-center gap-1.5 text-emerald-600 font-semibold"><DollarSign size={12} />融资金额：{lead.fundingAmount}</div>
+                    <div className="flex items-center gap-1.5"><TrendingUp size={12} className="text-purple-400" />Industry: {lead.focus}</div>
+                    <div className="flex items-center gap-1.5 text-emerald-600 font-semibold"><DollarSign size={12} />Funding: {lead.fundingAmount}</div>
                   </div>
                   {(lead.cooperationCount ?? 0) > 0 && (
-                    <p className="text-[11px] text-purple-500 bg-purple-50 rounded-lg px-2.5 py-1">已有 {lead.cooperationCount} 家机构申请对接</p>
+                    <p className="text-[11px] text-purple-500 bg-purple-50 rounded-lg px-2.5 py-1">{t("investors_applied", { n: lead.cooperationCount ?? 0 })}</p>
                   )}
                   {lead.description && <p className="text-xs text-slate-400 line-clamp-2">{lead.description}</p>}
                   <button
@@ -367,9 +367,9 @@ export default function LeadsPoolPage() {
                   >
                     <Handshake size={14} />
                   {getApplyCount(lead.id) >= MAX_APPLY
-                      ? "已达申请上限"
+                      ? "Apply limit reached"
                       : getApplyCount(lead.id) > 0
-                        ? `${t("apply_connect")}（${getApplyCount(lead.id)}/${MAX_APPLY}）`
+                        ? `${t("apply_connect")} (${getApplyCount(lead.id)}/${MAX_APPLY})`
                         : t("apply_connect")
                     }
                   </button>
@@ -393,8 +393,8 @@ export default function LeadsPoolPage() {
               <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
               <div className="flex items-center justify-between relative z-10">
                 <div>
-                  <h3 className="text-lg font-bold text-white">{selectedVCLead ? "申请对接" : "申请合作"}</h3>
-                  <p className="text-white/70 text-xs mt-0.5">向 {selectedB2BLead?.name || selectedVCLead?.name} 发起申请</p>
+                  <h3 className="text-lg font-bold text-white">{selectedVCLead ? t("apply_connect") : t("apply_coop_btn")}</h3>
+                  <p className="text-white/70 text-xs mt-0.5">Apply to {selectedB2BLead?.name || selectedVCLead?.name}</p>
                 </div>
                 <button onClick={() => setApplyDialogOpen(false)} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
                   <X size={16} />
@@ -405,20 +405,20 @@ export default function LeadsPoolPage() {
             {/* Form */}
             <form onSubmit={handleApply} className="p-6 space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">您的{selectedVCLead ? "机构" : "公司"}/姓名 *</Label>
-                <Input required value={applyForm.applicantName} onChange={e => setApplyForm(p => ({ ...p, applicantName: e.target.value }))} placeholder={selectedVCLead ? "如：红杉资本" : "如：XX科技有限公司"} className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />
+                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Your {selectedVCLead ? "Institution" : "Company"} / Name *</Label>
+                <Input required value={applyForm.applicantName} onChange={e => setApplyForm(p => ({ ...p, applicantName: e.target.value }))} placeholder={selectedVCLead ? "e.g. Sequoia Capital" : "e.g. Acme Corp"} className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">联系电话 *</Label>
-                <Input required value={applyForm.applicantContact} onChange={e => setApplyForm(p => ({ ...p, applicantContact: e.target.value }))} placeholder="如：138xxxx8888" className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />
+                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact Phone *</Label>
+                <Input required value={applyForm.applicantContact} onChange={e => setApplyForm(p => ({ ...p, applicantContact: e.target.value }))} placeholder="e.g. +1 555 0100" className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">联系邮箱 *</Label>
-                <Input required type="email" value={applyForm.applicantEmail} onChange={e => setApplyForm(p => ({ ...p, applicantEmail: e.target.value }))} placeholder="如：contact@company.com" className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />
+                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact Email *</Label>
+                <Input required type="email" value={applyForm.applicantEmail} onChange={e => setApplyForm(p => ({ ...p, applicantEmail: e.target.value }))} placeholder="e.g. contact@company.com" className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{selectedVCLead ? "对接意向" : "合作意向"}说明</Label>
-                <Textarea value={applyForm.message} onChange={e => setApplyForm(p => ({ ...p, message: e.target.value }))} placeholder="简要说明您的意向和优势..." rows={3} className="rounded-xl border-slate-200 bg-slate-50/50 resize-none" />
+                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{selectedVCLead ? "Connection Intent" : "Cooperation Intent"}</Label>
+                <Textarea value={applyForm.message} onChange={e => setApplyForm(p => ({ ...p, message: e.target.value }))} placeholder="Briefly describe your intent and strengths..." rows={3} className="rounded-xl border-slate-200 bg-slate-50/50 resize-none" />
               </div>
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setApplyDialogOpen(false)} className="flex-1 h-11 rounded-full border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
@@ -426,7 +426,7 @@ export default function LeadsPoolPage() {
                 </button>
                 <button type="submit" disabled={submitting} className={`flex-1 h-11 rounded-full text-white text-sm font-semibold shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${selectedVCLead ? "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/30" : "bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30"}`}>
                   {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                  提交申请
+                  Submit Application
                 </button>
               </div>
             </form>

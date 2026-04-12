@@ -1,11 +1,12 @@
 "use client"
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CheckCircle, Zap, ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { t } from "@/lib/market/i18n"
 
-export default function MembershipSuccessPage() {
+function MembershipSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session_id")
@@ -13,9 +14,8 @@ export default function MembershipSuccessPage() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    // Stripe 支付成功后，webhook 会自动处理额度，这里只做展示
-    const t = setTimeout(() => setDone(true), 1000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setDone(true), 1000)
+    return () => clearTimeout(timer)
   }, [])
 
   return (
@@ -32,12 +32,20 @@ export default function MembershipSuccessPage() {
         <p className="text-slate-500 text-sm">{t("quota_added")}</p>
         <div className="bg-blue-50 rounded-xl p-4 flex items-center justify-center gap-2 text-blue-700 text-sm">
           <Zap size={16} className="text-blue-500" />
-          额度已自动增加到您的账户
+          Credits have been added to your account
         </div>
         <Button onClick={() => router.push("/market/ai-search")} className="w-full h-12 bg-blue-600 hover:bg-blue-700 rounded-xl">
           {t("start_ai_search")} <ArrowRight size={16} className="ml-2" />
         </Button>
       </div>
     </div>
+  )
+}
+
+export default function MembershipSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Skeleton className="h-80 w-96 rounded-3xl" /></div>}>
+      <MembershipSuccessContent />
+    </Suspense>
   )
 }

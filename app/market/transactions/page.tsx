@@ -23,20 +23,20 @@ interface Transaction {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string; sign: "+" | "-" }> = {
-  reward:   { label: "任务奖励", icon: Gift,        color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
-  recharge: { label: "充值",     icon: PlusCircle,  color: "text-blue-600",   bg: "bg-blue-100",    sign: "+" },
-  refund:   { label: "退款",     icon: RefreshCw,   color: "text-cyan-600",   bg: "bg-cyan-100",    sign: "+" },
-  withdraw: { label: "提现",     icon: TrendingDown,color: "text-orange-500", bg: "bg-orange-100",  sign: "-" },
-  charge:   { label: "扣费",     icon: CreditCard,  color: "text-red-500",    bg: "bg-red-100",     sign: "-" },
+  reward:   { label: "Task Reward", icon: Gift,        color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
+  recharge: { label: "Top Up",      icon: PlusCircle,  color: "text-blue-600",   bg: "bg-blue-100",    sign: "+" },
+  refund:   { label: "Refund",      icon: RefreshCw,   color: "text-cyan-600",   bg: "bg-cyan-100",    sign: "+" },
+  withdraw: { label: "Withdraw",    icon: TrendingDown,color: "text-orange-500", bg: "bg-orange-100",  sign: "-" },
+  charge:   { label: "Charge",      icon: CreditCard,  color: "text-red-500",    bg: "bg-red-100",     sign: "-" },
 }
 
 const FILTERS = [
-  { key: "", label: "全部" },
-  { key: "reward",   label: "任务奖励" },
-  { key: "recharge", label: "充值" },
-  { key: "withdraw", label: "提现" },
-  { key: "charge",   label: "扣费" },
-  { key: "refund",   label: "退款" },
+  { key: "", label: t("all_transactions") },
+  { key: "reward",   label: "Task Reward" },
+  { key: "recharge", label: "Top Up" },
+  { key: "withdraw", label: "Withdraw" },
+  { key: "charge",   label: "Charge" },
+  { key: "refund",   label: "Refund" },
 ]
 
 export default function TransactionsPage() {
@@ -82,8 +82,8 @@ export default function TransactionsPage() {
   const grouped: Record<string, Transaction[]> = {}
   list.forEach(tx => {
     const day = tx.created_at
-      ? new Date(tx.created_at).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
-      : "未知日期"
+      ? new Date(tx.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      : "Unknown date"
     if (!grouped[day]) grouped[day] = []
     grouped[day].push(tx)
   })
@@ -133,12 +133,12 @@ export default function TransactionsPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Wallet size={14} className="text-white/60" />
-                <span className="text-white/60 text-xs">当前余额</span>
+                <span className="text-white/60 text-xs">Current Balance</span>
               </div>
               <p className="text-3xl font-bold text-white">¥ {balance}</p>
             </div>
             <div className="text-right">
-              <p className="text-white/50 text-xs mb-1">共 {list.length} 条记录</p>
+              <p className="text-white/50 text-xs mb-1">{list.length} records total</p>
               <div className="flex items-center gap-1 justify-end">
                 <TrendingUp size={13} className="text-green-300" />
                 <span className="text-white/80 text-sm font-medium">
@@ -146,7 +146,7 @@ export default function TransactionsPage() {
                     .reduce((s, t) => s + Math.abs(parseFloat(t.amount || "0")), 0).toFixed(2)}
                 </span>
               </div>
-              <p className="text-white/40 text-[10px]">累计收入</p>
+              <p className="text-white/40 text-[10px]">Total Income</p>
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function TransactionsPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-            <p className="text-sm text-slate-400">加载中...</p>
+            <p className="text-sm text-slate-400">{t("loading")}</p>
           </div>
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -180,7 +180,7 @@ export default function TransactionsPage() {
               <Filter size={28} className="text-blue-300" />
             </div>
             <p className="text-slate-500 font-medium">{t("no_tasks")}</p>
-            <p className="text-slate-400 text-sm">完成任务、充值或提现后将显示在这里</p>
+            <p className="text-slate-400 text-sm">Transactions will appear here after completing tasks, topping up, or withdrawing</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -210,7 +210,7 @@ export default function TransactionsPage() {
                               <p className="text-[11px] text-slate-400 mt-0.5 max-w-[180px] truncate">{tx.remark}</p>
                             )}
                             <p className="text-[10px] text-slate-300 mt-0.5">
-                              {tx.created_at ? new Date(tx.created_at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : ""}
+                              {tx.created_at ? new Date(tx.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : ""}
                               {tx.status === "success" ? "" : <span className="ml-1 text-amber-400">{tx.status}</span>}
                             </p>
                           </div>
@@ -221,7 +221,7 @@ export default function TransactionsPage() {
                           <p className={`text-base font-bold ${isIncome ? "text-emerald-600" : "text-red-500"}`}>
                             {cfg.sign}¥{absAmount}
                           </p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">余额 ¥{parseFloat(tx.balance || "0").toFixed(2)}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">Balance ¥{parseFloat(tx.balance || "0").toFixed(2)}</p>
                         </div>
                       </div>
                     )

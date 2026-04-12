@@ -92,8 +92,8 @@ export default function MyTasksPage() {
                 <CheckCircle size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">完成任务</p>
-                <p className="text-xl font-bold text-slate-800">{tasks.length} 个</p>
+                <p className="text-xs text-slate-400">Tasks Completed</p>
+                <p className="text-xl font-bold text-slate-800">{tasks.length}</p>
               </div>
             </div>
             <div className="rounded-2xl p-4 flex items-center gap-3" style={glassCard}>
@@ -101,7 +101,7 @@ export default function MyTasksPage() {
                 <Gift size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">累计获得</p>
+                <p className="text-xs text-slate-400">Total Earned</p>
                 <p className="text-xl font-bold text-emerald-600">¥{totalEarned}</p>
               </div>
             </div>
@@ -121,13 +121,13 @@ export default function MyTasksPage() {
             </div>
             <div className="text-center">
               <p className="font-semibold text-slate-600">{t("no_tasks")}</p>
-              <p className="text-sm text-slate-400 mt-1">去广告广场观看广告，完成后奖励自动到账</p>
+              <p className="text-sm text-slate-400 mt-1">Watch ads in the Ad Square to earn rewards</p>
             </div>
             <button
               onClick={() => router.push("/market/acquisition?mode=task")}
               className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:-translate-y-0.5 transition-all"
             >
-              去做任务
+              Go to Tasks
             </button>
           </div>
         ) : (
@@ -145,7 +145,7 @@ export default function MyTasksPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-slate-800 text-sm truncate">
-                      {task.ad?.brand || "未知广告"}
+                      {task.ad?.brand || "Unknown Ad"}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       {task.ad?.duration && (
@@ -161,7 +161,7 @@ export default function MyTasksPage() {
                     </div>
                     {task.completedAt && (
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        {new Date(task.completedAt).toLocaleString("zh-CN", {
+                        {new Date(task.completedAt).toLocaleString("en-US", {
                           month: "2-digit", day: "2-digit",
                           hour: "2-digit", minute: "2-digit"
                         })}
@@ -173,7 +173,7 @@ export default function MyTasksPage() {
                 {/* 右侧奖励 */}
                 <div className="text-right flex-shrink-0">
                   <p className="text-base font-bold text-emerald-600">+¥{task.rewardEarned}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">已到账</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Credited</p>
                 </div>
               </div>
             ))}

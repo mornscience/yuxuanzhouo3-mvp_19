@@ -109,11 +109,11 @@ export function ProfileClient() {
 
   const handleWalletSubmit = async () => {
     if (!walletAmount || parseFloat(walletAmount) <= 0) {
-      setWalletMsg("请输入有效金额")
+      setWalletMsg("Please enter a valid amount")
       return
     }
     if (walletModal === "withdraw" && !walletAccount.trim()) {
-      setWalletMsg("请填写提现账号")
+      setWalletMsg("Please enter a withdrawal account")
       return
     }
     setWalletLoading(true)
@@ -131,7 +131,7 @@ export function ProfileClient() {
           window.location.href = json.url
           return
         }
-        setWalletMsg(`❌ ${json.message || "创建支付失败"}`)
+        setWalletMsg(`❌ ${json.message || "Failed to create payment"}`)
         return
       }
 
@@ -145,11 +145,11 @@ export function ProfileClient() {
       })
       const json = await res.json()
       if (json.ok) {
-        setWalletMsg(walletModal === "recharge" ? `✅ 充值成功，余额已更新` : `✅ 提现申请已提交`)
+        setWalletMsg(walletModal === "recharge" ? `✅ Top up successful, balance updated` : `✅ Withdrawal request submitted`)
         fetchProfile()
         setTimeout(() => setWalletModal(null), 1500)
       } else {
-        setWalletMsg(`❌ ${json.message || "操作失败"}`)
+        setWalletMsg(`❌ ${json.message || "Action failed"}`)
       }
     } catch {
       setWalletMsg("❌ 网络错误，请重试")
@@ -162,12 +162,12 @@ export function ProfileClient() {
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-10 h-10 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-        <p className="text-sm text-slate-500">加载中...</p>
+        <p className="text-sm text-slate-500">{t("loading")}</p>
       </div>
     </div>
   )
 
-  const displayName = storedUser?.email || profile?.email || profile?.nickname || "未设置邮箱"
+  const displayName = storedUser?.email || profile?.email || profile?.nickname || "No email set"
   const avatarLetter = displayName[0]?.toUpperCase() || "U"
   const isInfluencer = profile?.isInfluencerVerified
   const isMerchant = profile?.isMerchantVerified
@@ -361,7 +361,7 @@ export function ProfileClient() {
 
         {/* ── Generated Projects ── */}
         {scaffoldProjects.length > 0 && (
-          <GlassSection title="生成的项目" icon={<Cpu size={14} />} className="mb-4">
+          <GlassSection title="Generated Projects" icon={<Cpu size={14} />} className="mb-4">
             <div className="grid sm:grid-cols-2 gap-2 p-3">
               {scaffoldProjects.map((proj) => (
                 <div
@@ -420,9 +420,9 @@ export function ProfileClient() {
               <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
               <div className="flex items-center justify-between relative z-10">
                 <div>
-                  <h3 className="text-lg font-bold text-white">{walletModal === "recharge" ? "账户充值" : "申请提现"}</h3>
+                  <h3 className="text-lg font-bold text-white">{walletModal === "recharge" ? "Top Up" : "Withdraw"}</h3>
                   <p className="text-white/60 text-xs mt-0.5">
-                    {walletModal === "recharge" ? "模拟充值，直接到账" : `当前余额 ¥${profile?.balance || "0.00"}`}
+                    {walletModal === "recharge" ? "Simulated top-up, instant credit" : `Current balance ¥${profile?.balance || "0.00"}`}
                   </p>
                 </div>
                 <button onClick={() => setWalletModal(null)} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
@@ -435,7 +435,7 @@ export function ProfileClient() {
             <div className="p-6 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  {walletModal === "recharge" ? "充值金额（元）" : "提现金额（元）"}
+                  {walletModal === "recharge" ? "Amount (USD)" : "Amount (USD)"}
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">¥</span>
@@ -443,7 +443,7 @@ export function ProfileClient() {
                     type="number"
                     min="0.01"
                     step="0.01"
-                    placeholder="请输入金额"
+                    placeholder="Enter amount"
                     value={walletAmount}
                     onChange={e => setWalletAmount(e.target.value)}
                     className="w-full h-12 pl-8 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 font-semibold text-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
@@ -462,10 +462,10 @@ export function ProfileClient() {
 
               {walletModal === "withdraw" && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">提现账号（支付宝/微信）</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Withdrawal Account (PayPal / Bank)</label>
                   <input
                     type="text"
-                    placeholder="请输入支付宝或微信账号"
+                    placeholder="Enter your PayPal or bank account"
                     value={walletAccount}
                     onChange={e => setWalletAccount(e.target.value)}
                     className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
@@ -515,13 +515,13 @@ export function ProfileClient() {
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                 <Key size={14} className="text-white" />
               </div>
-              <h3 className="font-bold text-slate-800">登录密码</h3>
+              <h3 className="font-bold text-slate-800">Login Password</h3>
             </div>
-            <p className="text-xs text-slate-400 mb-4 ml-10">请妥善保管，不要泄露给他人</p>
+            <p className="text-xs text-slate-400 mb-4 ml-10">Keep it safe, do not share with others</p>
 
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4">
               {loadingPassword ? (
-                <span className="text-sm text-slate-400 animate-pulse flex-1">获取中...</span>
+                <span className="text-sm text-slate-400 animate-pulse flex-1">Loading...</span>
               ) : (
                 <>
                   <span className="flex-1 font-mono text-sm tracking-widest text-slate-800">

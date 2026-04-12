@@ -16,7 +16,7 @@ export default function EnterpriseCollectTasksPage() {
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newTask, setNewTask] = useState({ taskName: '', platform: '天眼查', keyword: '', maxLimit: 1000 })
+  const [newTask, setNewTask] = useState({ taskName: '', platform: 'LinkedIn', keyword: '', maxLimit: 1000 })
   const [creating, setCreating] = useState(false)
 
   useEffect(() => { loadTasks() }, [])
@@ -27,12 +27,12 @@ export default function EnterpriseCollectTasksPage() {
       const res = await fetch('/api/market/admin/acquisition', { credentials: 'include' })
       const json = await res.json()
       if (json.success) setTasks(json.data.enterpriseCollectTasks || [])
-    } catch { setError('加载任务失败') }
+    } catch { setError('Failed to load tasks') }
     finally { setLoading(false) }
   }
 
   const handleCreate = async () => {
-    if (!newTask.taskName || !newTask.keyword) { setError('请填写任务名称和关键词'); return }
+    if (!newTask.taskName || !newTask.keyword) { setError('Please fill in task name and keyword'); return }
     setCreating(true)
     try {
       const res = await fetch('/api/market/admin/acquisition', {
@@ -42,10 +42,10 @@ export default function EnterpriseCollectTasksPage() {
       })
       const json = await res.json()
       if (json.success) {
-        setNewTask({ taskName: '', platform: '天眼查', keyword: '', maxLimit: 1000 })
+        setNewTask({ taskName: '', platform: 'LinkedIn', keyword: '', maxLimit: 1000 })
         await loadTasks()
-      } else setError(json.error || '创建任务失败')
-    } catch { setError('创建任务失败') }
+      } else setError(json.error || 'Failed to create task')
+    } catch { setError('Failed to create task') }
     finally { setCreating(false) }
   }
 
@@ -57,30 +57,30 @@ export default function EnterpriseCollectTasksPage() {
         body: JSON.stringify({ action: 'update_enterprise_task_status', taskId, status })
       })
       await loadTasks()
-    } catch { setError('更新任务状态失败') }
+    } catch { setError('Failed to update task status') }
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">{t("enterprise_collect_tasks")}</h1>
-      {error && <Alert variant="destructive" className="mb-4"><AlertTitle>错误</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+      {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
       <Card className="mb-8">
         <CardHeader><CardTitle>{t("new_collect_task")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div><Label>{t("task_name")}</Label><Input value={newTask.taskName} onChange={e => setNewTask({...newTask, taskName: e.target.value})} placeholder="请输入任务名称" /></div>
+            <div><Label>{t("task_name")}</Label><Input value={newTask.taskName} onChange={e => setNewTask({...newTask, taskName: e.target.value})} placeholder="Enter task name" /></div>
             <div>
               <Label>{t("source_platform")}</Label>
               <Select value={newTask.platform} onValueChange={v => setNewTask({...newTask, platform: v})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="天眼查">天眼查</SelectItem>
-                  <SelectItem value="企查查">企查查</SelectItem>
-                  <SelectItem value="爱企查">爱企查</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="Crunchbase">Crunchbase</SelectItem>
+                  <SelectItem value="AngelList">AngelList</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>{t("industry_keyword")}</Label><Input value={newTask.keyword} onChange={e => setNewTask({...newTask, keyword: e.target.value})} placeholder="如：AI、医疗、新能源" /></div>
+            <div><Label>{t("industry_keyword")}</Label><Input value={newTask.keyword} onChange={e => setNewTask({...newTask, keyword: e.target.value})} placeholder="e.g. AI, Healthcare, SaaS" /></div>
             <div><Label>{t("collect_limit")}</Label><Input type="number" value={newTask.maxLimit} onChange={e => setNewTask({...newTask, maxLimit: parseInt(e.target.value)})} max={1000} /></div>
           </div>
           <Button onClick={handleCreate} disabled={creating}>{creating ? t("creating") : t("create_task")}</Button>
@@ -90,8 +90,8 @@ export default function EnterpriseCollectTasksPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>任务名称</TableHead><TableHead>平台</TableHead><TableHead>关键词</TableHead>
-              <TableHead>上限</TableHead><TableHead>已采集</TableHead><TableHead>状态</TableHead><TableHead>操作</TableHead>
+              <TableHead>{t("task_name")}</TableHead><TableHead>{t("source_platform")}</TableHead><TableHead>{t("keyword")}</TableHead>
+              <TableHead>{t("collect_limit")}</TableHead><TableHead>Collected</TableHead><TableHead>{t("status")}</TableHead><TableHead>{t("operation")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

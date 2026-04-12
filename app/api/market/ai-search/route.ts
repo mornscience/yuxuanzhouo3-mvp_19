@@ -8,6 +8,8 @@ function getUserId(req: NextRequest) {
   return m ? decodeURIComponent(m[1]) : ""
 }
 
+const isIntlRegion = (process.env.NEXT_PUBLIC_SITE_REGION || "cn").toLowerCase() !== "cn"
+
 function nowIso() { return new Date().toISOString() }
 function expiresAt() {
   const d = new Date()
@@ -22,7 +24,10 @@ async function getSupabase() {
 
 // AI 搜索：调用 web search + LLM 提取
 async function aiSearchAndExtract(query: string, type: string): Promise<{ name: string; email: string; website: string; description: string; rawContent: string }[]> {
-  const typeLabel = type === "blogger" ? "博主/KOL" : type === "enterprise" ? "企业/公司" : "VC投资机构"
+  const isIntl = isIntlRegion
+  const typeLabel = isIntl
+    ? (type === "blogger" ? "Blogger/KOL" : type === "enterprise" ? "Enterprise/Company" : "VC Institution")
+    : (type === "blogger" ? "博主/KOL" : type === "enterprise" ? "企业/公司" : "VC投资机构")
 
   const aliyunKey = process.env.ALIYUN_DASHSCOPE_API_KEY
   const openrouterKey = process.env.OPENROUTER_API_KEY
@@ -44,15 +49,40 @@ async function aiSearchAndExtract(query: string, type: string): Promise<{ name: 
     isAliyun = false
   } else {
     return [{
-      name: `${query} (模拟数据)`,
+      name: isIntl ? `${query} (demo data)` : `${query} (模拟数据)`,
       email: `contact@${query.toLowerCase().replace(/\s+/g, "")}.com`,
       website: `https://www.${query.toLowerCase().replace(/\s+/g, "")}.com`,
-      description: `请配置 AI API Key 获取真实数据。`,
-      rawContent: "模拟数据",
+      description: isIntl ? "Please configure an AI API Key to get real data." : "请配置 AI API Key 获取真实数据。",
+      rawContent: isIntl ? "demo data" : "模拟数据",
     }]
   }
 
-  const systemPrompt = `你是一个专业的商业信息搜索助手，必须通过联网搜索获取真实信息。
+  const systemPrompt = isIntl ? `You are a professional business information search assistant. You MUST use web search to find real information.
+
+Core task: Find the contact email of the ${typeLabel}.
+
+Search strategy (execute in order):
+1. Search "${query} email" "${query} business cooperation email" "${query} contact"
+2. Search "${query} LinkedIn" "${query} Twitter" "${query} Instagram" "${query} YouTube about"
+3. Search "${query} official website" "${query} site:linkedin.com" "${query} site:twitter.com"
+4. Look for emails in platform profile bios (format: xxx@xxx.com)
+
+Email extraction rules:
+- If a clear email is found (contains @), use it directly, set emailSource to "public"
+- If no email but domain found, infer business email like bd@domain, pr@domain, cooperation@domain, set emailSource to "inferred"
+- If cannot infer at all, leave email as empty string
+
+Return ONLY a JSON array, no other text:
+[
+  {
+    "name": "name",
+    "platform": "platform where info was found",
+    "email": "email (found or inferred)",
+    "emailSource": "public/inferred/not found",
+    "website": "profile/homepage URL",
+    "description": "brief description under 50 words"
+  }
+]` : `你是一个专业的商业信息搜索助手，必须通过联网搜索获取真实信息。
 
 核心任务：找到${typeLabel}的联系邮箱。
 
@@ -79,7 +109,9 @@ async function aiSearchAndExtract(query: string, type: string): Promise<{ name: 
   }
 ]`
 
-  const userPrompt = `联网搜索${typeLabel}「${query}」的邮箱和联系方式，重点搜索 B站、知乎、微博、抖音、官网等平台的简介页面，提取其中的邮箱地址。最多返回5条结果。`
+  const userPrompt = isIntl
+    ? `Search the web for ${typeLabel} "${query}" contact email and information. Focus on LinkedIn, Twitter, official website, and other platforms. Return up to 5 results.`
+    : `联网搜索${typeLabel}「${query}」的邮箱和联系方式，重点搜索 B站、知乎、微博、抖音、官网等平台的简介页面，提取其中的邮箱地址。最多返回5条结果。`
 
   const body: Record<string, unknown> = {
     model,
@@ -133,8 +165,8 @@ async function aiSearchAndExtract(query: string, type: string): Promise<{ name: 
       email: String(r.email || ""),
       website: String(r.website || ""),
       description: r.email
-        ? `${String(r.description || "")}${r.emailSource === "推断" ? "【邮箱为推断】" : ""}`
-        : (r.emailNote || "暂无公开邮箱，请手动填写"),
+        ? `${String(r.description || "")}${r.emailSource === "推断" || r.emailSource === "inferred" ? (isIntl ? " (inferred)" : "【邮箱为推断】") : ""}`
+        : (isIntl ? "No public email found, please fill in manually" : "暂无公开邮箱，请手动填写"),
       rawContent: content,
     }))
   } catch (e) {
@@ -145,20 +177,19 @@ async function aiSearchAndExtract(query: string, type: string): Promise<{ name: 
 
 export async function POST(req: NextRequest) {
   const userId = getUserId(req)
-  if (!userId) return NextResponse.json({ ok: false, message: "未登录" }, { status: 401 })
+  if (!userId) return NextResponse.json({ ok: false, message: isIntlRegion ? "Not logged in" : "未登录" }, { status: 401 })
 
   const body = await req.json()
   const { query, type } = body
 
-  if (!query?.trim()) return NextResponse.json({ ok: false, message: "请输入搜索关键词" }, { status: 400 })
-  if (!["blogger", "enterprise", "vc"].includes(type)) return NextResponse.json({ ok: false, message: "类型无效" }, { status: 400 })
+  if (!query?.trim()) return NextResponse.json({ ok: false, message: isIntlRegion ? "Please enter a search keyword" : "请输入搜索关键词" }, { status: 400 })
+  if (!["blogger", "enterprise", "vc"].includes(type)) return NextResponse.json({ ok: false, message: isIntlRegion ? "Invalid type" : "类型无效" }, { status: 400 })
 
-  const COST_PER_CALL = 0.0005  // 每次真实成本，¥0.1 = 200次
+  const COST_PER_CALL = 0.0005
 
   try {
     const sb = await getSupabase()
 
-    // 查用户个人额度，不存在则自动初始化（兼容老用户）
     let { data: quotaRows } = await sb.from("ai_search_quota").select("*").eq("user_id", userId)
     if (!quotaRows?.length) {
       await sb.from("ai_search_quota").upsert({
@@ -174,19 +205,20 @@ export async function POST(req: NextRequest) {
     const totalUsed = parseFloat(quota?.total_used ?? "0")
     const callCount = quota?.call_count ?? 0
 
-    // 余额不足拦截
     if (balance < COST_PER_CALL) {
       const remainingCalls = Math.floor(balance / COST_PER_CALL)
       return NextResponse.json({
         ok: false,
-        message: `AI 搜索余额不足（剩余 ¥${balance.toFixed(4)}，约 ${remainingCalls} 次），请联系管理员充值`,
+        message: isIntlRegion
+          ? `Insufficient AI search balance (¥${balance.toFixed(4)} remaining, ~${remainingCalls} searches). Please top up.`
+          : `AI 搜索余额不足（剩余 ¥${balance.toFixed(4)}，约 ${remainingCalls} 次），请联系管理员充值`,
         code: "BALANCE_INSUFFICIENT",
         quota: { balance, totalUsed, callCount, costPerCall: COST_PER_CALL, remainingCalls },
       }, { status: 429 })
     }
 
     const results = await aiSearchAndExtract(query.trim(), type)
-    if (!results.length) return NextResponse.json({ ok: false, message: "未找到相关结果" }, { status: 404 })
+    if (!results.length) return NextResponse.json({ ok: false, message: isIntlRegion ? "No results found" : "未找到相关结果" }, { status: 404 })
 
     const rows = results.map(r => ({
       id: `asl-${randomUUID().slice(0, 8)}`,
@@ -213,13 +245,14 @@ export async function POST(req: NextRequest) {
     }).eq("user_id", userId)
 
     const remainingCalls = Math.floor(newBalance / COST_PER_CALL)
+    const warn = (n: number) => n <= 20 ? (isIntlRegion ? `Low balance: ~${n} searches remaining` : `余额预警：仅剩约 ${n} 次可用`) : null
     return NextResponse.json({
       ok: true, data,
       quota: {
         balance: newBalance, totalUsed: newTotalUsed,
         callCount: newCallCount, costPerCall: COST_PER_CALL,
         remainingCalls,
-        warning: remainingCalls <= 20 ? `余额预警：仅剩约 ${remainingCalls} 次可用` : null,
+        warning: warn(remainingCalls),
       }
     })
   } catch (e: any) {
@@ -229,7 +262,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const userId = getUserId(req)
-  if (!userId) return NextResponse.json({ ok: false, message: "未登录" }, { status: 401 })
+  if (!userId) return NextResponse.json({ ok: false, message: isIntlRegion ? "Not logged in" : "未登录" }, { status: 401 })
 
   try {
     const sb = await getSupabase()
@@ -246,6 +279,7 @@ export async function GET(req: NextRequest) {
     const totalUsed = parseFloat(quota?.total_used ?? "0")
     const callCount = quota?.call_count ?? 0
     const remainingCalls = Math.floor(balance / COST_PER_CALL)
+    const warn = (n: number) => n <= 20 ? (isIntlRegion ? `Low balance: ~${n} searches remaining` : `余额预警：仅剩约 ${n} 次可用`) : null
 
     return NextResponse.json({
       ok: true,
@@ -254,7 +288,7 @@ export async function GET(req: NextRequest) {
         balance, totalUsed, callCount,
         costPerCall: COST_PER_CALL,
         remainingCalls,
-        warning: remainingCalls <= 20 ? `余额预警：仅剩约 ${remainingCalls} 次可用` : null,
+        warning: warn(remainingCalls),
       }
     })
   } catch (e: any) {
@@ -264,7 +298,7 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const userId = getUserId(req)
-  if (!userId) return NextResponse.json({ ok: false, message: "未登录" }, { status: 401 })
+  if (!userId) return NextResponse.json({ ok: false, message: isIntlRegion ? "Not logged in" : "未登录" }, { status: 401 })
   const { id } = await req.json()
   try {
     const sb = await getSupabase()
@@ -277,24 +311,26 @@ export async function DELETE(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const userId = getUserId(req)
-  if (!userId) return NextResponse.json({ ok: false, message: "未登录" }, { status: 401 })
+  if (!userId) return NextResponse.json({ ok: false, message: isIntlRegion ? "Not logged in" : "未登录" }, { status: 401 })
   const { id, message: emailMessage, subject, toEmail } = await req.json()
   try {
     const sb = await getSupabase()
     const { data: rows } = await sb.from("ai_search_leads").select("*").eq("id", id).eq("user_id", userId)
-    if (!rows?.length) return NextResponse.json({ ok: false, message: "记录不存在" }, { status: 404 })
+    if (!rows?.length) return NextResponse.json({ ok: false, message: isIntlRegion ? "Record not found" : "记录不存在" }, { status: 404 })
     const lead = rows[0]
     const targetEmail = toEmail || lead.email
-    if (!targetEmail) return NextResponse.json({ ok: false, message: "请填写收件邮箱" }, { status: 400 })
+    if (!targetEmail) return NextResponse.json({ ok: false, message: isIntlRegion ? "Please enter recipient email" : "请填写收件邮箱" }, { status: 400 })
 
     await sendEmail({
       to: targetEmail,
-      subject: subject || "来自 mornbusiness 的合作邀约",
-      body: emailMessage || `您好！\n\n我们对您的业务非常感兴趣，希望能与您建立合作关系。\n\n期待您的回复！`,
+      subject: subject || (isIntlRegion ? "Cooperation Invitation from mornbusiness" : "来自 mornbusiness 的合作邀约"),
+      body: emailMessage || (isIntlRegion
+        ? `Hello!\n\nWe are very interested in your business and would love to explore a partnership.\n\nLooking forward to hearing from you!`
+        : `您好！\n\n我们对您的业务非常感兴趣，希望能与您建立合作关系。\n\n期待您的回复！`),
     })
 
     await sb.from("ai_search_leads").update({ email_sent: true, email_sent_at: nowIso() }).eq("id", id)
-    return NextResponse.json({ ok: true, message: "邮件已发送" })
+    return NextResponse.json({ ok: true, message: isIntlRegion ? "Email sent" : "邮件已发送" })
   } catch (e: any) {
     console.error("[ai-search PATCH error]", e.message)
     return NextResponse.json({ ok: false, message: e.message }, { status: 500 })

@@ -47,7 +47,7 @@ export default function BloggerCooperationPage() {
       if (coopJson.ok) setCooperations(coopJson.data || [])
       if (artJson.ok) setArticles(artJson.data || [])
       if (chanJson.ok) setChannels(chanJson.data || [])
-    } catch { setError("加载数据失败") }
+    } catch { setError("Failed to load data") }
     finally { setLoading(false) }
   }
 
@@ -61,9 +61,9 @@ export default function BloggerCooperationPage() {
         body: JSON.stringify({ action: "approve", applicationId: approveModal.app.id, articleId: approveModal.articleId, channelIds: approveModal.channelIds })
       })
       const json = await res.json()
-      if (json.ok) { setApproveModal(null); await loadAll(); alert("已同意合作！") }
-      else setError(json.message || "操作失败")
-    } catch { setError("操作失败") }
+      if (json.ok) { setApproveModal(null); await loadAll(); alert("Cooperation approved!") }
+      else setError(json.message || "Action failed")
+    } catch { setError("Action failed") }
     finally { setActionLoading(null) }
   }
 
@@ -77,8 +77,8 @@ export default function BloggerCooperationPage() {
       })
       const json = await res.json()
       if (json.ok) await loadAll()
-      else setError(json.message || "操作失败")
-    } catch { setError("操作失败") }
+      else setError(json.message || "Action failed")
+    } catch { setError("Action failed") }
     finally { setActionLoading(null) }
   }
 
@@ -92,14 +92,14 @@ export default function BloggerCooperationPage() {
         body: JSON.stringify({ action: "send_message", cooperationId: msgModal.coop.id, message: msgModal.content, email: msgModal.coop.email })
       })
       const json = await res.json()
-      if (json.ok) { alert("消息发送成功"); setMsgModal(null) }
-      else setError(json.message || "发送失败")
-    } catch { setError("发送失败") }
+      if (json.ok) { alert("Message sent successfully"); setMsgModal(null) }
+      else setError(json.message || "Failed to send")
+    } catch { setError("Failed to send") }
     finally { setSending(false) }
   }
 
   const handlePushArticle = async () => {
-    if (!pushModal?.articleId) { alert("请选择要推送的文章"); return }
+    if (!pushModal?.articleId) { alert("Please select an article to push"); return }
     setSending(true)
     try {
       const res = await fetch("/api/market/blogger-cooperation", {
@@ -113,16 +113,16 @@ export default function BloggerCooperationPage() {
         })
       })
       const json = await res.json()
-      if (json.ok) { alert("推广文章已发送给博主！"); setPushModal(null) }
-      else alert(json.message || "推送失败")
-    } catch { alert("推送失败，请重试") }
+      if (json.ok) { alert("Promo article sent to blogger!"); setPushModal(null) }
+      else alert(json.message || "Push failed")
+    } catch { alert("Push failed, please try again") }
     finally { setSending(false) }
   }
 
   const handleBatchSend = async () => {
     const active = cooperations.filter(c => c.status === "active")
-    if (!active.length) { alert("暂无活跃合作博主"); return }
-    const msg = prompt("请输入要群发的消息内容：")
+    if (!active.length) { alert("No active cooperation bloggers"); return }
+    const msg = prompt("Enter the message to broadcast:")
     if (!msg?.trim()) return
     setSending(true)
     try {
@@ -132,9 +132,9 @@ export default function BloggerCooperationPage() {
         body: JSON.stringify({ action: "batch_send", message: msg, cooperationIds: active.map(c => c.id) })
       })
       const json = await res.json()
-      if (json.ok) alert(`成功发送给 ${json.count} 位博主`)
-      else setError(json.message || "发送失败")
-    } catch { setError("发送失败") }
+      if (json.ok) alert(`Successfully sent to ${json.count} bloggers`)
+      else setError(json.message || "Failed to send")
+    } catch { setError("Failed to send") }
     finally { setSending(false) }
   }
 
@@ -163,7 +163,7 @@ export default function BloggerCooperationPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {error && <Alert variant="destructive" className="mb-4"><AlertTitle>错误</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+        {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
 
         <div className="flex gap-2 mb-6 p-1.5 bg-white rounded-2xl border border-slate-100 shadow-sm w-fit">
           <button onClick={() => setTab("received")} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === "received" ? "bg-blue-600 text-white shadow" : "text-slate-600 hover:bg-slate-50"}`}>
@@ -185,13 +185,13 @@ export default function BloggerCooperationPage() {
           <Card className="overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2"><Clock size={16} className="text-blue-500" /><span className="font-semibold">{t("received_coop_apps")}</span></div>
-              <span className="text-xs text-slate-400">同意后对方可向你的博主发送推广文章</span>
+              <span className="text-xs text-slate-400">After approval, they can send promo articles to your bloggers</span>
             </div>
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
-                  <TableHead>申请方</TableHead><TableHead>申请方邮箱</TableHead><TableHead>博主昵称</TableHead>
-                  <TableHead>平台</TableHead><TableHead>留言</TableHead><TableHead>状态</TableHead><TableHead className="text-right">操作</TableHead>
+                  <TableHead>Applicant</TableHead><TableHead>Email</TableHead><TableHead>Blogger</TableHead>
+                  <TableHead>Platform</TableHead><TableHead>Message</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -200,7 +200,7 @@ export default function BloggerCooperationPage() {
                   <TableRow><TableCell colSpan={7} className="text-center py-12 text-slate-400">{t("no_received_coop")}</TableCell></TableRow>
                 ) : received.map(app => (
                   <TableRow key={app.id} className="hover:bg-blue-50/30">
-                    <TableCell className="font-medium">{app.applicant_name || app.applicantName || "未知"}</TableCell>
+                    <TableCell className="font-medium">{app.applicant_name || app.applicantName || "Unknown"}</TableCell>
                     <TableCell className="text-slate-500 text-sm">{app.applicant_email || app.applicantEmail || "-"}</TableCell>
                     <TableCell>{app.blogger_name || app.bloggerName}</TableCell>
                     <TableCell>{app.platform}</TableCell>
@@ -236,8 +236,8 @@ export default function BloggerCooperationPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
-                  <TableHead>博主昵称</TableHead><TableHead>平台</TableHead><TableHead>联系邮箱</TableHead>
-                  <TableHead>单条报价</TableHead><TableHead>分成比例</TableHead><TableHead>留言</TableHead><TableHead>状态</TableHead>
+                  <TableHead>Blogger</TableHead><TableHead>Platform</TableHead><TableHead>Email</TableHead>
+                  <TableHead>Price</TableHead><TableHead>Commission</TableHead><TableHead>Message</TableHead><TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -272,8 +272,8 @@ export default function BloggerCooperationPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
-                  <TableHead>博主昵称</TableHead><TableHead>平台</TableHead><TableHead>联系邮箱</TableHead>
-                  <TableHead>单条报价</TableHead><TableHead>分成比例</TableHead><TableHead>状态</TableHead><TableHead className="text-right">操作</TableHead>
+                  <TableHead>Blogger</TableHead><TableHead>Platform</TableHead><TableHead>Email</TableHead>
+                  <TableHead>Price</TableHead><TableHead>Commission</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -314,15 +314,15 @@ export default function BloggerCooperationPage() {
             <div className="bg-gradient-to-r from-green-600 to-emerald-500 px-6 py-4">
               <h3 className="text-white font-bold text-lg">{t("confirm_approve_coop")}</h3>
               <p className="text-white/70 text-xs mt-0.5">
-                同意后「{approveModal.app.applicant_name || approveModal.app.applicantName}」将加入合作列表，可向你的博主「{approveModal.app.blogger_name || approveModal.app.bloggerName}」发送推广文章
+                After approval, &quot;{approveModal.app.applicant_name || approveModal.app.applicantName}&quot; will be added to your cooperation list and can send promo articles to blogger &quot;{approveModal.app.blogger_name || approveModal.app.bloggerName}&quot;
               </p>
             </div>
             <div className="p-6">
               <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-500">申请方</span><span className="font-medium">{approveModal.app.applicant_name || approveModal.app.applicantName}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">博主昵称</span><span className="font-medium">{approveModal.app.blogger_name || approveModal.app.bloggerName}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">平台</span><span>{approveModal.app.platform}</span></div>
-                {approveModal.app.message && <div className="flex justify-between"><span className="text-slate-500">留言</span><span className="text-slate-600">{approveModal.app.message}</span></div>}
+                <div className="flex justify-between"><span className="text-slate-500">Applicant</span><span className="font-medium">{approveModal.app.applicant_name || approveModal.app.applicantName}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Blogger</span><span className="font-medium">{approveModal.app.blogger_name || approveModal.app.bloggerName}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Platform</span><span>{approveModal.app.platform}</span></div>
+                {approveModal.app.message && <div className="flex justify-between"><span className="text-slate-500">Message</span><span className="text-slate-600">{approveModal.app.message}</span></div>}
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setApproveModal(null)}>{t("cancel")}</Button>
@@ -341,33 +341,33 @@ export default function BloggerCooperationPage() {
           <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
               <h3 className="text-white font-bold text-lg">{t("push_promo_article")}</h3>
-              <p className="text-white/70 text-xs mt-0.5">向博主「{pushModal.coop.blogger_name || pushModal.coop.bloggerName}」发送推广文章</p>
+              <p className="text-white/70 text-xs mt-0.5">Send promo article to blogger &quot;{pushModal.coop.blogger_name || pushModal.coop.bloggerName}&quot;</p>
             </div>
             <div className="p-6 space-y-5">
               <div>
                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-1.5 mb-2">
-                  <FileText size={14} className="text-blue-500" /> 选择推广文章
+                  <FileText size={14} className="text-blue-500" /> Select Promo Article
                 </label>
                 {articles.length === 0 ? (
                   <div className="text-sm text-slate-400 bg-slate-50 rounded-xl p-3">
-                    暂无文章，<button onClick={() => router.push("/market/article-templates")} className="text-blue-600 underline">去创建</button>
+                    No articles yet. <button onClick={() => router.push("/market/article-templates")} className="text-blue-600 underline">Create one</button>
                   </div>
                 ) : (
                   <select className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                     value={pushModal.articleId}
                     onChange={e => setPushModal({ ...pushModal, articleId: e.target.value })}>
-                    <option value="">-- 请选择文章 --</option>
+                    <option value="">-- Select article --</option>
                     {articles.map((a: any) => <option key={a.id} value={a.id}>{a.title}</option>)}
                   </select>
                 )}
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-1.5 mb-2">
-                  <Globe size={14} className="text-purple-500" /> 同步发布到企业频道（可选）
+                  <Globe size={14} className="text-purple-500" /> Also publish to channels (optional)
                 </label>
                 {channels.length === 0 ? (
                   <div className="text-sm text-slate-400 bg-slate-50 rounded-xl p-3">
-                    暂无频道，<button onClick={() => router.push("/market/publish-channels")} className="text-blue-600 underline">去添加</button>
+                    No channels yet. <button onClick={() => router.push("/market/publish-channels")} className="text-blue-600 underline">Add one</button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
@@ -401,12 +401,12 @@ export default function BloggerCooperationPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
-              <h3 className="text-white font-bold">发送消息给 {msgModal.coop.blogger_name || msgModal.coop.bloggerName}</h3>
+              <h3 className="text-white font-bold">Send Message to {msgModal.coop.blogger_name || msgModal.coop.bloggerName}</h3>
               <p className="text-white/70 text-xs mt-0.5">{msgModal.coop.email}</p>
             </div>
             <div className="p-6 space-y-4">
               <textarea className="w-full border border-slate-200 rounded-xl p-3 text-sm h-32 resize-none focus:outline-none focus:border-blue-400"
-                placeholder="请输入消息内容..." value={msgModal.content}
+                placeholder="Enter your message..." value={msgModal.content}
                 onChange={e => setMsgModal({ ...msgModal, content: e.target.value })} />
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setMsgModal(null)}>{t("cancel")}</Button>

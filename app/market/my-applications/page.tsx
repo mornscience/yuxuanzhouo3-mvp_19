@@ -107,12 +107,12 @@ function StatusPill({ status }: { status: string }) {
 function TypePill({ type }: { type?: "b2b" | "vc" }) {
   if (type === "b2b") return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-600">
-      <Building2 size={9} /> 企业线索
+      <Building2 size={9} /> Enterprise Lead
     </span>
   )
   if (type === "vc") return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-600">
-      <Handshake size={9} /> 投融资
+      <Handshake size={9} /> VC / Funding
     </span>
   )
   return null
@@ -171,8 +171,8 @@ export default function MyApplicationsPage() {
       }))
       setSelectedGroup(null); setActionType(null)
       fetchApplications()
-      showToast(actionType === "approve" ? "✅ 已同意合作申请" : "✅ 已拒绝申请")
-    } catch (err) { showToast(`❌ ${err instanceof Error ? err.message : "操作失败"}`) }
+      showToast(actionType === "approve" ? "✅ Cooperation approved" : "✅ Application rejected")
+    } catch (err) { showToast(`❌ ${err instanceof Error ? err.message : "Action failed"}`) }
     finally { setProcessing(false) }
   }
 
@@ -222,16 +222,16 @@ export default function MyApplicationsPage() {
             </div>
             <div>
               <p className="font-bold text-slate-800 text-sm">
-                {isReceived ? group.applicantName : (group.apps[0]?.leadName || "线索申请")}
+                {isReceived ? group.applicantName : (group.apps[0]?.leadName || t("lead_application"))}
               </p>
               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                 {types.map(t => <TypePill key={t} type={t} />)}
                 {hasMultiple && (
-                  <span className="text-[10px] text-slate-400 font-medium">· {group.apps.length} 项申请</span>
+                  <span className="text-[10px] text-slate-400 font-medium">· {group.apps.length} applications</span>
                 )}
                 {!isReceived && group.mergedStatus === "approved" && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                    ✦ 我的合作
+                    ✦ {t("my_coop")}
                   </span>
                 )}
               </div>
@@ -240,7 +240,7 @@ export default function MyApplicationsPage() {
         <div className="flex items-center gap-2 flex-shrink-0">
             {/* 申请次数角标 */}
             {group.apps.length > 1 && (
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-bold shadow-md" title={`共 ${group.apps.length} 次申请`}>
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-bold shadow-md" title={`${group.apps.length} applications`}>
                 {group.apps.length}
               </span>
             )}
@@ -276,37 +276,35 @@ export default function MyApplicationsPage() {
         {/* 留言 */}
         {group.message && !((!isReceived) && group.mergedStatus === "approved") && (
           <div className="rounded-xl bg-white/60 border border-white/60 px-3 py-2 text-xs text-slate-500">
-            <span className="text-slate-400">{isReceived ? "留言：" : "您的留言："}</span>{group.message}
+            <span className="text-slate-400">{isReceived ? "Message: " : "Your message: "}</span>{group.message}
           </div>
         )}
 
         <p className="text-[11px] text-slate-400">
-          {t("apply_time")}{new Date(group.createdAt).toLocaleString("zh-CN")}
+          {t("apply_time")}{new Date(group.createdAt).toLocaleString("en-US")}
         </p>
 
-        {/* B 待处理：操作按钮 */}
         {isReceived && group.mergedStatus === "pending" && (
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => { setSelectedGroup(group); setActionType("approve") }}
               className="flex-1 h-9 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-semibold shadow-md shadow-emerald-500/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
             >
-              <CheckCircle size={13} /> 同意合作
+              <CheckCircle size={13} /> Approve
             </button>
             <button
               onClick={() => { setSelectedGroup(group); setActionType("reject") }}
               className="flex-1 h-9 rounded-xl border border-red-200 bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-1.5"
             >
-              <XCircle size={13} /> 拒绝
+              <XCircle size={13} /> Reject
             </button>
           </div>
         )}
 
-        {/* B 已同意提示 */}
         {isReceived && group.mergedStatus === "approved" && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
             <CheckCircle size={13} className="text-emerald-600 flex-shrink-0" />
-            <p className="text-xs text-emerald-700 font-medium">已录入「我的跟进」，可在商家模式中查看和跟进</p>
+            <p className="text-xs text-emerald-700 font-medium">Added to &quot;My Follow-ups&quot;, view in Merchant Mode</p>
           </div>
         )}
       </div>
@@ -333,7 +331,7 @@ export default function MyApplicationsPage() {
             <span className="font-semibold text-slate-800 text-sm">{t("coop_mgmt")}</span>
           </div>
           <button onClick={() => router.push("/market/leads-pool")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
-            <Building2 size={15} /> 线索池
+            <Building2 size={15} /> {t("leads_pool")}
           </button>
         </div>
       </header>
@@ -374,7 +372,7 @@ export default function MyApplicationsPage() {
           )
         ) : (
           sentGroups.length === 0 ? (
-            <EmptyState icon={Send} title="暂无发起的申请" sub="您还没有向任何线索发起合作申请" btnLabel="去浏览线索池" btnHref="/market/leads-pool" />
+            <EmptyState icon={Send} title="No applications sent" sub="You haven't applied to any leads yet" btnLabel="Browse Leads Pool" btnHref="/market/leads-pool" />
           ) : (
             <div className="space-y-3">
               {sentGroups.map(g => <GroupCard key={g.key} group={g} isReceived={false} />)}
@@ -397,8 +395,8 @@ export default function MyApplicationsPage() {
               </h3>
               <p className="text-white/70 text-xs mt-1">
                 {actionType === "approve"
-                  ? `即将同意与 ${selectedGroup.applicantName} 的 ${selectedGroup.apps.length} 项申请`
-                  : `即将拒绝 ${selectedGroup.applicantName} 的申请`}
+                  ? `Approving ${selectedGroup.apps.length} application(s) from ${selectedGroup.applicantName}`
+                  : `Rejecting application from ${selectedGroup.applicantName}`}
               </p>
             </div>
             <div className="p-6 flex gap-3">

@@ -18,7 +18,7 @@ export default function BloggerCollectTasksPage() {
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newTask, setNewTask] = useState({ taskName: '', platform: '抖音', keyword: '', maxLimit: 1000 })
+  const [newTask, setNewTask] = useState({ taskName: '', platform: 'YouTube', keyword: '', maxLimit: 1000 })
   const [creating, setCreating] = useState(false)
 
   useEffect(() => { loadTasks() }, [])
@@ -29,12 +29,12 @@ export default function BloggerCollectTasksPage() {
       const res = await fetch('/api/market/admin/acquisition', { credentials: 'include' })
       const json = await res.json()
       if (json.success) setTasks(json.data.collectTasks || [])
-    } catch { setError('加载任务失败') }
+    } catch { setError('Failed to load tasks') }
     finally { setLoading(false) }
   }
 
   const handleCreate = async () => {
-    if (!newTask.taskName || !newTask.keyword) { setError('请填写任务名称和关键词'); return }
+    if (!newTask.taskName || !newTask.keyword) { setError('Please fill in task name and keyword'); return }
     setCreating(true)
     try {
       const res = await fetch('/api/market/admin/acquisition', {
@@ -44,10 +44,10 @@ export default function BloggerCollectTasksPage() {
       })
       const json = await res.json()
       if (json.success) {
-        setNewTask({ taskName: '', platform: '抖音', keyword: '', maxLimit: 1000 })
+        setNewTask({ taskName: '', platform: 'YouTube', keyword: '', maxLimit: 1000 })
         await loadTasks()
-      } else setError(json.error || '创建任务失败')
-    } catch { setError('创建任务失败') }
+      } else setError(json.error || 'Failed to create task')
+    } catch { setError('Failed to create task') }
     finally { setCreating(false) }
   }
 
@@ -59,37 +59,37 @@ export default function BloggerCollectTasksPage() {
         body: JSON.stringify({ action: 'update_collect_task_status', taskId, status })
       })
       await loadTasks()
-    } catch { setError('更新任务状态失败') }
+    } catch { setError('Failed to update task status') }
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-8">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/market/collect-tasks"><ArrowLeft size={16} /> 返回</Link>
+          <Link href="/market/collect-tasks"><ArrowLeft size={16} /> {t("back")}</Link>
         </Button>
         <h1 className="text-3xl font-bold">{t("blogger_collect_mgmt")}</h1>
       </div>
-      {error && <Alert variant="destructive" className="mb-4"><AlertTitle>错误</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+      {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
       <Card className="mb-8">
         <CardHeader><CardTitle>{t("new_collect_task")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div><Label>{t("task_name")}</Label><Input value={newTask.taskName} onChange={e => setNewTask({...newTask, taskName: e.target.value})} placeholder="请输入任务名称" /></div>
+            <div><Label>{t("task_name")}</Label><Input value={newTask.taskName} onChange={e => setNewTask({...newTask, taskName: e.target.value})} placeholder="Enter task name" /></div>
             <div>
               <Label>{t("source_platform")}</Label>
               <Select value={newTask.platform} onValueChange={v => setNewTask({...newTask, platform: v})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="抖音">抖音</SelectItem>
-                  <SelectItem value="小红书">小红书</SelectItem>
                   <SelectItem value="YouTube">YouTube</SelectItem>
-                  <SelectItem value="微博">微博</SelectItem>
-                  <SelectItem value="B站">B站</SelectItem>
+                  <SelectItem value="TikTok">TikTok</SelectItem>
+                  <SelectItem value="Instagram">Instagram</SelectItem>
+                  <SelectItem value="Twitter">Twitter</SelectItem>
+                  <SelectItem value="B站">Bilibili</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>{t("keyword")}</Label><Input value={newTask.keyword} onChange={e => setNewTask({...newTask, keyword: e.target.value})} placeholder="如：美妆、科技、美食" /></div>
+            <div><Label>{t("keyword")}</Label><Input value={newTask.keyword} onChange={e => setNewTask({...newTask, keyword: e.target.value})} placeholder="e.g. Beauty, Tech, Food" /></div>
             <div><Label>{t("collect_limit")}</Label><Input type="number" value={newTask.maxLimit} onChange={e => setNewTask({...newTask, maxLimit: parseInt(e.target.value)})} max={1000} min={1} /></div>
           </div>
           <Button onClick={handleCreate} disabled={creating}>{creating ? t("creating") : t("create_task")}</Button>
@@ -99,8 +99,8 @@ export default function BloggerCollectTasksPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>任务名称</TableHead><TableHead>平台</TableHead><TableHead>关键词</TableHead>
-              <TableHead>上限</TableHead><TableHead>已采集</TableHead><TableHead>状态</TableHead><TableHead>操作</TableHead>
+              <TableHead>{t("task_name")}</TableHead><TableHead>{t("source_platform")}</TableHead><TableHead>{t("keyword")}</TableHead>
+              <TableHead>{t("collect_limit")}</TableHead><TableHead>Collected</TableHead><TableHead>{t("status")}</TableHead><TableHead>{t("operation")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

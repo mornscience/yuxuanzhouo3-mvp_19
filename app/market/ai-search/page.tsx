@@ -15,9 +15,9 @@ type Lead = {
 }
 
 const TYPE_CONFIG = {
-  blogger: { label: "博主/KOL", icon: Users, color: "bg-blue-100 text-blue-700 border-blue-200" },
-  enterprise: { label: "企业", icon: Building2, color: "bg-purple-100 text-purple-700 border-purple-200" },
-  vc: { label: "VC机构", icon: TrendingUp, color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  blogger: { label: "Blogger/KOL", icon: Users, color: "bg-blue-100 text-blue-700 border-blue-200" },
+  enterprise: { label: "Enterprise", icon: Building2, color: "bg-purple-100 text-purple-700 border-purple-200" },
+  vc: { label: "VC Institution", icon: TrendingUp, color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
 }
 
 export default function AISearchPage() {
@@ -50,7 +50,7 @@ export default function AISearchPage() {
   }
 
   const handleSearch = async () => {
-    if (!query.trim()) { setError("请输入搜索关键词"); return }
+    if (!query.trim()) { setError("Please enter a search keyword"); return }
     setSearching(true)
     setError("")
     try {
@@ -62,17 +62,17 @@ export default function AISearchPage() {
       const json = await res.json()
       if (json.ok) {
         if (json.quota) setUsage(json.quota)
-        showToast(`✅ 搜索完成，找到 ${json.data?.length || 0} 条结果（剩余约 ${json.quota?.remainingCalls ?? usage.remainingCalls} 次）`)
+        showToast(`✅ Search complete, found ${json.data?.length || 0} results (~${json.quota?.remainingCalls ?? usage.remainingCalls} remaining)`)
         await loadLeads()
       } else {
-        setError(json.message || "搜索失败")
+        setError(json.message || "Search failed")
       }
-    } catch { setError("搜索失败，请重试") }
+    } catch { setError("Search failed, please try again") }
     finally { setSearching(false) }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("确定删除这条记录？")) return
+    if (!confirm("Delete this record?")) return
     try {
       await fetch("/api/market/ai-search", {
         method: "DELETE", credentials: "include",
@@ -80,7 +80,7 @@ export default function AISearchPage() {
         body: JSON.stringify({ id })
       })
       setLeads(prev => prev.filter((l: Lead) => l.id !== id))
-      showToast("已删除")
+      showToast("Deleted")
     } catch {}
   }
 
@@ -94,9 +94,9 @@ export default function AISearchPage() {
         body: JSON.stringify({ id: msgModal.lead.id, subject: msgModal.subject, message: msgModal.content, toEmail: msgModal.toEmail })
       })
       const json = await res.json()
-      if (json.ok) { showToast("✅ 邮件已发送"); setMsgModal(null); await loadLeads() }
-      else setError(json.message || "发送失败")
-    } catch { setError("发送失败") }
+      if (json.ok) { showToast("✅ Email sent"); setMsgModal(null); await loadLeads() }
+      else setError(json.message || "Send failed")
+    } catch { setError("Send failed") }
     finally { setSending(false) }
   }
 
@@ -113,7 +113,7 @@ export default function AISearchPage() {
             <ArrowLeft size={16} /> {t("back")}
           </button>
           <span className="font-semibold text-slate-800">{t("ai_search_title")}</span>
-          <span className="text-xs text-slate-400 ml-1">· 搜索博主/企业/VC，自动提取联系方式</span>
+          <span className="text-xs text-slate-400 ml-1">· Search bloggers / enterprises / VCs, auto-extract contacts</span>
         </div>
       </header>
 
@@ -136,7 +136,7 @@ export default function AISearchPage() {
             <div className="flex gap-3">
               <Input value={query} onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !isQuotaExceeded && handleSearch()}
-                placeholder={`搜索${TYPE_CONFIG[type].label}名称、领域关键词...`}
+                placeholder={`Search ${TYPE_CONFIG[type].label} name, keyword...`}
                 className="flex-1 h-11 rounded-xl" />
               <Button onClick={handleSearch} disabled={searching || isQuotaExceeded} className="h-11 px-6 bg-blue-600 hover:bg-blue-700 rounded-xl disabled:opacity-50">
                 {searching ? <><Loader2 size={15} className="mr-2 animate-spin" />{t("searching")}</> : <><Search size={15} className="mr-2" />{t("ai_search")}</>}
@@ -146,9 +146,9 @@ export default function AISearchPage() {
             {isQuotaExceeded && (
               <Alert variant="destructive">
                 <AlertDescription className="flex items-center justify-between">
-                  <span>AI 搜索余额不足，请购买会员获取更多次数</span>
+                  <span>Insufficient AI search balance, please purchase membership for more credits</span>
                   <button onClick={() => router.push("/market/membership?from=quota")}
-                    className="ml-3 text-xs underline font-semibold whitespace-nowrap">立即购买 →</button>
+                    className="ml-3 text-xs underline font-semibold whitespace-nowrap">Buy Now →</button>
                 </AlertDescription>
               </Alert>
             )}
@@ -160,11 +160,11 @@ export default function AISearchPage() {
             {/* 用量展示 */}
             <div className="bg-slate-50 rounded-xl px-4 py-3 space-y-2">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>余额 <span className={`font-semibold ${usage.remainingCalls <= 20 ? "text-red-500" : "text-slate-700"}`}>¥{usage.balance.toFixed(4)}</span></span>
-                <span>已消费 <span className="font-semibold text-slate-700">¥{usage.totalUsed.toFixed(4)}</span></span>
-                <span>累计调用 <span className="font-semibold text-slate-700">{usage.callCount}</span> 次</span>
+                <span>Balance <span className={`font-semibold ${usage.remainingCalls <= 20 ? "text-red-500" : "text-slate-700"}`}>¥{usage.balance.toFixed(4)}</span></span>
+                <span>Used <span className="font-semibold text-slate-700">¥{usage.totalUsed.toFixed(4)}</span></span>
+                <span>Total calls <span className="font-semibold text-slate-700">{usage.callCount}</span></span>
                 <span className={`font-semibold ${usage.remainingCalls <= 20 ? "text-red-500" : usage.remainingCalls <= 50 ? "text-orange-500" : "text-emerald-600"}`}>
-                  剩余约 {usage.remainingCalls} 次
+                  ~{usage.remainingCalls} remaining
                 </span>
               </div>
               <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -174,14 +174,14 @@ export default function AISearchPage() {
                 />
               </div>
             </div>
-            <p className="text-xs text-slate-400">每次搜索约消耗 ¥{usage.costPerCall}，注册赠送 ¥0.1（约200次）</p>
+            <p className="text-xs text-slate-400">~¥{usage.costPerCall} per search, ¥0.1 free on signup (~200 searches)</p>
           </div>
         </div>
 
         {/* 结果列表 */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-800">搜索结果 <span className="text-slate-400 font-normal text-sm">({leads.length} 条)</span></h3>
+            <h3 className="font-semibold text-slate-800">{t("search_results")} <span className="text-slate-400 font-normal text-sm">({leads.length})</span></h3>
           </div>
 
           {loading ? (
@@ -207,27 +207,27 @@ export default function AISearchPage() {
                         </span>
                         {lead.email_sent && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
-                            <CheckCircle size={11} /> 已发送邮件
+                            <CheckCircle size={11} /> Email Sent
                           </span>
                         )}
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${days <= 1 ? "text-red-500" : "text-slate-400"}`}>
-                          <Clock size={10} /> {days}天后销毁
+                          <Clock size={10} /> Expires in {days}d
                         </span>
                       </div>
-                      <h4 className="font-semibold text-slate-800 text-base">{lead.name || "未知名称"}</h4>
+                      <h4 className="font-semibold text-slate-800 text-base">{lead.name || "Unknown"}</h4>
                       {lead.description && <p className="text-sm text-slate-500 mt-1 line-clamp-2">{lead.description}</p>}
                       <div className="flex flex-wrap gap-3 mt-2">
                         {lead.email && (
                           <span className="flex items-center gap-1 text-xs text-slate-500">
                             <Mail size={11} className="text-blue-400" /> {lead.email}
                             {lead.email.startsWith("bd@") || lead.email.startsWith("contact@") || lead.email.startsWith("pr@") || lead.email.startsWith("cooperation@") ? (
-                              <span className="text-orange-400 text-[10px]">（推断）</span>
+                              <span className="text-orange-400 text-[10px]">(inferred)</span>
                             ) : null}
                           </span>
                         )}
                         {!lead.email && (
                           <span className="flex items-center gap-1 text-xs text-orange-400">
-                            <Mail size={11} /> 暂无邮箱，可手动填写发送
+                            <Mail size={11} /> No email, fill in manually to send
                           </span>
                         )}
                         {lead.website && (
@@ -237,14 +237,14 @@ export default function AISearchPage() {
                           </a>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">搜索词：{lead.query}</p>
+                      <p className="text-xs text-slate-400 mt-1">Query: {lead.query}</p>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
                       <Button size="sm" variant="outline" className="h-8 text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
                         onClick={() => setMsgModal({
                           lead,
-                          subject: "来自 mornbusiness 的合作邀约",
-                          content: `您好！\n\n我们对您的业务非常感兴趣，希望能与您建立合作关系。\n\n期待您的回复！`
+                          subject: "Cooperation Invitation from mornbusiness",
+                          content: `Hello!\n\nWe are very interested in your business and would love to explore a partnership.\n\nLooking forward to hearing from you!`
                         })}>
                         <Send size={12} className="mr-1" /> {t("send_coop_info")}
                       </Button>
@@ -266,27 +266,27 @@ export default function AISearchPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
-              <h3 className="text-white font-bold">发送合作信息</h3>
-              <p className="text-white/70 text-xs mt-0.5">发送至：{msgModal.toEmail || msgModal.lead.email || "（请填写邮箱）"}</p>
+              <h3 className="text-white font-bold">{t("send_coop_info")}</h3>
+              <p className="text-white/70 text-xs mt-0.5">To: {msgModal.toEmail || msgModal.lead.email || "(please enter email)"}</p>
             </div>
             <div className="p-6 space-y-4">
               {!msgModal.lead.email && (
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-1 block">收件邮箱 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Recipient Email <span className="text-red-500">*</span></label>
                   <Input
                     value={msgModal.toEmail || ""}
                     onChange={e => setMsgModal({ ...msgModal, toEmail: e.target.value })}
-                    placeholder="请输入对方邮箱地址"
+                    placeholder="Enter recipient email"
                     className="rounded-xl"
                   />
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-1 block">邮件主题</label>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Subject</label>
                 <Input value={msgModal.subject} onChange={e => setMsgModal({ ...msgModal, subject: e.target.value })} className="rounded-xl" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-1 block">邮件内容</label>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Message</label>
                 <textarea className="w-full border border-slate-200 rounded-xl p-3 text-sm h-36 resize-none focus:outline-none focus:border-blue-400"
                   value={msgModal.content} onChange={e => setMsgModal({ ...msgModal, content: e.target.value })} />
               </div>

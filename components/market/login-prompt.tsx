@@ -32,14 +32,14 @@ export function LoginPrompt({ isOpen, onClose }: LoginPromptProps) {
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>您还没有登录</AlertDialogTitle>
+          <AlertDialogTitle>You are not logged in</AlertDialogTitle>
           <AlertDialogDescription>
-            您还没有登录，不能使用该功能。是否前往登录页面？
+            You need to log in to use this feature. Go to the login page?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>取消</AlertDialogCancel>
-          <AlertDialogAction onClick={handleLogin}>去登录</AlertDialogAction>
+          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleLogin}>Log In</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

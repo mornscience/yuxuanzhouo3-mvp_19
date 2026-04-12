@@ -50,9 +50,9 @@ export default function ProfileEditPage() {
     const hasBasic = nickname !== initialNickname || phone !== initialPhone
     const hasPassword = !!(oldPassword && newPassword)
 
-    if (!hasBasic && !hasPassword) { setMsg({ type: "err", text: "没有检测到任何修改" }); return }
-    if (newPassword && newPassword !== confirmPassword) { setMsg({ type: "err", text: "新密码与确认密码不匹配" }); return }
-    if (newPassword && newPassword.length < 6) { setMsg({ type: "err", text: "新密码至少 6 位" }); return }
+    if (!hasBasic && !hasPassword) { setMsg({ type: "err", text: "No changes detected" }); return }
+    if (newPassword && newPassword !== confirmPassword) { setMsg({ type: "err", text: "New passwords do not match" }); return }
+    if (newPassword && newPassword.length < 6) { setMsg({ type: "err", text: "New password must be at least 6 characters" }); return }
 
     setSaving(true)
     try {
@@ -78,16 +78,16 @@ export default function ProfileEditPage() {
       const results = await Promise.all(promises)
       const failed = results.find(r => !r.ok)
       if (failed) {
-        setMsg({ type: "err", text: failed.message || "更新失败" })
+        setMsg({ type: "err", text: failed.message || "Update failed" })
       } else {
-        setMsg({ type: "ok", text: "资料更新成功，即将返回..." })
+        setMsg({ type: "ok", text: "Profile updated successfully, redirecting..." })
         setOldPassword(""); setNewPassword(""); setConfirmPassword("")
         setInitialNickname(nickname.trim())
         setInitialPhone(phone.trim())
         setTimeout(() => router.push("/market/profile"), 1500)
       }
     } catch (err) {
-      setMsg({ type: "err", text: err instanceof Error ? err.message : "网络错误" })
+      setMsg({ type: "err", text: err instanceof Error ? err.message : "Network error" })
     } finally {
       setSaving(false)
     }
@@ -157,22 +157,22 @@ export default function ProfileEditPage() {
             </div>
             <div className="px-5 pb-5 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">昵称</label>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t("nickname")}</label>
                 <input
                   value={nickname}
                   onChange={e => setNickname(e.target.value)}
-                  placeholder="请输入昵称"
+                  placeholder="Enter nickname"
                   className={inputCls}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">手机号</label>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t("phone")}</label>
                 <div className="relative">
                   <Phone size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    placeholder="请输入手机号"
+                    placeholder="Enter phone number"
                     className={`${inputCls} pl-10`}
                   />
                 </div>
@@ -187,13 +187,13 @@ export default function ProfileEditPage() {
                 <Lock size={13} className="text-white" />
               </div>
               <span className="text-sm font-semibold text-slate-700">{t("change_password")}</span>
-              <span className="text-xs text-slate-400 ml-1">（不修改可留空）</span>
+              <span className="text-xs text-slate-400 ml-1">(leave blank to keep unchanged)</span>
             </div>
             <div className="px-5 pb-5 space-y-4">
               {[
-                { label: "旧密码", val: oldPassword, set: setOldPassword, show: showOld, toggle: () => setShowOld(v => !v) },
-                { label: "新密码", val: newPassword, set: setNewPassword, show: showNew, toggle: () => setShowNew(v => !v), hint: "至少 6 位" },
-                { label: "确认新密码", val: confirmPassword, set: setConfirmPassword, show: showConfirm, toggle: () => setShowConfirm(v => !v) },
+                { label: t("old_password"), val: oldPassword, set: setOldPassword, show: showOld, toggle: () => setShowOld(v => !v) },
+                { label: t("new_password"), val: newPassword, set: setNewPassword, show: showNew, toggle: () => setShowNew(v => !v), hint: "min 6 chars" },
+                { label: t("confirm_new_password"), val: confirmPassword, set: setConfirmPassword, show: showConfirm, toggle: () => setShowConfirm(v => !v) },
               ].map(({ label, val, set, show, toggle, hint }) => (
                 <div key={label} className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -205,7 +205,7 @@ export default function ProfileEditPage() {
                       type={show ? "text" : "password"}
                       value={val}
                       onChange={e => set(e.target.value)}
-                      placeholder={`请输入${label}`}
+                      placeholder={`Enter ${label.toLowerCase()}`}
                       className={`${inputCls} pl-10 pr-11`}
                     />
                     <button type="button" onClick={toggle} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">
