@@ -256,7 +256,7 @@ function MembershipContent() {
         {/* Benefits */}
         <div className="rounded-2xl p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t("membership_benefits")}</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {["AI Smart Search credits", "Blogger pool access", "Enterprise leads", "VC connection pool"].map(b => (
               <div key={b} className="flex items-center gap-1.5 text-xs text-slate-600">
                 <Check size={12} className="text-emerald-500 flex-shrink-0" /> {b}

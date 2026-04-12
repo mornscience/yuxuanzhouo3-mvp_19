@@ -214,7 +214,7 @@ export default function LeadsPoolPage() {
                   <Input placeholder={t("region_placeholder")} className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={b2bFilters.region} onChange={e => setB2bFilters(p => ({ ...p, region: e.target.value }))} />
                 </div>
               </div>
-              <div className="w-40">
+              <div className="w-full sm:w-40">
                 <Label className="text-xs text-slate-400 mb-1.5 block">{t("progress_status")}</Label>
                 <Select value={b2bFilters.status || "all"} onValueChange={v => setB2bFilters(p => ({ ...p, status: v === "all" ? "" : v }))}>
                   <SelectTrigger className="h-9 rounded-xl bg-white/60 border-white/60 text-sm"><SelectValue placeholder={t("all")} /></SelectTrigger>
@@ -227,7 +227,7 @@ export default function LeadsPoolPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-36">
+              <div className="w-full sm:w-36">
                 <Label className="text-xs text-slate-400 mb-1.5 block">{t("sort")}</Label>
                 <Select value={b2bFilters.sortBy} onValueChange={v => setB2bFilters(p => ({ ...p, sortBy: v as any }))}>
                   <SelectTrigger className="h-9 rounded-xl bg-white/60 border-white/60 text-sm"><SelectValue /></SelectTrigger>
@@ -257,7 +257,7 @@ export default function LeadsPoolPage() {
                   <Input placeholder={t("industry_placeholder")} className="pl-8 h-9 rounded-xl bg-white/60 border-white/60 text-sm" value={vcFilters.focus} onChange={e => setVcFilters(p => ({ ...p, focus: e.target.value }))} />
                 </div>
               </div>
-              <div className="w-36">
+              <div className="w-full sm:w-36">
                 <Label className="text-xs text-slate-400 mb-1.5 block">{t("sort")}</Label>
                 <Select value={vcFilters.sortBy} onValueChange={v => setVcFilters(p => ({ ...p, sortBy: v as any }))}>
                   <SelectTrigger className="h-9 rounded-xl bg-white/60 border-white/60 text-sm"><SelectValue /></SelectTrigger>
@@ -383,7 +383,7 @@ export default function LeadsPoolPage() {
       {/* Apply Modal */}
       {applyDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md rounded-3xl overflow-hidden shadow-2xl" style={{
+          <div className="w-full max-w-md rounded-3xl overflow-hidden shadow-2xl mx-3 max-h-[92vh] flex flex-col" style={{
             background: "linear-gradient(135deg,rgba(255,255,255,0.96) 0%,rgba(239,246,255,0.92) 100%)",
             backdropFilter: "blur(20px)",
             border: "1px solid rgba(255,255,255,0.7)",
@@ -403,7 +403,7 @@ export default function LeadsPoolPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleApply} className="p-6 space-y-4">
+            <form onSubmit={handleApply} className="p-4 sm:p-6 space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Your {selectedVCLead ? "Institution" : "Company"} / Name *</Label>
                 <Input required value={applyForm.applicantName} onChange={e => setApplyForm(p => ({ ...p, applicantName: e.target.value }))} placeholder={selectedVCLead ? "e.g. Sequoia Capital" : "e.g. Acme Corp"} className="h-11 rounded-xl border-slate-200 bg-slate-50/50" />

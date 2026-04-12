@@ -28,7 +28,7 @@ export default function CollectTasksPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold flex items-center tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-bold flex items-center tracking-tight">
             <span className="bg-gradient-to-br from-orange-500 to-amber-500 text-white p-2 rounded-xl mr-3 shadow-lg shadow-orange-500/25">
               <Search size={28} />
             </span>
@@ -44,7 +44,7 @@ export default function CollectTasksPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="grid w-full grid-cols-3 mb-6 p-1.5 rounded-2xl gap-1"
+        <div className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 p-1.5 rounded-2xl gap-1"
           style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', border: '1px solid rgba(203,213,225,0.5)', boxShadow: '0 4px 16px rgba(0,0,0,0.05)' }}>
           {[
             { key: "blogger", label: "Blogger Collect", gradient: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)' },

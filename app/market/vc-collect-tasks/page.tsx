@@ -62,12 +62,12 @@ export default function VCCollectTasksPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">{t("vc_collect_tasks")}</h1>
+      <h1 className="text-xl sm:text-3xl font-bold mb-8">{t("vc_collect_tasks")}</h1>
       {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
       <Card className="mb-8">
         <CardHeader><CardTitle>{t("new_collect_task")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label>{t("task_name")}</Label><Input value={newTask.taskName} onChange={e => setNewTask({...newTask, taskName: e.target.value})} placeholder="Enter task name" /></div>
             <div>
               <Label>{t("source_platform")}</Label>
@@ -89,6 +89,7 @@ export default function VCCollectTasksPage() {
         </CardContent>
       </Card>
       <Card>
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -128,6 +129,7 @@ export default function VCCollectTasksPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
       </Card>
     </div>
   )

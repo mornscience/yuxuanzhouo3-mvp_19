@@ -62,8 +62,8 @@ function CollectTempContent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">{t("collect_temp_title")}</h1>
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
+        <h1 className="text-xl sm:text-3xl font-bold">{t("collect_temp_title")}</h1>
         <Button onClick={handleSync} disabled={syncing || tempData.filter((i: any) => !i.isSync && i.isValid).length === 0}>
           {syncing ? t("syncing") : t("sync_to_pool")}
         </Button>

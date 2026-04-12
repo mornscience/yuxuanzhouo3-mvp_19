@@ -197,8 +197,7 @@ function TaskModeView({ ads, profile, participations, onParticipate, onComplete 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Balance Card */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div 
           className="relative rounded-2xl p-5 flex items-center space-x-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
           style={{
@@ -505,9 +504,9 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
     if (profile && !profile.isInfluencerVerified) {
       return (
         <div className="space-y-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold flex items-center"><Users className="mr-2 h-5 w-5 text-blue-600" /> {t("personal_influencer_page")}</h3>
-            <Button variant="outline" onClick={() => onSetSubMode('pool')}>
+          <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+            <h3 className="text-base sm:text-lg font-bold flex items-center"><Users className="mr-2 h-5 w-5 text-blue-600" /> {t("personal_influencer_page")}</h3>
+            <Button variant="outline" size="sm" onClick={() => onSetSubMode('pool')}>
               <Globe className="mr-2 h-4 w-4" /> {t("enter_blogger_pool")}
             </Button>
           </div>
@@ -563,9 +562,9 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
 
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold flex items-center"><User className="mr-2 h-5 w-5 text-blue-600" /> {t("personal_influencer_page")}</h3>
-          <Button variant="outline" onClick={() => onSetSubMode('pool')}>
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+          <h3 className="text-base sm:text-lg font-bold flex items-center"><User className="mr-2 h-5 w-5 text-blue-600" /> {t("personal_influencer_page")}</h3>
+          <Button variant="outline" size="sm" onClick={() => onSetSubMode('pool')}>
             <Globe className="mr-2 h-4 w-4" /> {t("enter_blogger_pool")}
           </Button>
         </div>
@@ -601,8 +600,8 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold flex items-center"><Users className="mr-2 h-5 w-5 text-blue-600" /> {t("my_influencer_profile")}</h3>
+        <div className="flex flex-wrap justify-between items-center gap-2">
+          <h3 className="text-base sm:text-lg font-bold flex items-center"><Users className="mr-2 h-5 w-5 text-blue-600" /> {t("my_influencer_profile")}</h3>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={onAddBlogger}>
               <Plus className="mr-2 h-4 w-4" /> {t("add_blogger_account")}
@@ -612,7 +611,7 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
 
         {/* Personal Blogger Table */}
         <div 
-          className="rounded-2xl overflow-hidden"
+          className="rounded-2xl overflow-hidden overflow-x-auto"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 100%)',
             backdropFilter: 'blur(10px)',
@@ -703,9 +702,9 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
   // 博主池页面 (New Pool View)
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold flex items-center"><Globe className="mr-2 h-5 w-5 text-blue-600" /> {t("blogger_pool_title")}</h3>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+        <h3 className="text-base sm:text-lg font-bold flex items-center"><Globe className="mr-2 h-5 w-5 text-blue-600" /> {t("blogger_pool_title")}</h3>
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => router.push('/market/blogger-cooperation')} className="border-blue-200 text-blue-600 hover:bg-blue-50">
             <Handshake className="mr-2 h-4 w-4" /> {t("blogger_coop")}
           </Button>
@@ -727,7 +726,7 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
 
       {/* Glassmorphism Table Card */}
       <div 
-        className="rounded-2xl overflow-hidden"
+        className="rounded-2xl overflow-hidden overflow-x-auto"
         style={{
           background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 100%)',
           backdropFilter: 'blur(10px)',
@@ -998,8 +997,8 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
   }
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="rounded-xl border bg-background p-5 flex items-center space-x-4">
           <div className="rounded-lg border bg-purple-50 p-3 text-purple-600"><Building2 size={20} /></div>
           <div>
@@ -1025,7 +1024,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div 
-          className="grid w-full grid-cols-3 mb-6 p-1.5 rounded-2xl gap-1"
+          className="grid w-full grid-cols-3 mb-4 p-1 rounded-2xl gap-1"
           style={{
             background: 'rgba(255,255,255,0.6)',
             backdropFilter: 'blur(10px)',
@@ -1035,7 +1034,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
         >
           <button 
             onClick={() => setActiveTab("ads")}
-            className={`relative rounded-xl text-sm font-medium transition-all duration-300 py-2.5 overflow-hidden ${
+            className={`relative rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 py-2 overflow-hidden ${
               activeTab === "ads"
                 ? 'text-white shadow-lg' 
                 : 'text-slate-600 hover:text-slate-800 hover:bg-white/50'
@@ -1050,7 +1049,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
           </button>
           <button 
             onClick={() => setActiveTab("leads")}
-            className={`relative rounded-xl text-sm font-medium transition-all duration-300 py-2.5 overflow-hidden ${
+            className={`relative rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 py-2 overflow-hidden ${
               activeTab === "leads"
                 ? 'text-white shadow-lg' 
                 : 'text-slate-600 hover:text-slate-800 hover:bg-white/50'
@@ -1061,11 +1060,12 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                 : 'transparent'
             }}
           >
-            {t("enterprise_leads")}
+            <span className="hidden sm:inline">{t("enterprise_leads")}</span>
+            <span className="sm:hidden">B2B</span>
           </button>
           <button 
             onClick={() => setActiveTab("vc")}
-            className={`relative rounded-xl text-sm font-medium transition-all duration-300 py-2.5 overflow-hidden ${
+            className={`relative rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 py-2 overflow-hidden ${
               activeTab === "vc"
                 ? 'text-white shadow-lg' 
                 : 'text-slate-600 hover:text-slate-800 hover:bg-white/50'
@@ -1076,7 +1076,8 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                 : 'transparent'
             }}
           >
-            {t("vc_leads")}
+            <span className="hidden sm:inline">{t("vc_leads")}</span>
+            <span className="sm:hidden">VC</span>
           </button>
         </div>
 
@@ -1159,7 +1160,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
         <TabsContent value="leads" className="space-y-6">
           {/* Follow Leads Section */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 {t("my_follow_customers")}
@@ -1234,15 +1235,15 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                 {t("my_publish_demands")}
                 <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700">{publishLeads.length}</Badge>
               </h4>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant="outline" onClick={onViewPublicPool} className="rounded-full border-slate-200 text-slate-600 hover:bg-slate-50">
-                  <Globe className="mr-2 h-4 w-4" /> {t("leads_pool_btn")}
+                  <Globe className="mr-1 h-3 w-3" /> <span className="hidden sm:inline">{t("leads_pool_btn")}</span><span className="sm:hidden">Pool</span>
                 </Button>
                 <Button size="sm" variant="outline" onClick={onViewApplications} className="rounded-full border-slate-200 text-slate-600 hover:bg-slate-50">
-                  <Handshake className="mr-2 h-4 w-4" /> {t("received_applications")}
+                  <Handshake className="mr-1 h-3 w-3" /> <span className="hidden sm:inline">{t("received_applications")}</span><span className="sm:hidden">Apps</span>
                 </Button>
                 <Button size="sm" onClick={onAddB2BPublish} className="bg-emerald-600 rounded-full shadow-lg shadow-emerald-500/20">
-                  <Plus className="mr-2 h-4 w-4" /> {t("publish_demand")}
+                  <Plus className="mr-1 h-3 w-3" /> {t("publish_demand")}
                 </Button>
               </div>
             </div>
@@ -1343,7 +1344,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
         <TabsContent value="vc" className="space-y-8">
           {/* 跟进的 VC 线索 */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Landmark className="h-4 w-4" />
                 {t("my_follow_vc")}
@@ -1420,7 +1421,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
 
           {/* 发布型融资需求 */}
           <div className="space-y-4 pt-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 {t("my_publish_funding")}
@@ -1874,71 +1875,31 @@ export function AcquisitionClient() {
         User from localStorage: {localStorage.getItem('market_user') || 'none'}
       </div>
       {/* Unified Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center tracking-tight">
-            <span className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white p-2 rounded-xl mr-3 shadow-lg shadow-blue-500/25">
-              <Target size={28} />
-            </span>
-            <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              {t("system_title")}
-            </span>
-          </h1>
-          <p className="text-slate-500 mt-2 text-sm">{t("system_sub")}</p>
-        </div>
-        
-        {/* Mode Switch Buttons */}
-        <div className="flex items-center space-x-2 p-1.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-slate-200/60 shadow-sm">
-          {[
-            { mode: 'task' as ViewMode, label: t("task_mode"), gradient: 'from-blue-500 to-cyan-500' },
-            { mode: 'influencer' as ViewMode, label: t("influencer_mode"), gradient: 'from-purple-500 to-pink-500' },
-            { mode: 'merchant' as ViewMode, label: t("merchant_mode"), gradient: 'from-emerald-500 to-teal-500' },
-          ].map(({ mode, label, gradient }) => (
-            <button
-              key={mode}
-              onClick={() => handleModeChange(mode)}
-              className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 overflow-hidden
-                ${viewMode === mode 
-                  ? 'text-white shadow-lg' 
-                  : 'text-slate-600 hover:text-slate-800 hover:bg-white/80'
-                }`}
-            >
-              {viewMode === mode && (
-                <span className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-100`} />
-              )}
-              <span className="relative z-10">{label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center space-x-3">
-          {/* AI 搜索按钮 */}
-          <div className="relative group">
+      <header className="flex flex-col gap-3 mb-6">
+        {/* Top row: title + right actions */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-2xl font-bold flex items-center tracking-tight">
+              <span className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white p-1.5 rounded-xl mr-2 shadow-lg shadow-blue-500/25 flex-shrink-0">
+                <Target size={20} />
+              </span>
+              <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent truncate">
+                {t("system_title")}
+              </span>
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => window.location.href = '/market/ai-search'}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md"
             >
-              🤖 {t("ai_search")}
+              🤖 <span className="hidden sm:inline">{t("ai_search")}</span><span className="sm:hidden">AI</span>
             </button>
-            {/* Tooltip */}
-            <div className="absolute right-0 top-full mt-2 w-64 rounded-xl bg-slate-900 text-white text-xs p-3 shadow-xl z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
-              <p className="font-semibold mb-1.5 text-purple-300">🤖 AI Smart Search</p>
-              <p className="text-slate-300 leading-relaxed">Enter blogger, enterprise or VC info, AI auto-searches and extracts:</p>
-              <ul className="mt-1.5 space-y-0.5 text-slate-400">
-                <li>· Name &amp; contact email</li>
-                <li>· Website &amp; bio</li>
-                <li>· Send cooperation invites directly</li>
-              </ul>
-              <p className="mt-1.5 text-slate-500">¥0.1 per search, 100/month limit</p>
-              <div className="absolute -top-1.5 right-4 w-3 h-3 bg-slate-900 rotate-45" />
-            </div>
-          </div>
-          <Button variant="outline" size="icon" className="rounded-full relative">
-            <Bell size={18} />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
-          </Button>
-          {isLoggedIn ? (
-            <div className="pl-2 border-l">
+            <Button variant="outline" size="icon" className="rounded-full w-8 h-8 relative flex-shrink-0">
+              <Bell size={15} />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
+            </Button>
+            {isLoggedIn ? (
               <UserAvatarDropdown
                 user={{
                   userId: displayUser?.userId || displayUser?.id || '',
@@ -1950,21 +1911,39 @@ export function AcquisitionClient() {
                   })(),
                   avatar: profile?.avatar,
                   email: (() => {
-                    // 优先使用 localStorage 中的 email
                     if (storedUser?.email) return storedUser.email;
-                    // 其次使用 profile.email
                     if (profile?.email) return profile.email;
-                    // 最后返回空字符串，不显示ID
                     return '';
                   })()
                 }}
               />
-            </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => setIsLoginPromptOpen(true)}>
-              {t("login")}
-            </Button>
-          )}
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setIsLoginPromptOpen(true)} className="text-xs px-3">
+                {t("login")}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Mode Switch - full width on mobile */}
+        <div className="flex items-center gap-1 p-1 rounded-2xl bg-white/60 backdrop-blur-sm border border-slate-200/60 shadow-sm">
+          {[
+            { mode: 'task' as ViewMode, label: t("task_mode"), gradient: 'from-blue-500 to-cyan-500' },
+            { mode: 'influencer' as ViewMode, label: t("influencer_mode"), gradient: 'from-purple-500 to-pink-500' },
+            { mode: 'merchant' as ViewMode, label: t("merchant_mode"), gradient: 'from-emerald-500 to-teal-500' },
+          ].map(({ mode, label, gradient }) => (
+            <button
+              key={mode}
+              onClick={() => handleModeChange(mode)}
+              className={`relative flex-1 px-2 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 overflow-hidden text-center
+                ${viewMode === mode ? 'text-white shadow-lg' : 'text-slate-600 hover:text-slate-800 hover:bg-white/80'}`}
+            >
+              {viewMode === mode && (
+                <span className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-100`} />
+              )}
+              <span className="relative z-10">{label}</span>
+            </button>
+          ))}
         </div>
       </header>
 
@@ -2287,7 +2266,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
   return (
     <ModalOverlay onClose={onClose}>
       <div 
-        className={`w-full ${config.wide ? "max-w-2xl" : "max-w-md"} bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200`}
+        className={`w-full ${config.wide ? "max-w-2xl" : "max-w-md"} bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 mx-3 max-h-[92vh] flex flex-col`}
         style={{ border: '1px solid rgba(255,255,255,0.8)' }}
       >
         {/* Header with Gradient Background */}
@@ -2315,15 +2294,15 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmitWithPublish} className="bg-white">
-          <div className={`grid ${config.wide ? "grid-cols-2" : "grid-cols-1"} gap-x-6 gap-y-5 p-7`}>
+        <form onSubmit={handleSubmitWithPublish} className="bg-white flex flex-col overflow-hidden" style={{maxHeight: 'calc(92vh - 88px)'}}>
+          <div className={`grid ${config.wide ? "sm:grid-cols-2 grid-cols-1" : "grid-cols-1"} gap-x-5 gap-y-4 p-5 overflow-y-auto`}>
             {config.fields.map((field) => (
-              <div key={field.name} className={`space-y-1.5 ${field.fullWidth ? "col-span-2" : "col-span-1"}`}>
+              <div key={field.name} className={`space-y-1.5 ${field.fullWidth ? "sm:col-span-2 col-span-1" : "col-span-1"}`}>
                 <Label className="font-semibold text-xs text-slate-500 uppercase tracking-wider ml-1">{field.label}</Label>
                 {field.type === "select" ? (
                   <Select onValueChange={(value) => handleChange(field.name, value)} defaultValue={formData[field.name] || ""}>
                     <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all">
-                      <SelectValue placeholder="请选择" />
+                      <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       {field.options?.map((opt) => (
@@ -2332,7 +2311,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                     </SelectContent>
                   </Select>
                 ) : field.name === "videoUrl" ? (
-                  /* 视频上传专用 UI */
+                  /* Video upload UI */
                   <div className="space-y-2">
                     <input
                       ref={videoInputRef}
@@ -2344,7 +2323,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                         if (f) handleVideoUpload(f)
                       }}
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <button
                         type="button"
                         onClick={() => videoInputRef.current?.click()}
@@ -2387,7 +2366,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
               </div>
             ))}
             {config.showPublishOption && (
-              <div className="flex items-center space-x-3 pt-4 border-t border-slate-100 col-span-2">
+              <div className="flex items-center space-x-3 pt-4 border-t border-slate-100 sm:col-span-2 col-span-1">
                 <input
                   type="checkbox"
                   id="publishToPool"
@@ -2402,18 +2381,18 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
             )}
           </div>
 
-          {/* Footer with subtle contrast */}
-          <div className="px-7 py-5 bg-slate-50/80 border-t border-slate-100 flex justify-end items-center space-x-4">
+          {/* Footer */}
+          <div className="px-5 py-4 bg-slate-50/80 border-t border-slate-100 flex justify-end items-center space-x-3 flex-shrink-0">
             <button 
               type="button" 
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 transition-all"
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 transition-all"
             >
               {t("cancel")}
             </button>
             <button 
               type="submit"
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all bg-gradient-to-r ${config.gradient}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all bg-gradient-to-r ${config.gradient}`}
             >
               {(type === 'blogger' || type === 'new_blogger') ? t("submit") : t("confirm")}
             </button>

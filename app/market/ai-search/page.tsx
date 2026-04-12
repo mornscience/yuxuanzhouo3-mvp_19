@@ -124,7 +124,7 @@ export default function AISearchPage() {
           </h2>
           <div className="space-y-4">
             {/* 类型选择 */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {(Object.entries(TYPE_CONFIG) as [LeadType, typeof TYPE_CONFIG.blogger][]).map(([key, cfg]) => (
                 <button key={key} onClick={() => setType(key)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${type === key ? cfg.color + " shadow-sm" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}>
@@ -133,11 +133,11 @@ export default function AISearchPage() {
               ))}
             </div>
             {/* 搜索输入 */}
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Input value={query} onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !isQuotaExceeded && handleSearch()}
                 placeholder={`Search ${TYPE_CONFIG[type].label} name, keyword...`}
-                className="flex-1 h-11 rounded-xl" />
+                className="flex-1 min-w-0 h-11 rounded-xl" />
               <Button onClick={handleSearch} disabled={searching || isQuotaExceeded} className="h-11 px-6 bg-blue-600 hover:bg-blue-700 rounded-xl disabled:opacity-50">
                 {searching ? <><Loader2 size={15} className="mr-2 animate-spin" />{t("searching")}</> : <><Search size={15} className="mr-2" />{t("ai_search")}</>}
               </Button>
@@ -239,7 +239,7 @@ export default function AISearchPage() {
                       </div>
                       <p className="text-xs text-slate-400 mt-1">Query: {lead.query}</p>
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                       <Button size="sm" variant="outline" className="h-8 text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
                         onClick={() => setMsgModal({
                           lead,
@@ -264,7 +264,7 @@ export default function AISearchPage() {
       {/* 发邮件弹窗 */}
       {msgModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-lg mx-3 max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
               <h3 className="text-white font-bold">{t("send_coop_info")}</h3>
               <p className="text-white/70 text-xs mt-0.5">To: {msgModal.toEmail || msgModal.lead.email || "(please enter email)"}</p>

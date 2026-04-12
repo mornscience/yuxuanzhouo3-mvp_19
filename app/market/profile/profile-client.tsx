@@ -279,7 +279,7 @@ export function ProfileClient() {
                   <p className="text-white/50 text-xs mb-1">{t("account_balance")}</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-white/70 text-lg font-medium">¥</span>
-                    <span className="text-white text-4xl font-bold tracking-tight">{profile?.balance || "0.00"}</span>
+                    <span className="text-white text-2xl sm:text-4xl font-bold tracking-tight">{profile?.balance || "0.00"}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -291,24 +291,24 @@ export function ProfileClient() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <button
                   onClick={() => openWallet("recharge")}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-sm font-medium transition-all hover:-translate-y-0.5"
+                  className="flex-1 flex items-center justify-center gap-1.5 h-9 sm:h-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs sm:text-sm font-medium transition-all hover:-translate-y-0.5"
                 >
-                  <PlusCircle size={15} /> {t("recharge")}
+                  <PlusCircle size={14} /> <span className="hidden sm:inline">{t("recharge")}</span><span className="sm:hidden">Top Up</span>
                 </button>
                 <button
                   onClick={() => router.push("/market/membership")}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-sm font-medium transition-all hover:-translate-y-0.5"
+                  className="flex-1 flex items-center justify-center gap-1.5 h-9 sm:h-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs sm:text-sm font-medium transition-all hover:-translate-y-0.5"
                 >
-                  <Zap size={15} /> {t("ai_recharge")}
+                  <Zap size={14} /> <span className="hidden sm:inline">{t("ai_recharge")}</span><span className="sm:hidden">AI</span>
                 </button>
                 <button
                   onClick={() => openWallet("withdraw")}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-white text-indigo-700 hover:bg-white/90 text-sm font-semibold transition-all hover:-translate-y-0.5 shadow-lg"
+                  className="flex-1 flex items-center justify-center gap-1.5 h-9 sm:h-10 rounded-xl bg-white text-indigo-700 hover:bg-white/90 text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 shadow-lg"
                 >
-                  <CreditCard size={15} /> {t("withdraw")}
+                  <CreditCard size={14} /> <span className="hidden sm:inline">{t("withdraw")}</span><span className="sm:hidden">Cash</span>
                 </button>
               </div>
             </div>
@@ -408,7 +408,7 @@ export function ProfileClient() {
       {walletModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div
-            className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
+            className="w-full max-w-sm mx-3 max-h-[90vh] overflow-y-auto rounded-3xl overflow-hidden shadow-2xl"
             style={{
               background: "linear-gradient(135deg,rgba(255,255,255,0.96) 0%,rgba(239,246,255,0.92) 100%)",
               backdropFilter: "blur(20px)",
@@ -503,7 +503,7 @@ export function ProfileClient() {
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div
-            className="w-full max-w-sm rounded-3xl p-6"
+            className="w-full max-w-sm mx-3 rounded-3xl p-5 sm:p-6"
             style={{
               background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(239,246,255,0.9) 100%)",
               backdropFilter: "blur(20px)",

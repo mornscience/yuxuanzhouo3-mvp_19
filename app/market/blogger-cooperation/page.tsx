@@ -165,7 +165,7 @@ export default function BloggerCooperationPage() {
       <main className="max-w-5xl mx-auto px-4 py-6">
         {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
 
-        <div className="flex gap-2 mb-6 p-1.5 bg-white rounded-2xl border border-slate-100 shadow-sm w-fit">
+        <div className="flex flex-wrap gap-2 mb-6 p-1.5 bg-white rounded-2xl border border-slate-100 shadow-sm w-fit">
           <button onClick={() => setTab("received")} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === "received" ? "bg-blue-600 text-white shadow" : "text-slate-600 hover:bg-slate-50"}`}>
             <Clock size={14} /> {t("received")}
             {pendingCount > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">{pendingCount}</span>}
@@ -187,6 +187,7 @@ export default function BloggerCooperationPage() {
               <div className="flex items-center gap-2"><Clock size={16} className="text-blue-500" /><span className="font-semibold">{t("received_coop_apps")}</span></div>
               <span className="text-xs text-slate-400">After approval, they can send promo articles to your bloggers</span>
             </div>
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
@@ -224,6 +225,7 @@ export default function BloggerCooperationPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </Card>
         )}
 
@@ -233,6 +235,7 @@ export default function BloggerCooperationPage() {
             <div className="px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2"><Send size={16} className="text-blue-500" /><span className="font-semibold">{t("sent_coop_apps")}</span></div>
             </div>
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
@@ -257,6 +260,7 @@ export default function BloggerCooperationPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </Card>
         )}
 
@@ -269,6 +273,7 @@ export default function BloggerCooperationPage() {
                 <Send size={13} className="mr-1.5" />{sending ? t("sending") : t("batch_send")}
               </Button>
             </div>
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50">
@@ -303,6 +308,7 @@ export default function BloggerCooperationPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </Card>
         )}
       </main>
@@ -310,7 +316,7 @@ export default function BloggerCooperationPage() {
       {/* 同意合作弹窗 - 直接确认，无需选文章 */}
       {approveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md mx-3 max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl">
             <div className="bg-gradient-to-r from-green-600 to-emerald-500 px-6 py-4">
               <h3 className="text-white font-bold text-lg">{t("confirm_approve_coop")}</h3>
               <p className="text-white/70 text-xs mt-0.5">
@@ -338,7 +344,7 @@ export default function BloggerCooperationPage() {
       {/* 推送文章弹窗 */}
       {pushModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-lg mx-3 max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
               <h3 className="text-white font-bold text-lg">{t("push_promo_article")}</h3>
               <p className="text-white/70 text-xs mt-0.5">Send promo article to blogger &quot;{pushModal.coop.blogger_name || pushModal.coop.bloggerName}&quot;</p>
@@ -399,7 +405,7 @@ export default function BloggerCooperationPage() {
       {/* 发消息弹窗 */}
       {msgModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md mx-3 max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-4">
               <h3 className="text-white font-bold">Send Message to {msgModal.coop.blogger_name || msgModal.coop.bloggerName}</h3>
               <p className="text-white/70 text-xs mt-0.5">{msgModal.coop.email}</p>

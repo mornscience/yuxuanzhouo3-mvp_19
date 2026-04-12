@@ -384,7 +384,7 @@ export default function MyApplicationsPage() {
       {/* 确认弹窗 */}
       {selectedGroup && actionType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl" style={{
+          <div className="w-full max-w-sm mx-3 max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl" style={{
             background: "linear-gradient(135deg,rgba(255,255,255,0.96) 0%,rgba(239,246,255,0.92) 100%)",
             backdropFilter: "blur(20px)",
             border: "1px solid rgba(255,255,255,0.7)",

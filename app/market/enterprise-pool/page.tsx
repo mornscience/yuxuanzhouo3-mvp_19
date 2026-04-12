@@ -65,13 +65,13 @@ export default function EnterprisePoolPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Enterprise Leads Management</h1>
+      <h1 className="text-xl sm:text-3xl font-bold mb-6">Enterprise Leads Management</h1>
       {error && <Alert variant="destructive" className="mb-4"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
       <Card className="p-4 mb-6">
         <div className="flex gap-4 flex-wrap">
-          <Input placeholder="Filter by region" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="w-48" />
+          <Input placeholder="Filter by region" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="flex-1 min-w-[160px]" />
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Select status" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Select status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Status</SelectItem>
               <SelectItem value="待联系">Pending Contact</SelectItem>
@@ -84,6 +84,7 @@ export default function EnterprisePoolPage() {
         </div>
       </Card>
       <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -121,20 +122,21 @@ export default function EnterprisePoolPage() {
                 <TableCell>
                   <div className="flex gap-1 flex-wrap">
                     <Button size="sm" variant="outline" onClick={() => setEmailModal({enterprise: e, content: ''})}>Email</Button>
-                    {e.status === '待联系' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '已发邀约')}>Mark Applied</Button>}
-                    {e.status === '已发邀约' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '对接中')}>Mark Connecting</Button>}
-                    {e.status === '对接中' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '已合作')}>Mark Cooperating</Button>}
-                    {e.status === '已合作' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '已完成')}>Mark Completed</Button>}
+                    {e.status === '待联系' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '已发邀约')} className="text-xs">Mark Applied</Button>}
+                    {e.status === '已发邀约' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '对接中')} className="text-xs">Mark Connecting</Button>}
+                    {e.status === '对接中' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '已合作')} className="text-xs">Mark Cooperating</Button>}
+                    {e.status === '已合作' && <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(e.id, '已完成')} className="text-xs">Mark Completed</Button>}
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        </div>
       </Card>
       {emailModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-lg p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-3">
+          <Card className="w-full max-w-lg mx-3 max-h-[90vh] overflow-y-auto p-6">
             <h2 className="text-xl font-semibold mb-4">Send Email to {emailModal.enterprise.name}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium">Contact</label><p className="text-sm text-gray-600">{emailModal.enterprise.contact} &lt;{emailModal.enterprise.email}&gt;</p></div>

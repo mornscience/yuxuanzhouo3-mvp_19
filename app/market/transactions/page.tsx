@@ -135,7 +135,7 @@ export default function TransactionsPage() {
                 <Wallet size={14} className="text-white/60" />
                 <span className="text-white/60 text-xs">Current Balance</span>
               </div>
-              <p className="text-3xl font-bold text-white">¥ {balance}</p>
+              <p className="text-xl sm:text-3xl font-bold text-white">¥ {balance}</p>
             </div>
             <div className="text-right">
               <p className="text-white/50 text-xs mb-1">{list.length} records total</p>
