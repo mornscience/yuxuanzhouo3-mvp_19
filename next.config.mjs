@@ -7,6 +7,10 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "*.googleusercontent.com" },
+    ],
   },
   // 这些包只在服务端使用
   serverExternalPackages: ['@cloudbase/node-sdk'],

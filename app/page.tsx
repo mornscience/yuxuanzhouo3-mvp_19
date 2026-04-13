@@ -91,6 +91,19 @@ export default function HomePage() {
 
   // 初始检查
   useEffect(() => {
+    // 处理 Google 登录回调参数
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('google_login') === 'success') {
+      const userId = params.get('userId')
+      const email = params.get('email')
+      const nickname = params.get('nickname')
+      const avatar = params.get('avatar')
+      if (userId) {
+        localStorage.setItem('market_user', JSON.stringify({ userId, email, nickname, avatar }))
+        // 清除 URL 参数
+        window.history.replaceState({}, '', '/')
+      }
+    }
     checkUserLogin()
   }, [])
 

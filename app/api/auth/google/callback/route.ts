@@ -5,6 +5,21 @@ const USERS_TABLE = "users"
 const USER_PROFILES_TABLE = "user_profiles"
 const USER_MARKET_PROFILES_TABLE = "user_market_profiles"
 
+// 创建支持代理的 fetch（本地开发走 Clash 代理）
+async function proxyFetch(url: string, options?: RequestInit) {
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+  if (proxyUrl && process.env.NODE_ENV === "development") {
+    try {
+      const { ProxyAgent, fetch: undiciFetch } = await import("undici")
+      const dispatcher = new ProxyAgent(proxyUrl)
+      return undiciFetch(url, { ...options, dispatcher } as any) as unknown as Response
+    } catch {
+      // undici not available, fall back to native fetch
+    }
+  }
+  return fetch(url, options)
+}
+
 /**
  * GET /api/auth/google/callback
  * Google OAuth 授权码回调，code 换 token，获取用户信息，登录/注册
@@ -28,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Step 1: code 换 access_token + id_token
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    const tokenRes = await proxyFetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -46,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Step 2: 用 access_token 获取用户信息
-    const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    const userRes = await proxyFetch("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     })
     const googleUser = await userRes.json()
