@@ -55,7 +55,7 @@ export default function LoginPage() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     if (!clientId) return
     // 始终用当前页面的 origin，避免构建时注入的环境变量不正确
-    const baseUrl = window.location.origin
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
     const redirectUri = encodeURIComponent(`${baseUrl}/api/auth/google/callback`)
     console.log("[Google OAuth] redirect_uri:", `${baseUrl}/api/auth/google/callback`)
     const scope = encodeURIComponent("openid email profile")
