@@ -1,4 +1,7 @@
 {
   "buildCommand": "pnpm run build",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "env": {
+    "FORCE_REBUILD": "20260414-2"
+  }
 }
