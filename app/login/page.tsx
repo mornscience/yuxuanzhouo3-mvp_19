@@ -61,7 +61,7 @@ export default function LoginPage() {
     const scope = encodeURIComponent("openid email profile")
     const state = Math.random().toString(36).slice(2)
     sessionStorage.setItem("google_oauth_state", state)
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&access_type=offline`
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`
   }
 
   const sendSms = async () => {
