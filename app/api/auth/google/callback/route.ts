@@ -56,8 +56,11 @@ export async function GET(request: NextRequest) {
     })
     const tokenData = await tokenRes.json()
     if (tokenData.error) {
-      console.error("[Google Callback] token error:", tokenData)
-      return NextResponse.redirect(`${baseUrl}/login?error=google_token_failed`)
+      console.error("[Google Callback] token error:", JSON.stringify(tokenData))
+      console.error("[Google Callback] redirectUri used:", redirectUri)
+      console.error("[Google Callback] clientId:", clientId?.slice(0, 20))
+      const errDetail = encodeURIComponent(tokenData.error_description || tokenData.error)
+      return NextResponse.redirect(`${baseUrl}/login?error=google_token_failed&detail=${errDetail}`)
     }
 
     // Step 2: 用 access_token 获取用户信息
