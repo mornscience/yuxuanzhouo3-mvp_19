@@ -27,7 +27,7 @@ async function proxyFetch(url: string, options?: RequestInit) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get("code")
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").trim()
 
   if (!code) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_no_code`)
