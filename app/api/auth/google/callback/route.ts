@@ -37,6 +37,12 @@ export async function GET(request: NextRequest) {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
   const redirectUri  = `${baseUrl}/api/auth/google/callback`
 
+  console.log("[Google Callback] baseUrl:", baseUrl)
+  console.log("[Google Callback] redirectUri:", redirectUri)
+  console.log("[Google Callback] clientId exists:", !!clientId)
+  console.log("[Google Callback] clientSecret exists:", !!clientSecret)
+  console.log("[Google Callback] code:", code?.slice(0, 20))
+
   if (!clientId || !clientSecret) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_not_configured`)
   }
