@@ -135,10 +135,12 @@ export async function GET(request: NextRequest) {
       nickname,
       avatar: picture || "",
     })
-    const response = NextResponse.redirect(`${baseUrl}/?${params.toString()}`)
+    const isProduction = baseUrl.startsWith("https://")
+    const response = NextResponse.redirect(`${baseUrl}/?${params.toString()}`, { status: 302 })
     response.cookies.set("market_user_id", userId, {
       path: "/", maxAge: 60 * 60 * 24 * 7,
       httpOnly: true, sameSite: "lax",
+      secure: isProduction,
     })
     return response
 
