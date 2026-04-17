@@ -8,12 +8,11 @@ const USER_MARKET_PROFILES_TABLE = "user_market_profiles"
 
 export async function POST(request: NextRequest) {
   try {
-    const { credential, platform: explicitPlatform } = await request.json()
+    const { credential } = await request.json()
     if (!credential) {
       return NextResponse.json({ ok: false, message: "Missing Google credential" }, { status: 400 })
     }
 
-    // 统一使用 web 端的客户端 ID
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
     if (!clientId) {

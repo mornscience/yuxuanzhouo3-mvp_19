@@ -41,35 +41,6 @@ export default function RootLayout({
   return (
     <html lang="zh" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        {/* 动态修改 User-Agent 以绕过 Google WebView 限制 */}
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            if (typeof navigator !== 'undefined' && navigator.userAgent.includes('WebView')) {
-              // 保存原始 User-Agent
-              window.originalUserAgent = navigator.userAgent;
-              
-              // 伪装成安卓 Chrome 浏览器
-              const androidUserAgent = 'Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
-              
-              // 修改 navigator.userAgent
-              Object.defineProperty(navigator, 'userAgent', {
-                value: androidUserAgent,
-                writable: false,
-                configurable: true
-              });
-              
-              // 同时修改其他相关属性
-              Object.defineProperty(navigator, 'appVersion', {
-                value: '5.0 (Linux; Android 13; SM-G991B)',
-                writable: false,
-                configurable: true
-              });
-              
-              console.log('User-Agent modified to:', androidUserAgent);
-            }
-          `
-        }} />
-        
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           <Toaster />

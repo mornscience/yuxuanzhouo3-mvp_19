@@ -1,24 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
+import { OAuth2Client } from "google-auth-library"
 import { dbAdapter } from "@/lib/db-adapter"
 
 const USERS_TABLE = "users"
 const USER_PROFILES_TABLE = "user_profiles"
 const USER_MARKET_PROFILES_TABLE = "user_market_profiles"
 
-// 创建支持代理的 fetch（本地开发走 Clash 代理）
-async function proxyFetch(url: string, options?: RequestInit) {
-  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
-  if (proxyUrl && process.env.NODE_ENV === "development") {
-    try {
-      const { ProxyAgent, fetch: undiciFetch } = await import("undici")
-      const dispatcher = new ProxyAgent(proxyUrl)
-      return undiciFetch(url, { ...options, dispatcher } as any) as unknown as Response
-    } catch {
-      // undici not available, fall back to native fetch
-    }
-  }
-  return fetch(url, options)
-}
 
 /**
  * GET /api/auth/google/callback
@@ -47,49 +34,54 @@ export async function GET(request: NextRequest) {
   if (!clientId) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_not_configured`)
   }
-  if (platform === "web" && !clientSecret) {
+  if (!clientSecret) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_not_configured`)
   }
 
   try {
-    // Step 1: code 换 access_token + id_token
-    const tokenRes = await proxyFetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(
-        Object.entries({
-          code,
-          client_id: clientId,
-          ...(clientSecret && { client_secret: clientSecret }),
-          redirect_uri: redirectUri,
-          grant_type: "authorization_code",
-        }).reduce((acc, [key, value]) => {
-          if (value !== undefined && value !== null) {
-            acc[key] = value
-          }
-          return acc
-        }, {} as Record<string, string>)
-      ),
-    })
-    const tokenData = await tokenRes.json()
-    if (tokenData.error) {
-      console.error("[Google Callback] token error:", JSON.stringify(tokenData))
+    // Step 1: 使用 google-auth-library 交换 token
+    const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri)
+    let tokenResponse
+    try {
+      tokenResponse = await oauth2Client.getToken(code)
+    } catch (tokenError: any) {
+      console.error("[Google Callback] token error:", tokenError)
       console.error("[Google Callback] redirectUri used:", redirectUri)
       console.error("[Google Callback] clientId:", clientId?.slice(0, 20))
-      const errDetail = encodeURIComponent(tokenData.error_description || tokenData.error)
+      const errDetail = encodeURIComponent(tokenError.message || "token_exchange_failed")
       return NextResponse.redirect(`${baseUrl}/login?error=google_token_failed&detail=${errDetail}`)
     }
 
-    // Step 2: 用 access_token 获取用户信息
-    const userRes = await proxyFetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    })
-    const googleUser = await userRes.json()
-    if (!googleUser.email) {
+    const tokens = tokenResponse.tokens
+    if (!tokens.access_token) {
+      console.error("[Google Callback] no access_token in response:", tokens)
+      return NextResponse.redirect(`${baseUrl}/login?error=google_token_failed&detail=no_access_token`)
+    }
+
+    // Step 2: 验证 id_token 获取用户信息
+    if (!tokens.id_token) {
+      console.error("[Google Callback] no id_token in response:", tokens)
       return NextResponse.redirect(`${baseUrl}/login?error=google_userinfo_failed`)
     }
 
-    const { id: googleId, email, name, picture } = googleUser
+    let ticket
+    try {
+      ticket = await oauth2Client.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: clientId,
+      })
+    } catch (verifyError: any) {
+      console.error("[Google Callback] verify id_token error:", verifyError)
+      return NextResponse.redirect(`${baseUrl}/login?error=google_userinfo_failed`)
+    }
+
+    const payload = ticket.getPayload()
+    if (!payload?.email) {
+      console.error("[Google Callback] no email in id_token payload:", payload)
+      return NextResponse.redirect(`${baseUrl}/login?error=google_userinfo_failed`)
+    }
+
+    const { sub: googleId, email, name, picture } = payload
 
     // Step 3: 查找或创建用户
     let users = await dbAdapter.loadRows(USERS_TABLE, { googleId })
@@ -168,6 +160,7 @@ export async function GET(request: NextRequest) {
     const msg = error?.message || "google_failed"
     const isFetchFailed = msg.includes("fetch failed") || msg.includes("ECONNREFUSED") || msg.includes("ETIMEDOUT")
     console.error("[Google Callback] error:", msg)
+    console.error("[Google Callback] error stack:", error?.stack)
     if (isFetchFailed) {
       // 本地网络无法访问 Google API（被墙），部署到线上后正常
       return NextResponse.redirect(`${baseUrl}/login?error=network_blocked`)
