@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_no_code`)
   }
 
-  const clientId     = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  // 统一使用 web 端的客户端配置
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
   const redirectUri  = `${baseUrl}/api/auth/google/callback`
 
@@ -43,7 +44,10 @@ export async function GET(request: NextRequest) {
   console.log("[Google Callback] clientSecret exists:", !!clientSecret)
   console.log("[Google Callback] code:", code?.slice(0, 20))
 
-  if (!clientId || !clientSecret) {
+  if (!clientId) {
+    return NextResponse.redirect(`${baseUrl}/login?error=google_not_configured`)
+  }
+  if (platform === "web" && !clientSecret) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_not_configured`)
   }
 
@@ -52,13 +56,20 @@ export async function GET(request: NextRequest) {
     const tokenRes = await proxyFetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: "authorization_code",
-      }),
+      body: new URLSearchParams(
+        Object.entries({
+          code,
+          client_id: clientId,
+          ...(clientSecret && { client_secret: clientSecret }),
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null) {
+            acc[key] = value
+          }
+          return acc
+        }, {} as Record<string, string>)
+      ),
     })
     const tokenData = await tokenRes.json()
     if (tokenData.error) {

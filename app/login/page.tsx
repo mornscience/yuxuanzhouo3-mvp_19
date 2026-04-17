@@ -52,16 +52,26 @@ export default function LoginPage() {
   }, [smsCountdown])
 
   const handleGoogleClick = () => {
+    // 统一使用 web 端的客户端 ID
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId) return
-    // 始终用当前页面的 origin，避免构建时注入的环境变量不正确
+
+    if (!clientId) {
+      console.error('[Google OAuth] Client ID not configured')
+      return
+    }
+
+    // 使用网页版的重定向 URI
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim()
     const redirectUri = encodeURIComponent(`${baseUrl}/api/auth/google/callback`)
-    console.log("[Google OAuth] redirect_uri:", `${baseUrl}/api/auth/google/callback`)
+    
+    console.log("[Google OAuth] redirect_uri:", redirectUri)
+    console.log("[Google OAuth] clientId:", clientId)
     const scope = encodeURIComponent("openid email profile")
-    const state = Math.random().toString(36).slice(2)
+    const state = JSON.stringify({
+      r: Math.random().toString(36).slice(2)
+    })
     sessionStorage.setItem("google_oauth_state", state)
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${encodeURIComponent(state)}`
   }
 
   const sendSms = async () => {

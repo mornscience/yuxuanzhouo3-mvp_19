@@ -2,23 +2,29 @@ import { NextRequest, NextResponse } from "next/server"
 import { OAuth2Client } from "google-auth-library"
 import { dbAdapter } from "@/lib/db-adapter"
 
-const client = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
-
 const USERS_TABLE = "users"
 const USER_PROFILES_TABLE = "user_profiles"
 const USER_MARKET_PROFILES_TABLE = "user_market_profiles"
 
 export async function POST(request: NextRequest) {
   try {
-    const { credential } = await request.json()
+    const { credential, platform: explicitPlatform } = await request.json()
     if (!credential) {
       return NextResponse.json({ ok: false, message: "Missing Google credential" }, { status: 400 })
     }
 
+    // 统一使用 web 端的客户端 ID
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+    if (!clientId) {
+      return NextResponse.json({ ok: false, message: "Google client ID not configured" }, { status: 500 })
+    }
+
     // 验证 Google ID Token
+    const client = new OAuth2Client(clientId)
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      audience: clientId,
     })
     const payload = ticket.getPayload()
     if (!payload?.email) {

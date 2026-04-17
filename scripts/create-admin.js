@@ -15,7 +15,14 @@
  * );
  */
 
-require('dotenv').config({ path: '.env.local' })
+const fs = require('fs')
+const path = require('path')
+// 手动解析 .env.local
+const envFile = fs.readFileSync(path.join(__dirname, '../.env.local'), 'utf-8')
+envFile.split('\n').forEach(line => {
+  const m = line.match(/^([^#=]+)=(.*)$/)
+  if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, '')
+})
 const { createClient } = require('@supabase/supabase-js')
 const bcrypt = require('bcryptjs')
 

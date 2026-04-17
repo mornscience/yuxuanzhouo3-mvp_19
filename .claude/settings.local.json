@@ -19,10 +19,13 @@
       "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"explain\"\",\"\"code\"\":\"\"function test\\(\\) {}\"\",\"\"prompt\"\":\"\"解释\"\",\"\"language\"\":\"\"TypeScript\"\"}\" -s)",
       "Bash(curl -X POST http://localhost:3000/api/ai-coder -H \"Content-Type: application/json\" -d \"{\"\"mode\"\":\"\"refactor\"\",\"\"code\"\":\"\"var x = 1;\"\",\"\"prompt\"\":\"\"\"\",\"\"language\"\":\"\"TypeScript\"\"}\" -s)",
       "Bash(curl -X GET http://localhost:3000/api/market/admin/acquisition -H \"Cookie: market_user_id=user_demo_123\" -s)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/auth/me)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/auth/me)",
+      "Bash(grep -n '\"[^\"]*$' \"e:\\\\mvp\\\\mvp19国外\\\\.env.local\")",
+      "Bash(timeout 10 npx next dev -p 3001)"
     ],
     "additionalDirectories": [
-      "d:\\mvp\\mvp_19\\app\\api\\market\\admin"
+      "d:\\mvp\\mvp_19\\app\\api\\market\\admin",
+      "\\tmp"
     ]
   }
 }
