@@ -21,11 +21,13 @@ import {
   Zap,
   User,
   LogOut,
+  Play,
   Settings,
 } from "lucide-react"
 
 export default function HomePage() {
   const [isDark, setIsDark] = useState(false)
+  const [showVideo, setShowVideo] = useState(false)
   const regionMode = (process.env.NEXT_PUBLIC_SITE_REGION ?? "auto").toLowerCase()
   const [lang, setLang] = useState<"en" | "zh">(() =>
     regionMode === "cn" ? "zh" : "en",
@@ -291,6 +293,9 @@ export default function HomePage() {
               </Button>
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setShowVideo(true)} title="播放视频">
+                <Play className="w-5 h-5" />
               </Button>
               <span className="hidden sm:inline-flex items-center rounded-md border border-border/40 px-2 py-1 text-[11px] text-muted-foreground">
                 {regionLabel}
@@ -630,6 +635,29 @@ export default function HomePage() {
             <p className="text-muted-foreground">{t.footer.subtitle}</p>
           </div>
         </footer>
+
+        {/* Video Modal */}
+        {showVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowVideo(false)}>
+            <div className="relative w-full max-w-4xl mx-4" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="absolute -top-10 right-0 text-white hover:text-gray-300 text-2xl"
+                onClick={() => setShowVideo(false)}
+              >
+                ✕
+              </button>
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <video className="w-full h-full" controls autoPlay>
+                  <source src="/videos/6c07be436fbc5b9f38fd0c38a02e5eff_raw.mp4" type="video/mp4" />
+                  {lang === "en" ? "Your browser does not support the video tag." : "您的浏览器不支持视频播放。"}
+                </video>
+              </div>
+              <p className="text-center text-white mt-4 text-sm">
+                {lang === "en" ? "Click outside the video to close" : "点击视频外部区域关闭"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
