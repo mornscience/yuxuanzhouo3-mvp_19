@@ -40,6 +40,46 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // 检测是否在 WebView 内
+                var userAgent = navigator.userAgent.toLowerCase();
+                var isAndroidWebView = userAgent.includes('android') && userAgent.includes('wv');
+                var isiOSWebView = (userAgent.includes('iphone') || userAgent.includes('ipad')) && userAgent.includes('webkit') && !userAgent.includes('safari');
+                
+                // 如果在 WebView 内，修改 User-Agent
+                if (isAndroidWebView || isiOSWebView) {
+                  // 伪装成正常的安卓 Chrome 浏览器
+                  var fakeUserAgent = 'Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
+                  
+                  // 修改 navigator.userAgent
+                  Object.defineProperty(navigator, 'userAgent', {
+                    get: function() { return fakeUserAgent; },
+                    configurable: true
+                  });
+                  
+                  // 修改 appVersion
+                  Object.defineProperty(navigator, 'appVersion', {
+                    get: function() { return fakeUserAgent; },
+                    configurable: true
+                  });
+                  
+                  // 修改 platform
+                  Object.defineProperty(navigator, 'platform', {
+                    get: function() { return 'Linux armv8l'; },
+                    configurable: true
+                  });
+                  
+                  console.log('[WebView] User-Agent伪装为:', fakeUserAgent);
+                }
+              })();
+            `
+          }}
+        />
+      </head>
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}

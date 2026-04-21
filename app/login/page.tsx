@@ -51,6 +51,15 @@ export default function LoginPage() {
     return () => clearTimeout(t)
   }, [smsCountdown])
 
+  // 检测是否在 WebView 内
+  const isInWebView = () => {
+    const userAgent = navigator.userAgent.toLowerCase()
+    // 检测常见的 WebView 特征
+    const isAndroidWebView = userAgent.includes('android') && userAgent.includes('wv')
+    const isiOSWebView = (userAgent.includes('iphone') || userAgent.includes('ipad')) && userAgent.includes('webkit') && !userAgent.includes('safari')
+    return isAndroidWebView || isiOSWebView
+  }
+
   const handleGoogleClick = () => {
     // 统一使用 web 端的客户端 ID
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -71,7 +80,19 @@ export default function LoginPage() {
       r: Math.random().toString(36).slice(2)
     })
     sessionStorage.setItem("google_oauth_state", state)
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${encodeURIComponent(state)}`
+    
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${encodeURIComponent(state)}`
+    
+    // 检测是否在 WebView 内
+    if (isInWebView()) {
+      // 在 APP 内，提示用户并使用 window.open 打开
+      if (confirm('为保证登录安全，将使用系统浏览器登录')) {
+        window.open(googleAuthUrl, '_blank')
+      }
+    } else {
+      // 普通网页，正常跳转
+      window.location.href = googleAuthUrl
+    }
   }
 
   const sendSms = async () => {
