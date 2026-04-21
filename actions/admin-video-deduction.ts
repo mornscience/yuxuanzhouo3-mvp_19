@@ -1,5 +1,3 @@
-"use server"
-
 import { createClient } from "@supabase/supabase-js"
 import { requireAdminSession } from "@/lib/admin/session"
 
@@ -14,6 +12,7 @@ export interface VideoDeduction {
   id: string
   title: string
   video_url: string
+  file_path?: string
   is_active: boolean
   file_size: number
   duration: number
@@ -58,10 +57,23 @@ export async function createVideo(formData: FormData) {
       return { success: false, error: "缺少必要参数" }
     }
 
-    // 这里应该实现文件上传逻辑
-    // 由于文件上传需要存储到Supabase Storage，这里暂时返回模拟的videoUrl
-    // 实际实现中应该上传文件到Supabase Storage并获取URL
-    const videoUrl = `https://example.com/uploaded/${file.name}`
+    // 上传文件到 Supabase Storage
+    const fileName = `video_${Date.now()}_${file.name}`
+    const { data: uploadData, error: uploadError } = await sb.storage
+      .from("videos")
+      .upload(fileName, file, {})
+
+    if (uploadError) {
+      console.error("[createVideo] Upload error:", uploadError)
+      return { success: false, error: "文件上传失败" }
+    }
+
+    // 获取文件 URL
+    const { data: urlData } = sb.storage
+      .from("videos")
+      .getPublicUrl(fileName)
+
+    const videoUrl = urlData.publicUrl
     const fileSize = file.size
 
     const now = new Date().toISOString()
@@ -70,6 +82,7 @@ export async function createVideo(formData: FormData) {
       .insert({
         title,
         video_url: videoUrl,
+        file_path: fileName,
         is_active: false,
         file_size: fileSize,
         duration: 0,
@@ -96,6 +109,26 @@ export async function deleteVideo(id: string) {
     await requireAdminSession()
     const sb = getSupabase()
 
+    // 先获取视频信息，以便删除存储中的文件
+    const { data: video, error: fetchError } = await sb
+      .from("video_deduction")
+      .select("file_path")
+      .eq("id", id)
+      .single()
+
+    if (fetchError) {
+      console.error("[deleteVideo] Fetch error:", fetchError)
+      return { success: false, error: fetchError.message }
+    }
+
+    // 删除存储中的文件
+    if (video.file_path) {
+      await sb.storage
+        .from("videos")
+        .remove([video.file_path])
+    }
+
+    // 删除数据库记录
     const { error } = await sb
       .from("video_deduction")
       .delete()
