@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { adminLogoutAction } from "@/actions/admin-auth"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Users, CreditCard, Settings, LogOut, User, Image, Link as LinkIcon, Package, FolderOpen, Sparkles, AlertTriangle } from "lucide-react"
+import { LayoutDashboard, Users, CreditCard, Settings, LogOut, User, Image, Link as LinkIcon, Package, FolderOpen, Sparkles, AlertTriangle, Video } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/payments", label: "支付记录", icon: CreditCard },
   { href: "/admin/reports", label: "举报管理", icon: AlertTriangle },
   { href: "/admin/ads", label: "广告管理", icon: Image },
+  { href: "/admin/video-deduction", label: "视频演绎", icon: Video },
   { href: "/admin/social-links", label: "社交链接", icon: LinkIcon },
   { href: "/admin/releases", label: "发布版本", icon: Package },
   { href: "/admin/files", label: "文件管理", icon: FolderOpen },
