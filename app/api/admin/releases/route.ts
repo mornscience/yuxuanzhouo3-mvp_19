@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAdminSession } from "@/lib/admin/session"
+import { getAdminSession, requireAdminSession } from "@/lib/admin/session"
 import { createClient } from "@supabase/supabase-js"
 
 function getSb() {
@@ -7,17 +7,27 @@ function getSb() {
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getAdminSession()
-  if (!session.valid) return NextResponse.json({ ok: false }, { status: 401 })
-
   try {
+    console.log("[GET /api/admin/releases] Request received")
+    const sessionResult = await getAdminSession()
+    console.log("[GET /api/admin/releases] Session result:", sessionResult)
+    if (!sessionResult.valid) return NextResponse.json({ ok: false }, { status: 401 })
+
     const platform = req.nextUrl.searchParams.get("platform") || ""
     const status = req.nextUrl.searchParams.get("status") || ""
     const search = req.nextUrl.searchParams.get("search") || ""
     const limit = parseInt(req.nextUrl.searchParams.get("limit") || "100")
     const offset = parseInt(req.nextUrl.searchParams.get("offset") || "0")
 
+    console.log("[GET /api/admin/releases] Params:", { platform, status, search, limit, offset })
+
     const sb = getSb()
+    console.log("[GET /api/admin/releases] Supabase client created")
+    
+    // 检查 app_releases 表是否存在
+    const { data: tables } = await sb.from("information_schema.tables").select("table_name").eq("table_name", "app_releases")
+    console.log("[GET /api/admin/releases] Tables found:", tables)
+
     let query = sb.from("app_releases").select("*").order("created_at", { ascending: false })
 
     if (platform && platform !== "all") {
@@ -33,12 +43,16 @@ export async function GET(req: NextRequest) {
     }
 
     // 获取总数用于分页
+    console.log("[GET /api/admin/releases] Getting count...")
     const { count } = await sb.from("app_releases").select("*", { count: "exact", head: true })
+    console.log("[GET /api/admin/releases] Count:", count)
 
     // 应用分页
     query = query.range(offset, offset + limit - 1)
 
+    console.log("[GET /api/admin/releases] Executing query...")
     const { data, error } = await query
+    console.log("[GET /api/admin/releases] Query result:", { data, error })
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
 
     return NextResponse.json({
@@ -49,16 +63,19 @@ export async function GET(req: NextRequest) {
       offset
     })
   } catch (e: any) {
+    console.error("[GET /api/admin/releases] Error:", e)
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getAdminSession()
-  if (!session.valid) return NextResponse.json({ ok: false }, { status: 401 })
-
   try {
+    console.log("[POST /api/admin/releases] Request received")
+    const session = await requireAdminSession()
+    console.log("[POST /api/admin/releases] Session:", session)
+
     const body = await req.json()
+    console.log("[POST /api/admin/releases] Body:", body)
     const {
       platform,
       version,
@@ -71,12 +88,17 @@ export async function POST(req: NextRequest) {
     } = body
 
     if (!platform || !version || !fileUrl) {
+      console.log("[POST /api/admin/releases] Missing required parameters")
       return NextResponse.json({ ok: false, error: "缺少必要参数: platform, version, fileUrl" }, { status: 400 })
     }
 
+    console.log("[POST /api/admin/releases] Params:", { platform, version, fileUrl, buildNumber, releaseNotes, fileSize, isMandatory, status })
+
     const sb = getSb()
+    console.log("[POST /api/admin/releases] Supabase client created")
     const now = new Date().toISOString()
 
+    console.log("[POST /api/admin/releases] Inserting data...")
     const { data, error } = await sb
       .from("app_releases")
       .insert({
@@ -95,17 +117,19 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
+    console.log("[POST /api/admin/releases] Insert result:", { data, error })
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
 
     return NextResponse.json({ ok: true, data })
   } catch (e: any) {
+    console.error("[POST /api/admin/releases] Error:", e)
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 })
   }
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getAdminSession()
-  if (!session.valid) return NextResponse.json({ ok: false }, { status: 401 })
+  const sessionResult = await getAdminSession()
+  if (!sessionResult.valid) return NextResponse.json({ ok: false }, { status: 401 })
 
   try {
     const body = await req.json()
@@ -155,8 +179,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getAdminSession()
-  if (!session.valid) return NextResponse.json({ ok: false }, { status: 401 })
+  const sessionResult = await getAdminSession()
+  if (!sessionResult.valid) return NextResponse.json({ ok: false }, { status: 401 })
 
   try {
     const { id } = await req.json()
