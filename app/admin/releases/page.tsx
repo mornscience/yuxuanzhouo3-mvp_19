@@ -89,6 +89,7 @@ export default function ReleasesPage() {
     switch (platform) {
       case 'android': return <Smartphone className="h-4 w-4" />;
       case 'ios': return <Apple className="h-4 w-4" />;
+      case 'harmony': return <Smartphone className="h-4 w-4" />;
       case 'web': return <Monitor className="h-4 w-4" />;
       default: return <ExternalLink className="h-4 w-4" />;
     }
@@ -290,6 +291,7 @@ export default function ReleasesPage() {
                   <SelectContent>
                     <SelectItem value="android">Android</SelectItem>
                     <SelectItem value="ios">iOS</SelectItem>
+                    <SelectItem value="harmony">HarmonyOS</SelectItem>
                     <SelectItem value="web">Web</SelectItem>
                   </SelectContent>
                 </Select>
@@ -340,7 +342,7 @@ export default function ReleasesPage() {
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
-                      input.accept = '.apk,.ipa,.zip';
+                      input.accept = '.apk,.ipa,.hap,.zip';
                       input.onchange = async (e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
                         if (file) {
@@ -437,6 +439,7 @@ export default function ReleasesPage() {
                   <SelectContent>
                     <SelectItem value="android">Android</SelectItem>
                     <SelectItem value="ios">iOS</SelectItem>
+                    <SelectItem value="harmony">HarmonyOS</SelectItem>
                     <SelectItem value="web">Web</SelectItem>
                   </SelectContent>
                 </Select>
@@ -487,7 +490,7 @@ export default function ReleasesPage() {
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
-                      input.accept = '.apk,.ipa,.zip';
+                      input.accept = '.apk,.ipa,.hap,.zip';
                       input.onchange = async (e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
                         if (file) {

@@ -37,6 +37,7 @@ async function uploadToSupabase(buffer: Buffer, fileName: string, cloudPath: str
   const ext = fileName.toLowerCase().split(".").pop()
   if (ext === "apk") contentType = "application/vnd.android.package-archive"
   else if (ext === "ipa") contentType = "application/octet-stream"
+  else if (ext === "hap") contentType = "application/vnd.huawei.app"
   else if (ext === "zip") contentType = "application/zip"
   else if (ext === "mp4") contentType = "video/mp4"
 
@@ -63,10 +64,10 @@ export async function POST(request: NextRequest) {
     const customPath = formData.get("path") as string || ""
 
     // 检查文件类型
-    const allowedExtensions = ["mp4", "apk", "ipa", "zip"]
+    const allowedExtensions = ["mp4", "apk", "ipa", "hap", "zip"]
     const ext = file.name.toLowerCase().split(".").pop()
     if (!ext || !allowedExtensions.includes(ext)) {
-      return fail("只支持上传 MP4、APK、IPA、ZIP 格式文件")
+      return fail("只支持上传 MP4、APK、IPA、HAP、ZIP 格式文件")
     }
 
     const MAX_SIZE = 200 * 1024 * 1024

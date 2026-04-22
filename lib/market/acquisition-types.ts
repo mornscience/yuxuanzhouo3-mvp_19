@@ -246,6 +246,7 @@ export interface AcquisitionBootstrapData {
   bloggerProfile?: AcquisitionBlogger
   participations?: AdParticipation[]
   scaffoldProjects?: ScaffoldProject[]
+  cooperations?: any[]
 }
 
 // ==========================================

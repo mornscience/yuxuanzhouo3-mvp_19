@@ -1447,7 +1447,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                 ) : (
                   ads.map((ad, index) => (
                     <TableRow 
-                      key={ad.id || ad._id || index}
+                      key={ad.id || index}
                       className="transition-all duration-200"
                       style={{
                         background: index % 2 === 0 ? '#f8fbff' : '#f0f7ff',
