@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { LoginPrompt } from "@/components/market/login-prompt"
 import { UserAvatarDropdown } from "@/components/market/user-avatar-dropdown"
 import {
@@ -1889,12 +1890,28 @@ export function AcquisitionClient() {
             </h1>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => window.location.href = '/market/ai-search'}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md"
-            >
-              🤖 <span className="hidden sm:inline">{t("ai_search")}</span><span className="sm:hidden">AI</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => window.location.href = '/market/ai-search'}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md hover:from-violet-600 hover:to-purple-700 hover:shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  🤖 <span className="hidden sm:inline">{t("ai_search")}</span><span className="sm:hidden">AI</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs bg-slate-900 text-white p-3 rounded-lg">
+                <div className="font-medium mb-1">AI Smart Search</div>
+                <div className="text-xs text-slate-200 space-y-1">
+                  <p>Enter blogger, enterprise, or VC information, AI automatically searches and extracts:</p>
+                  <ul className="list-disc list-inside text-xs space-y-0.5">
+                    <li>Name & contact email</li>
+                    <li>Website & introduction</li>
+                    <li>Support direct cooperation invitations</li>
+                  </ul>
+                  <p className="mt-2 text-xs text-slate-300">¥0.1 per search, 100 searches/month limit</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
             <Button variant="outline" size="icon" className="rounded-full w-8 h-8 relative flex-shrink-0">
               <Bell size={15} />
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
