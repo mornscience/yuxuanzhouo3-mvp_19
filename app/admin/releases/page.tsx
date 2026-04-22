@@ -383,6 +383,20 @@ export default function ReleasesPage() {
                 </Button>
                 <Button onClick={async () => {
                   try {
+                    // 客户端验证
+                    if (!formData.platform) {
+                      alert('请选择平台');
+                      return;
+                    }
+                    if (!formData.version) {
+                      alert('请输入版本号');
+                      return;
+                    }
+                    if (!formData.fileUrl) {
+                      alert('请上传文件或输入文件URL');
+                      return;
+                    }
+                    
                     const response = await fetch('/api/admin/releases', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
@@ -400,7 +414,8 @@ export default function ReleasesPage() {
                     });
 
                     if (!response.ok) {
-                      throw new Error(`创建失败: ${response.status}`);
+                      const errorData = await response.json();
+                      throw new Error(`创建失败: ${errorData.error || response.status}`);
                     }
 
                     const result = await response.json();
@@ -409,9 +424,11 @@ export default function ReleasesPage() {
                       loadReleases();
                     } else {
                       console.error('创建发布版本失败:', result.error);
+                      alert(`创建失败: ${result.error}`);
                     }
                   } catch (error) {
                     console.error('创建发布版本失败:', error);
+                    alert(`创建失败: ${error instanceof Error ? error.message : '未知错误'}`);
                   }
                 }}>
                   创建
@@ -545,6 +562,20 @@ export default function ReleasesPage() {
                 </Button>
                 <Button onClick={async () => {
                   try {
+                    // 客户端验证
+                    if (!formData.platform) {
+                      alert('请选择平台');
+                      return;
+                    }
+                    if (!formData.version) {
+                      alert('请输入版本号');
+                      return;
+                    }
+                    if (!formData.fileUrl) {
+                      alert('请上传文件或输入文件URL');
+                      return;
+                    }
+                    
                     const response = await fetch('/api/admin/releases', {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
@@ -563,7 +594,8 @@ export default function ReleasesPage() {
                     });
 
                     if (!response.ok) {
-                      throw new Error(`更新失败: ${response.status}`);
+                      const errorData = await response.json();
+                      throw new Error(`更新失败: ${errorData.error || response.status}`);
                     }
 
                     const result = await response.json();
@@ -572,9 +604,11 @@ export default function ReleasesPage() {
                       loadReleases();
                     } else {
                       console.error('更新发布版本失败:', result.error);
+                      alert(`更新失败: ${result.error}`);
                     }
                   } catch (error) {
                     console.error('更新发布版本失败:', error);
+                    alert(`更新失败: ${error instanceof Error ? error.message : '未知错误'}`);
                   }
                 }}>
                   保存
