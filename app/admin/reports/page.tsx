@@ -244,14 +244,14 @@ export default function ReportsPage() {
                       <td className="py-3 px-4">{getReportTypeBadge(report.report_type)}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <User className="h-3 w-3" />
-                          <span className="truncate max-w-[120px]">{report.reporter_email || report.reporterId}</span>
-                        </div>
+                            <User className="h-3 w-3" />
+                            <span className="truncate max-w-[120px]">{report.reporter_email || '未知用户'}</span>
+                          </div>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <UserX className="h-3 w-3" />
-                          <span className="truncate max-w-[120px]">{report.reported_user_email || report.reportedUserId}</span>
+                          <span className="truncate max-w-[120px]">{report.reported_user_email || '未知用户'}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 max-w-[200px] truncate">{report.description}</td>
@@ -339,8 +339,8 @@ export default function ReportsPage() {
                   <p>{getStatusBadge(selectedReport.status)}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">举报时间</h3>
-                  <p>{formatDate(selectedReport.createdAt)}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">举报时间</h3>  
+                  <p>{formatDate(selectedReport.created_at)}</p>
                 </div>
                 {selectedReport.resolved_at && (
                   <div>

@@ -5,8 +5,6 @@ import { isCN } from "@/lib/db-adapter"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const VIDEO_DIR = "advertisements/videos"
-
 function ok(message: string, data?: any) {
   return NextResponse.json({ ok: true, message, data })
 }
@@ -27,18 +25,27 @@ async function uploadToCloudBase(buffer: Buffer, fileName: string, cloudPath: st
   return `${CDN_BASE}/${cloudPath}`
 }
 
-async function uploadToSupabase(buffer: Buffer, fileName: string, cloudPath: string) {
+async function uploadToSupabase(buffer: Buffer, fileName: string, cloudPath: string, bucket: string) {
   const { createClient } = await import("@supabase/supabase-js")
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
-  const { error } = await sb.storage.from("videos").upload(cloudPath, buffer, {
-    contentType: "video/mp4",
+  
+  // 确定文件类型
+  let contentType = "application/octet-stream"
+  const ext = fileName.toLowerCase().split(".").pop()
+  if (ext === "apk") contentType = "application/vnd.android.package-archive"
+  else if (ext === "ipa") contentType = "application/octet-stream"
+  else if (ext === "zip") contentType = "application/zip"
+  else if (ext === "mp4") contentType = "video/mp4"
+
+  const { error } = await sb.storage.from(bucket).upload(cloudPath, buffer, {
+    contentType,
     upsert: false,
   })
   if (error) throw new Error(error.message)
-  const { data } = sb.storage.from("videos").getPublicUrl(cloudPath)
+  const { data } = sb.storage.from(bucket).getPublicUrl(cloudPath)
   return data.publicUrl
 }
 
@@ -49,34 +56,59 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get("file") as File | null
-    if (!file) return fail("请选择要上传的视频文件")
+    if (!file) return fail("请选择要上传的文件")
 
-    const allowedTypes = ["video/mp4", "video/quicktime", "video/x-m4v"]
-    if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith(".mp4")) {
-      return fail("只支持上传 MP4 格式视频")
+    // 获取存储桶和路径参数
+    const bucket = formData.get("bucket") as string || "videos"
+    const customPath = formData.get("path") as string || ""
+
+    // 检查文件类型
+    const allowedExtensions = ["mp4", "apk", "ipa", "zip"]
+    const ext = file.name.toLowerCase().split(".").pop()
+    if (!ext || !allowedExtensions.includes(ext)) {
+      return fail("只支持上传 MP4、APK、IPA、ZIP 格式文件")
     }
 
     const MAX_SIZE = 200 * 1024 * 1024
-    if (file.size > MAX_SIZE) return fail("视频文件不能超过 200MB")
+    if (file.size > MAX_SIZE) return fail("文件不能超过 200MB")
 
-    const ext = file.name.split(".").pop() || "mp4"
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-    const cloudPath = `${VIDEO_DIR}/${fileName}`
+    // 生成安全的文件名：完全避免特殊字符问题
+    const originalFileName = file.name
+    let cloudPath: string
+    const safeFileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    
+    if (customPath) {
+      // 提取自定义路径的目录部分（如果有），然后使用安全的文件名
+      const pathParts = customPath.split('/')
+      if (pathParts.length > 1) {
+        // 有目录结构，保留目录但文件名用安全版本
+        const dirPart = pathParts.slice(0, -1)
+          .map(part => part.replace(/[^\w\-]/g, '_'))
+          .join('/')
+        cloudPath = `${dirPart}/${safeFileName}`
+      } else {
+        // 只有文件名，直接使用安全文件名
+        cloudPath = safeFileName
+      }
+    } else {
+      // 没有自定义路径，直接使用安全文件名
+      cloudPath = safeFileName
+    }
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    let videoUrl: string
+    let fileUrl: string
     if (isCN()) {
-      videoUrl = await uploadToCloudBase(buffer, fileName, cloudPath)
+      fileUrl = await uploadToCloudBase(buffer, originalFileName, cloudPath)
     } else {
-      videoUrl = await uploadToSupabase(buffer, fileName, cloudPath)
+      fileUrl = await uploadToSupabase(buffer, originalFileName, cloudPath, bucket)
     }
 
-    console.log(`[Upload] 视频上传成功 (${isCN() ? "CloudBase" : "Supabase"}): ${cloudPath}`)
-    return ok("视频上传成功", { videoUrl, cloudPath, fileName })
+    console.log(`[Upload] 文件上传成功 (${isCN() ? "CloudBase" : "Supabase"}): ${cloudPath}`)
+    return ok("文件上传成功", { videoUrl: fileUrl, cloudPath, fileName: originalFileName })
   } catch (error: any) {
-    console.error("[Upload] 视频上传失败:", error)
-    return fail(error?.message || "视频上传失败，请重试", 500)
+    console.error("[Upload] 文件上传失败:", error)
+    return fail(error?.message || "文件上传失败，请重试", 500)
   }
 }

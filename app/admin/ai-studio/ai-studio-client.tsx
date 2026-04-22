@@ -57,6 +57,10 @@ const defaultMarketingProfile: AiMarketingProfile = {
     '网页、移动端与桌面端保持一致。',
     '固定决策、责任人和进度，一目了然。',
   ],
+  target_audience: ['企业客户', '团队管理者', '业务负责人'],
+  key_benefits: ['提升协作效率', '降低沟通成本', '增强信息安全性'],
+  brand_voice: '专业、可信、现代',
+  visual_style: '科技感、简洁、专业',
 }
 
 const imageStyles = ['科技写实风', '极简商务风', '材质光影风', '杂志拼贴风']
@@ -120,6 +124,10 @@ function buildProfileFromFeatures(base: AiMarketingProfile, items: FeatureItem[]
     product_summary: base.product_summary,
     core_features: core,
     marketing_angles: angles,
+    target_audience: base.target_audience,
+    key_benefits: base.key_benefits,
+    brand_voice: base.brand_voice,
+    visual_style: base.visual_style,
   }
 }
 
@@ -141,6 +149,10 @@ function buildProfileFromSelected(base: AiMarketingProfile, items: FeatureItem[]
     product_summary: base.product_summary,
     core_features: core,
     marketing_angles: angles,
+    target_audience: base.target_audience,
+    key_benefits: base.key_benefits,
+    brand_voice: base.brand_voice,
+    visual_style: base.visual_style,
   }
 }
 
@@ -736,14 +748,14 @@ export default function AiStudioClient({ region: _region, language, route: _rout
 
                 {posterJob && posterJob.job.status !== 'completed' && (
                   <div className="h-full flex flex-col items-center justify-center text-slate-600">
-                    {['failed', 'blocked'].includes(posterJob.job.status) ? (
+                    {['failed', 'blocked'].includes(posterJob.job.status as string) ? (
                       <X className="w-10 h-10 text-rose-500 mb-2" />
                     ) : (
                       <Loader2 className="w-10 h-10 text-cyan-500 animate-spin mb-3" />
                     )}
                     <div className="text-xs font-semibold text-slate-500 mb-1">{posterJob.job.progress || 0}%</div>
                     <p className="text-xs">
-                      {posterJob.job.status === 'failed' || posterJob.job.status === 'blocked' ? '海报生成失败' : '正在生成海报...'}
+                      {posterJob.job.status === 'failed' || (posterJob.job.status as string) === 'blocked' ? '海报生成失败' : '正在生成海报...'}
                     </p>
                     {posterJob.job.error_message && (
                       <p className="mt-2 text-xs text-rose-500">{posterJob.job.error_message}</p>

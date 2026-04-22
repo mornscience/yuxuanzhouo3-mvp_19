@@ -1,5 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
-import * as cloudbase from "@cloudbase/node-sdk"
+
+// 动态导入 CloudBase SDK，只在服务端使用
+let cloudbase: any = null
+if (typeof window === 'undefined') {
+  cloudbase = require("@cloudbase/node-sdk")
+}
 
 // Node.js 模块只在服务端使用，动态导入避免客户端打包报错
 let readFile: any, writeFile: any, mkdir: any, nodePath: any

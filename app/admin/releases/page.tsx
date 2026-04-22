@@ -36,7 +36,7 @@ export default function ReleasesPage() {
     fileUrl: '',
     fileSize: 0,
     isMandatory: false,
-    status: 'draft' as const,
+    status: 'draft' as 'published' | 'draft' | 'archived',
   });
   const [uploading, setUploading] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);

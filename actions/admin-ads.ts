@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js"
 import { requireAdminSession } from "@/lib/admin/session"
 import type { Advertisement, AdFilters, AdStats, CreateAdData, UpdateAdData } from "@/lib/admin/types"
 
+export type { Advertisement, AdFilters, AdStats, CreateAdData, UpdateAdData }
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

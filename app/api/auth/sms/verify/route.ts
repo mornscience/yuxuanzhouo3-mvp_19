@@ -38,18 +38,23 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString()
     const phoneEmail = `phone_${phone}@sms.local`
 
-    const { data: existingByEmail } = await sb
-      .from("users")
-      .select("id")
-      .eq("email", phoneEmail)
-      .single()
-      .catch(() => ({ data: null }))
+    let user;
+    try {
+      const result = await sb
+        .from("users")
+        .select("id")
+        .eq("email", phoneEmail)
+        .single();
+      user = result;
+    } catch (error) {
+      user = { data: null };
+    }
 
     let userId: string
     let isNew = false
 
-    if (existingByEmail?.id) {
-      userId = existingByEmail.id
+    if (user.data?.id) {
+      userId = user.data.id
     } else {
       isNew = true
       const { data: newUser, error: insertErr } = await sb

@@ -29,12 +29,14 @@ export async function POST(req: NextRequest) {
       log(`• Recording to database ...`)
       
       // Record to database
-      await insertScaffoldProject(userId, {
-        projectName,
-        template,
-        zipUrl,
-        status: "completed"
-      })
+      if (userId) {
+        await insertScaffoldProject(userId, {
+          projectName,
+          template,
+          zipUrl,
+          status: "completed"
+        })
+      }
 
       log(`• Done.`)
       log(`\nSUCCESS: Scaffolding completed for ${projectName}.`)

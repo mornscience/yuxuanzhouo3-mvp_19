@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAdminSession } from "@/lib/admin/session"
+import { getAdminSession, requireAdminSession } from "@/lib/admin/session"
 import { createClient } from "@supabase/supabase-js"
 
 function getSb() {
@@ -49,8 +49,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await getAdminSession()
-  if (!session.valid) return NextResponse.json({ ok: false }, { status: 401 })
+  const session = await requireAdminSession()
 
   try {
     const { id, status, resolutionNotes } = await req.json()

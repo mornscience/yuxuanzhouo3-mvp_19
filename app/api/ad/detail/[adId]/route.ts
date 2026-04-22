@@ -16,13 +16,13 @@ function fail(message: string, status = 400) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { adId: string } }
+  { params }: { params: Promise<{ adId: string }> }
 ) {
   try {
     const userId = getUserIdFromRequest(request)
     if (!userId) return fail("用户未登录", 401)
 
-    const { adId } = params
+    const { adId } = await params
 
     // 先按自定义 id 查，再按 _id 查
     let rows = await dbAdapter.loadRows(ADS_TABLE, { id: adId })

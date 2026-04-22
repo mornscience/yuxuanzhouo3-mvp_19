@@ -36,6 +36,7 @@ function MembershipContent() {
   const [verifying, setVerifying] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
   const [error, setError] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("stripe")
 
   useEffect(() => {
     fetch("/api/market/membership/plans?region=intl", { credentials: "include" })
@@ -85,20 +86,31 @@ function MembershipContent() {
         body: JSON.stringify({
           planId: selectedPlan.id,
           discountCode: discountCode.trim() || undefined,
-          paymentMethod: "stripe",
+          paymentMethod: paymentMethod,
         })
       })
       const json = await res.json()
       if (json.ok) {
         // Stripe returns { url }, PayPal returns { orderId }, WeChat returns { codeUrl }
-        if (json.url) window.location.href = json.url
-        else if (json.data?.checkoutUrl) window.location.href = json.data.checkoutUrl
-        else router.push("/market/membership/success")
+        if (json.url) {
+          // Stripe checkout 或 PayPal checkout
+          window.location.href = json.url
+        } else if (json.codeUrl) {
+          // WeChat pay
+          // 显示二维码
+        } else {
+          // 直接成功（测试模式）
+          router.push("/market/membership/success")
+        }
       } else {
         setError(json.message || "Purchase failed")
       }
-    } catch { setError("Purchase failed, please try again") }
-    finally { setPurchasing(false) }
+    } catch (error) {
+      console.error("Purchase error:", error)
+      setError("Purchase failed, please try again")
+    } finally {
+      setPurchasing(false)
+    }
   }
 
   const currency = "$"
@@ -237,12 +249,31 @@ function MembershipContent() {
           {error && <p className="text-sm text-red-500">{error}</p>}
 
           <div className="space-y-2 pt-1">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-500 flex items-center gap-1.5">
+            <div className="space-y-3">
+              <div className="text-sm text-slate-500 flex items-center gap-1.5">
                 <CreditCard size={14} className="text-slate-400" />
                 {t("payment_method")}
-              </span>
-              <span className="font-medium text-slate-700">Stripe</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setPaymentMethod("stripe")}
+                  className={`py-3 px-4 rounded-xl border ${paymentMethod === "stripe" ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white/60"} transition-all flex items-center justify-center gap-2`}
+                >
+                  <div className="w-6 h-6 bg-[#00afe1] rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">S</span>
+                  </div>
+                  <span className="text-sm font-medium">Stripe</span>
+                </button>
+                <button
+                  onClick={() => setPaymentMethod("paypal")}
+                  className={`py-3 px-4 rounded-xl border ${paymentMethod === "paypal" ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white/60"} transition-all flex items-center justify-center gap-2`}
+                >
+                  <div className="w-6 h-6 bg-[#0070ba] rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">P</span>
+                  </div>
+                  <span className="text-sm font-medium">PayPal</span>
+                </button>
+              </div>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-white/60">
               <span className="font-bold text-slate-800">Total</span>
@@ -278,7 +309,7 @@ function MembershipContent() {
         </button>
 
         <p className="text-center text-xs text-slate-400">
-          Secure payment powered by Stripe · Cancel anytime
+          Secure payment powered by Stripe & PayPal · Cancel anytime
         </p>
       </main>
     </div>

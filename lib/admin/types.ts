@@ -66,7 +66,9 @@ export interface AiAsset {
   id: string
   jobId: string
   type: AiAssetType
+  asset_type?: string
   url: string
+  public_url?: string
   size?: number
   duration?: number // 视频时长（秒）
   metadata?: Record<string, any>
@@ -76,7 +78,7 @@ export interface AiAsset {
 /**
  * AI 生成任务状态
  */
-export type AiGenerationStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+export type AiGenerationStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'blocked'
 
 /**
  * AI 生成任务
@@ -88,8 +90,10 @@ export interface AiGenerationJob {
   status: AiGenerationStatus
   type: 'analysis' | 'poster' | 'video'
   brief: Record<string, any>
+  output_payload?: any
   progress?: number // 0-100
   error?: string
+  error_message?: string
   created_at: string
   updated_at: string
   completed_at?: string
@@ -102,6 +106,7 @@ export interface AiMarketingProfile {
   product_name: string
   product_summary: string
   core_features: string[]
+  marketing_angles: string[]
   target_audience: string[]
   key_benefits: string[]
   brand_voice: string

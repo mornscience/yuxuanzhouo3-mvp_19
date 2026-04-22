@@ -974,7 +974,13 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
                             id: coop.bloggerId,
                             name: coop.bloggerName,
                             email: coop.email,
-                            platform: coop.platform
+                            platform: coop.platform,
+                            followers: '',
+                            status: '待联系',
+                            commission: '',
+                            cost: '',
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
                           },
                           content: `您好 ${coop.bloggerName}，关于我们之前的合作，我想进一步沟通详情...`
                         })}

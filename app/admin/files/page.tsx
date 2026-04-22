@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, ExternalLink, Cloud, Database, FileIcon, Eye, Trash2, Download, Package, Smartphone, Link as LinkIcon } from "lucide-react";
+import { Loader2, RefreshCw, ExternalLink, Cloud, Database, FileIcon, Eye, Trash2, Download, Package, Smartphone, Link as LinkIcon, Apple } from "lucide-react";
 
 interface StorageFile {
   name: string;

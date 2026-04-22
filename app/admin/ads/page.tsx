@@ -112,7 +112,7 @@ export default function AdsManagementPage() {
   const [formData, setFormData] = useState({
     title: "",
     type: "image" as "image" | "video",
-    position: "top" as const,
+    position: "top" as "top" | "bottom" | "left" | "right" | "bottom-left" | "bottom-right" | "sidebar",
     fileUrl: "",
     fileUrlCn: "",
     fileUrlIntl: "",
@@ -319,14 +319,14 @@ export default function AdsManagementPage() {
       type: ad.type,
       position: ad.position,
       fileUrl: ad.fileUrl,
-      fileUrlCn: ad.fileUrlCn || "",
-      fileUrlIntl: ad.fileUrlIntl || "",
+      fileUrlCn: "",
+      fileUrlIntl: "",
       linkUrl: ad.linkUrl || "",
       priority: ad.priority,
       status: ad.status,
       startDate: ad.startDate || "",
       endDate: ad.endDate || "",
-      fileSize: ad.file_size || 0,
+      fileSize: ad.fileSize || 0,
       file: null,
     });
     setEditingAd(ad);
@@ -636,7 +636,7 @@ export default function AdsManagementPage() {
                         </TableCell>
                         <TableCell>{getTypeBadge(ad.type)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {ad.file_size ? formatFileSize(ad.file_size) : "-"}
+                          {ad.fileSize ? formatFileSize(ad.fileSize) : "-"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatUploadTime(ad.created_at)}
@@ -992,32 +992,6 @@ export default function AdsManagementPage() {
                   <div className="mt-1">{formatDate(viewingAd.created_at)}</div>
                 </div>
               </div>
-
-              {(viewingAd.fileUrlCn || viewingAd.fileUrlIntl) && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">区域化文件</h3>
-                  <ScrollArea className="h-24 w-full rounded-md border p-4">
-                    <div className="space-y-2 text-sm">
-                      {viewingAd.fileUrlCn && (
-                        <div>
-                          <span className="text-muted-foreground">国内版：</span>
-                          <a href={viewingAd.fileUrlCn} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-2">
-                            {viewingAd.fileUrlCn}
-                          </a>
-                        </div>
-                      )}
-                      {viewingAd.fileUrlIntl && (
-                        <div>
-                          <span className="text-muted-foreground">国际版：</span>
-                          <a href={viewingAd.fileUrlIntl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-2">
-                            {viewingAd.fileUrlIntl}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
-              )}
             </div>
           )}
           <DialogFooter>
