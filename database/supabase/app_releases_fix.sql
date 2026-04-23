@@ -1,7 +1,7 @@
 -- 应用发布版本表（修复版本）
 CREATE TABLE IF NOT EXISTS public.app_releases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    platform VARCHAR(20) NOT NULL CHECK (platform IN ('android', 'ios', 'web', 'windows', 'macos', 'linux')),
+    platform VARCHAR(20) NOT NULL CHECK (platform IN ('android', 'ios', 'web', 'windows', 'macos', 'linux', 'harmony')),
     version VARCHAR(50) NOT NULL,
     build_number VARCHAR(50),
     release_notes TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.app_releases (
 );
 
 COMMENT ON TABLE public.app_releases IS '应用发布版本表';
-COMMENT ON COLUMN public.app_releases.platform IS '平台: android, ios, web, windows, macos, linux';
+COMMENT ON COLUMN public.app_releases.platform IS '平台: android, ios, web, windows, macos, linux, harmony';
 COMMENT ON COLUMN public.app_releases.status IS '状态: draft(草稿), published(已发布), archived(已归档)';
 
 -- 发布版本表索引

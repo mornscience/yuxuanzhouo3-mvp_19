@@ -974,13 +974,7 @@ function InfluencerModeView({ profile, bloggerProfile, bloggers, allBloggers, su
                             id: coop.bloggerId,
                             name: coop.bloggerName,
                             email: coop.email,
-                            platform: coop.platform,
-                            followers: '',
-                            status: '待联系',
-                            commission: '',
-                            cost: '',
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
+                            platform: coop.platform
                           },
                           content: `您好 ${coop.bloggerName}，关于我们之前的合作，我想进一步沟通详情...`
                         })}
@@ -1447,7 +1441,7 @@ function MerchantModeView({ ads, b2bLeads, vcFollowLeads, vcPublishLeads, profil
                 ) : (
                   ads.map((ad, index) => (
                     <TableRow 
-                      key={ad.id || index}
+                      key={ad.id || ad._id || index}
                       className="transition-all duration-200"
                       style={{
                         background: index % 2 === 0 ? '#f8fbff' : '#f0f7ff',

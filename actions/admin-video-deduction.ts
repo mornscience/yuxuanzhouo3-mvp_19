@@ -60,10 +60,11 @@ export async function createVideo(formData: FormData) {
     }
 
     // 上传文件到 Supabase Storage
-    const fileName = `video_${Date.now()}_${file.name}`
+    const fileExtension = file.name.split('.').pop() || ''
+    const safeFileName = `video_${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${fileExtension}`
     const { data: uploadData, error: uploadError } = await sb.storage
       .from("videos")
-      .upload(fileName, file, {})
+      .upload(safeFileName, file, {})
 
     if (uploadError) {
       console.error("[createVideo] Upload error:", uploadError)
@@ -73,7 +74,7 @@ export async function createVideo(formData: FormData) {
     // 获取文件 URL
     const { data: urlData } = sb.storage
       .from("videos")
-      .getPublicUrl(fileName)
+      .getPublicUrl(safeFileName)
 
     const videoUrl = urlData.publicUrl
     const fileSize = file.size
@@ -84,7 +85,7 @@ export async function createVideo(formData: FormData) {
       .insert({
         title,
         video_url: videoUrl,
-        file_path: fileName,
+        file_path: safeFileName,
         is_active: false,
         file_size: fileSize,
         duration: 0,
