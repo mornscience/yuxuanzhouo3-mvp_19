@@ -2268,7 +2268,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
       fields: [
         { name: "companyName", label: isIntl ? "Company Name" : "公司名称", type: "text", placeholder: isIntl ? "Your company full name" : "输入您的公司全称", fullWidth: true },
         { name: "creditCode", label: isIntl ? "Business Reg. No." : "统一社会信用代码", type: "text", placeholder: isIntl ? "Business registration number" : "输入18位统一社会信用代码", fullWidth: true },
-        { name: "businessLicenseUrl", label: isIntl ? "License URL (optional)" : "营业执照链接", type: "text", placeholder: isIntl ? "Upload license and paste URL" : "上传营业执照后的链接（可选）", fullWidth: true },
+        { name: "businessLicense", label: isIntl ? "Business License" : "上传营业执照", type: "file", placeholder: isIntl ? "Upload business license" : "上传营业执照图片", fullWidth: true },
         { name: "brandName", label: isIntl ? "Brand Name" : "品牌名称", type: "text", placeholder: isIntl ? "Your brand name" : "输入您的品牌名称" },
         { name: "contactPerson", label: isIntl ? "Contact Person" : "联系人", type: "text", placeholder: isIntl ? "Contact name" : "输入联系人姓名" },
         { name: "contactPhone", label: isIntl ? "Contact Phone" : "联系电话", type: "text", placeholder: isIntl ? "Contact phone number" : "输入联系电话" },
@@ -2369,9 +2369,40 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                       className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-xs placeholder:text-slate-400"
                     />
                   </div>
+                ) : field.type === "file" ? (
+                  /* File upload UI */
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,application/pdf"
+                      className="hidden"
+                      id={`file-input-${field.name}`}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) {
+                          handleChange(field.name, f.name)
+                          // Store the actual file for upload
+                          const fileData = new FormData()
+                          fileData.append('file', f)
+                          // Store for later upload
+                          handleChange(`${field.name}_file`, f)
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById(`file-input-${field.name}`)?.click()}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 text-emerald-600 text-sm font-medium hover:bg-emerald-50 hover:border-emerald-400 transition-all w-full justify-center"
+                    >
+                      <FileText size={14} /> {isIntl ? "Select File" : "选择文件"}
+                    </button>
+                    {formData[field.name] && (
+                      <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Selected:" : "已选:"} {formData[field.name]}</p>
+                    )}
+                  </div>
                 ) : (
                   <Input
-                    required
+                    required={!(field.name === "businessLicenseUrl")}
                     type={field.type}
                     placeholder={field.placeholder}
                     step={field.step}
