@@ -2381,10 +2381,8 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                         const f = e.target.files?.[0]
                         if (f) {
                           handleChange(field.name, f.name)
-                          // Store the actual file for upload
                           const fileData = new FormData()
                           fileData.append('file', f)
-                          // Store for later upload
                           handleChange(`${field.name}_file`, f)
                         }
                       }}
