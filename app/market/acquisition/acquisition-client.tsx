@@ -2384,6 +2384,16 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                           const fileData = new FormData()
                           fileData.append('file', f)
                           handleChange(`${field.name}_file`, f)
+                          // Generate preview for images
+                          if (f.type.startsWith('image/')) {
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              handleChange(`${field.name}_preview`, event.target?.result as string)
+                            }
+                            reader.readAsDataURL(f)
+                          } else {
+                            handleChange(`${field.name}_preview`, '')
+                          }
                         }
                       }}
                     />
@@ -2394,9 +2404,18 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                     >
                       <FileText size={14} /> {isIntl ? "Select File" : "选择文件"}
                     </button>
-                    {formData[field.name] && (
+                    {(formData[`${field.name}_preview`] as string) ? (
+                      <div className="space-y-1">
+                        <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Preview:" : "预览:"} {formData[field.name]}</p>
+                        <img 
+                          src={formData[`${field.name}_preview`] as string} 
+                          alt={isIntl ? "Business License Preview" : "营业执照预览"}
+                          className="max-h-48 w-full object-contain rounded-lg border border-slate-200 bg-slate-50"
+                        />
+                      </div>
+                    ) : formData[field.name] ? (
                       <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Selected:" : "已选:"} {formData[field.name]}</p>
-                    )}
+                    ) : null}
                   </div>
                 ) : (
                   <Input
