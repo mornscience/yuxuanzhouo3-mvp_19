@@ -33,7 +33,8 @@ function generateSignature(url: string, method: string, headers: Record<string, 
 export async function analyzeDocument(fileUrl: string): Promise<string> {
   try {
     const url = `/api/document/v1/analyze`
-    const endpoint = `https://docmind.${REGION_ID}.aliyuncs.com${url}`
+    const host = `docmind-api.${REGION_ID}.aliyuncs.com`
+    const endpoint = `https://${host}${url}`
     
     const body = JSON.stringify({
       SourceType: 'URL',
@@ -44,7 +45,7 @@ export async function analyzeDocument(fileUrl: string): Promise<string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(body).toString(),
-      'Host': `docmind.${REGION_ID}.aliyuncs.com`,
+      'Host': host,
     }
     
     const signature = generateSignature(url, 'POST', headers, body)
@@ -74,10 +75,11 @@ export async function analyzeDocument(fileUrl: string): Promise<string> {
 export async function getDocumentResult(taskId: string): Promise<any> {
   try {
     const url = `/api/document/v1/result?TaskId=${taskId}`
-    const endpoint = `https://docmind.${REGION_ID}.aliyuncs.com${url}`
+    const host = `docmind-api.${REGION_ID}.aliyuncs.com`
+    const endpoint = `https://${host}${url}`
     
     const headers: Record<string, string> = {
-      'Host': `docmind.${REGION_ID}.aliyuncs.com`,
+      'Host': host,
     }
     
     const signature = generateSignature(url, 'GET', headers)
