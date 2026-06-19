@@ -25,6 +25,12 @@ import {
   Settings,
 } from "lucide-react"
 
+interface ActiveVideo {
+  id: string;
+  video_url: string;
+  video_name: string;
+}
+
 export default function HomePage() {
   const [isDark, setIsDark] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
@@ -35,6 +41,29 @@ export default function HomePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [aiQuota, setAiQuota] = useState<{ remainingCalls: number; balance: number } | null>(null)
+  const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null)
+  const [videoLoading, setVideoLoading] = useState(false)
+
+  // 获取活跃视频
+  const loadActiveVideo = async () => {
+    setVideoLoading(true)
+    try {
+      const response = await fetch('/api/admin/video-deduction/active?status=active', {
+        credentials: 'include',
+      })
+      const result = await response.json()
+      if (result.ok && result.data && result.data.length > 0) {
+        setActiveVideo(result.data[0])
+      } else {
+        setActiveVideo(null)
+      }
+    } catch (error) {
+      console.error('Failed to load active video:', error)
+      setActiveVideo(null)
+    } finally {
+      setVideoLoading(false)
+    }
+  }
 
   // 检查用户登录状态
   const checkUserLogin = async () => {
@@ -107,6 +136,7 @@ export default function HomePage() {
       }
     }
     checkUserLogin()
+    loadActiveVideo()
   }, [])
 
   // 监听 storage 变化，处理登录/登出事件
@@ -259,6 +289,17 @@ export default function HomePage() {
   const regionLabel =
     regionMode === "cn" ? "CN" : regionMode === "intl" ? "INTL" : lang === "zh" ? "CN (AUTO)" : "INTL (AUTO)"
 
+  const handlePlayVideo = async () => {
+    if (!activeVideo) {
+      await loadActiveVideo()
+    }
+    if (activeVideo) {
+      setShowVideo(true)
+    } else {
+      alert(lang === "en" ? "No active video found" : "暂无可用视频")
+    }
+  }
+
   return (
     <div className={isDark ? "dark" : ""}>
       <div className="min-h-screen bg-background text-foreground transition-colors">
@@ -294,8 +335,12 @@ export default function HomePage() {
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setShowVideo(true)} title="播放视频">
-                <Play className="w-5 h-5" />
+              <Button variant="ghost" size="icon" onClick={handlePlayVideo} title={lang === "en" ? "Play Video" : "播放视频"} disabled={videoLoading}>
+                {videoLoading ? (
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Play className="w-5 h-5" />
+                )}
               </Button>
               <span className="hidden sm:inline-flex items-center rounded-md border border-border/40 px-2 py-1 text-[11px] text-muted-foreground">
                 {regionLabel}
@@ -359,26 +404,28 @@ export default function HomePage() {
                       <Link href="/market/my-applications">{lang === "en" ? "My Applications" : "我的申请"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/market/invite">{lang === "en" ? "Invite Friends" : "邀请好友"}</Link>
+                      <Link href="/market/acquisition">{lang === "en" ? "Acquisition" : "商业对接"}</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a href="/api/logout" onClick={(e) => {
-                        e.preventDefault()
-                        fetch('/api/logout', { method: 'POST' })
-                          .then(() => {
-                            setUser(null)
-                            window.location.reload()
-                          })
-                      }}>
-                        <LogOut className="h-4 w-4 mr-2" />
-                        {lang === "en" ? "Log out" : "退出登录"}
-                      </a>
+                    {user.is_admin && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">{lang === "en" ? "Admin Panel" : "管理后台"}</Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem className="text-red-500" onClick={() => {
+                      localStorage.removeItem('market_user')
+                      document.cookie = 'market_user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+                      window.location.href = '/'
+                    }}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {lang === "en" ? "Log Out" : "退出登录"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              ) : loading ? (
+                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
               ) : (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/login">{lang === "en" ? "Log in" : "登录"}</Link>
+                <Button asChild>
+                  <Link href="/login">{lang === "en" ? "Login" : "登录"}</Link>
                 </Button>
               )}
             </div>
@@ -386,226 +433,118 @@ export default function HomePage() {
         </header>
 
         {/* Hero Section */}
-        <section className="pt-32 pb-20 px-4">
-          <div className="container mx-auto max-w-6xl">
-            <div className="text-center space-y-6">
-              <div className="inline-block px-4 py-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium border border-blue-500/20">
-                {lang === "en" ? "AI for Enterprise" : "企业级 AI 平台"}
-              </div>
-
-              <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-balance">
-                {t.hero.title}
-                <br />
-                <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-                  {t.hero.subtitle}
-                </span>
-              </h1>
-
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-                {t.hero.description}
-              </p>
-
-              <div className="flex items-center justify-center gap-4 pt-4">
-                <Button size="lg" className="gap-2" asChild>
-                  <Link href="/launch">
-                    {t.hero.cta1}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/market/acquisition">{t.hero.cta2}</Link>
-                </Button>
-              </div>
-
-              {/* Quick links to developer tools */}
-              <div className="flex items-center justify-center gap-3 pt-3">
-                <Button size="sm" variant="outline" asChild>
-                  <Link href="/ide">{lang === "en" ? "Online IDE" : "在线 IDE"}</Link>
-                </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <Link href="/project/studio">{lang === "en" ? "Project Studio" : "项目生成/部署"}</Link>
-                </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <Link href="/ai-coder">{lang === "en" ? "AI Coder" : "AI 程序员"}</Link>
-                </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <Link href="/scaffold">{lang === "en" ? "Scaffold UI" : "脚手架生成"}</Link>
-                </Button>
-              </div>
+        <section className="pt-24 pb-16 px-4">
+          <div className="container mx-auto max-w-6xl text-center space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700">
+              <Sparkles className="w-4 h-4" />
+              {lang === "en" ? "AI-Powered Business OS" : "AI 驱动的商业操作系统"}
+            </div>
+            <h1 className="text-5xl font-bold text-balance">{t.hero.title}</h1>
+            <p className="text-xl text-muted-foreground">{t.hero.subtitle}</p>
+            <p className="max-w-2xl mx-auto text-muted-foreground">{t.hero.description}</p>
+            <div className="flex items-center justify-center gap-4">
+              <Button size="lg" className="gap-2" asChild>
+                <Link href="/launch">
+                  {t.hero.cta1}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" onClick={handlePlayVideo} disabled={videoLoading}>
+                {videoLoading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                ) : (
+                  <Play className="w-4 h-4 mr-2" />
+                )}
+                {t.hero.cta2}
+              </Button>
             </div>
           </div>
         </section>
 
-        {/* Core Systems Section */}
-        <section className="py-20 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-7xl">
-            <div className="text-center space-y-4 mb-16">
-              <h2 className="text-4xl font-bold text-balance">{t.systems.title}</h2>
-              <p className="text-lg text-muted-foreground">{t.systems.subtitle}</p>
+        {/* Systems Section */}
+        <section className="py-16 px-4">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl font-bold">{t.systems.title}</h2>
+              <p className="text-muted-foreground">{t.systems.subtitle}</p>
             </div>
-
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Blogger Connector */}
-              <Card
-                id="blogger"
-                className="p-8 space-y-6 border-2 hover:border-blue-500/50 transition-all hover:shadow-xl hover:shadow-blue-500/10 scroll-mt-20"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+              <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center mb-4">
                   <Users className="w-6 h-6 text-white" />
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold">{t.systems.blogger.title}</h3>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{t.systems.blogger.subtitle}</p>
-                  <p className="text-muted-foreground leading-relaxed">{t.systems.blogger.description}</p>
-                </div>
-                <ul className="space-y-2">
-                  {t.systems.blogger.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2" />
-                      <span>{feature}</span>
-                    </li>
+                <h3 className="text-lg font-semibold mb-2">{t.systems.blogger.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{t.systems.blogger.subtitle}</p>
+                <p className="text-sm text-muted-foreground mb-4">{t.systems.blogger.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {t.systems.blogger.features.map((feature) => (
+                    <span key={feature} className="px-2 py-1 bg-blue-200/50 rounded-md text-xs text-blue-700">
+                      {feature}
+                    </span>
                   ))}
-                </ul>
-                <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link href="/market/acquisition?mode=influencer">
-                    {lang === "en" ? "Explore" : "了解更多"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
+                </div>
               </Card>
 
-              {/* CEO Connector */}
-              <Card
-                id="ceo"
-                className="p-8 space-y-6 border-2 hover:border-purple-500/50 transition-all hover:shadow-xl hover:shadow-purple-500/10 scroll-mt-20"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center mb-4">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold">{t.systems.ceo.title}</h3>
-                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">{t.systems.ceo.subtitle}</p>
-                  <p className="text-muted-foreground leading-relaxed">{t.systems.ceo.description}</p>
-                </div>
-                <ul className="space-y-2">
-                  {t.systems.ceo.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2" />
-                      <span>{feature}</span>
-                    </li>
+                <h3 className="text-lg font-semibold mb-2">{t.systems.ceo.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{t.systems.ceo.subtitle}</p>
+                <p className="text-sm text-muted-foreground mb-4">{t.systems.ceo.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {t.systems.ceo.features.map((feature) => (
+                    <span key={feature} className="px-2 py-1 bg-purple-200/50 rounded-md text-xs text-purple-700">
+                      {feature}
+                    </span>
                   ))}
-                </ul>
-                <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link href="/market/acquisition?mode=task">
-                    {lang === "en" ? "Explore" : "了解更多"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
+                </div>
               </Card>
 
-              {/* Investor Connector */}
-              <Card
-                id="investor"
-                className="p-8 space-y-6 border-2 hover:border-green-500/50 transition-all hover:shadow-xl hover:shadow-green-500/10 scroll-mt-20"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+              <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100/50 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center mb-4">
                   <DollarSign className="w-6 h-6 text-white" />
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold">{t.systems.investor.title}</h3>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                    {t.systems.investor.subtitle}
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">{t.systems.investor.description}</p>
+                <h3 className="text-lg font-semibold mb-2">{t.systems.investor.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{t.systems.investor.subtitle}</p>
+                <p className="text-sm text-muted-foreground mb-4">{t.systems.investor.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {t.systems.investor.features.map((feature) => (
+                    <span key={feature} className="px-2 py-1 bg-green-200/50 rounded-md text-xs text-green-700">
+                      {feature}
+                    </span>
+                  ))}
                 </div>
-                <div className="grid grid-cols-2 gap-x-10 gap-y-2">
-                  <ul className="space-y-2">
-                    {t.systems.investor.features.slice(0, 4).map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <ul className="space-y-2">
-                    {t.systems.investor.features.slice(4).map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link href="/market/acquisition?mode=merchant">
-                    {lang === "en" ? "Explore" : "了解更多"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
               </Card>
             </div>
           </div>
         </section>
 
         {/* Optional Modules Section */}
-        <section className="py-20 px-4">
+        <section className="py-16 px-4 bg-muted/50">
           <div className="container mx-auto max-w-6xl">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl font-bold">{t.optional.title}</h2>
               <p className="text-muted-foreground">{t.optional.subtitle}</p>
             </div>
-
-            <div className="grid md:grid-cols-4 gap-4">
-              {productLinks.slice(0, 9).map((product, i) => {
-                const Icon = product.icon
-                const href = isCnRegion ? product.cn : product.intl
-                return (
-                  <a key={i} href={href} target="_blank" rel="noreferrer" className="block">
-                    <Card className="p-6 hover:border-primary transition-colors cursor-pointer h-full">
-                      <div className="space-y-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-primary" />
-                        </div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{isCnRegion ? "CN" : "INTL"}</p>
-                      </div>
-                    </Card>
-                  </a>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Architecture Section */}
-        <section id="architecture" className="py-20 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-6xl">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-4xl font-bold">
-                {lang === "en" ? "Your AI Business Infrastructure" : "你的 AI 商业基础设施"}
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                {lang === "en" ? "One OS. Infinite Possibilities." : "一个系统，无限可能"}
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="grid md:grid-cols-5 gap-4">
-                {productLinks.slice(8).map((product, i) => {
-                  const href = isCnRegion ? product.cn : product.intl
-                  return (
-                    <a key={i} href={href} target="_blank" rel="noreferrer" className="block">
-                      <Card className="p-6 text-center space-y-3 hover:scale-105 transition-transform h-full">
-                        <div className="w-full h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                          <Network className="w-8 h-8 text-white" />
-                        </div>
-                        <p className="font-medium text-sm">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{isCnRegion ? "CN" : "INTL"}</p>
-                      </Card>
-                    </a>
-                  )
-                })}
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {productLinks.map((product) => (
+                <a
+                  key={product.name}
+                  href={isCnRegion ? product.cn : product.intl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group"
+                >
+                  <Card className="p-4 text-center hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+                    <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                      <product.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <p className="font-medium text-sm">{product.name}</p>
+                    <p className="text-xs text-muted-foreground">{isCnRegion ? "CN" : "INTL"}</p>
+                  </Card>
+                </a>
+              ))}
             </div>
           </div>
         </section>
@@ -637,7 +576,7 @@ export default function HomePage() {
         </footer>
 
         {/* Video Modal */}
-        {showVideo && (
+        {showVideo && activeVideo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowVideo(false)}>
             <div className="relative w-full max-w-4xl mx-4" onClick={(e) => e.stopPropagation()}>
               <button
@@ -648,7 +587,7 @@ export default function HomePage() {
               </button>
               <div className="aspect-video bg-black rounded-lg overflow-hidden">
                 <video className="w-full h-full" controls autoPlay>
-                  <source src="/videos/6c07be436fbc5b9f38fd0c38a02e5eff_raw.mp4" type="video/mp4" />
+                  <source src={activeVideo.video_url} type="video/mp4" />
                   {lang === "en" ? "Your browser does not support the video tag." : "您的浏览器不支持视频播放。"}
                 </video>
               </div>

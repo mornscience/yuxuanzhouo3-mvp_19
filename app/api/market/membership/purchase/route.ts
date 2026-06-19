@@ -1,6 +1,53 @@
 import { NextRequest, NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 
+// 添加超时和重试配置
+const FETCH_TIMEOUT = 30000 // 30秒超时
+const MAX_RETRIES = 2 // 最大重试次数
+
+async function fetchWithTimeout(url: string, options: any = {}, timeout: number = FETCH_TIMEOUT): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+    return response
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+async function fetchWithRetry(url: string, options: any = {}, retries: number = MAX_RETRIES): Promise<Response> {
+  let lastError: Error | null = null
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, options)
+      if (response.ok) {
+        return response
+      }
+      // 如果不是网络错误，直接返回
+      return response
+    } catch (error: any) {
+      lastError = error
+      console.warn(`[fetchWithRetry] Attempt ${attempt}/${retries} failed:`, error.message)
+      // 如果是超时错误，重试
+      if (error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ECONNRESET' || error.name === 'AbortError') {
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)) // 指数退避
+        }
+      } else {
+        throw error // 非网络错误直接抛出
+      }
+    }
+  }
+  
+  throw lastError || new Error(`请求失败，已重试 ${retries} 次`)
+}
+
 function getUserId(req: NextRequest) {
   const cookie = req.headers.get("cookie") || ""
   const m = cookie.match(/(?:^|;\s*)market_user_id=([^;]+)/)
@@ -108,7 +155,7 @@ export async function POST(req: NextRequest) {
       const PAYPAL_BASE = process.env.PAYPAL_ENVIRONMENT === "production"
         ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com"
 
-      const tokenRes = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
+      const tokenRes = await fetchWithRetry(`${PAYPAL_BASE}/v1/oauth2/token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -116,9 +163,15 @@ export async function POST(req: NextRequest) {
         },
         body: "grant_type=client_credentials",
       })
+      
+      if (!tokenRes.ok) {
+        const errorData = await tokenRes.json().catch(() => ({ message: "获取 PayPal 访问令牌失败" }))
+        throw new Error(errorData.message || "获取 PayPal 访问令牌失败")
+      }
+      
       const { access_token } = await tokenRes.json()
 
-      const orderRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
+      const orderRes = await fetchWithRetry(`${PAYPAL_BASE}/v2/checkout/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${access_token}` },
         body: JSON.stringify({
@@ -130,6 +183,7 @@ export async function POST(req: NextRequest) {
           }],
         }),
       })
+      
       const order = await orderRes.json()
       if (!orderRes.ok) throw new Error(order.message || "创建 PayPal 订单失败")
 
@@ -156,7 +210,7 @@ export async function PUT(req: NextRequest) {
     const PAYPAL_BASE = process.env.PAYPAL_ENVIRONMENT === "production"
       ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com"
 
-    const tokenRes = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
+    const tokenRes = await fetchWithRetry(`${PAYPAL_BASE}/v1/oauth2/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -164,9 +218,15 @@ export async function PUT(req: NextRequest) {
       },
       body: "grant_type=client_credentials",
     })
+    
+    if (!tokenRes.ok) {
+      const errorData = await tokenRes.json().catch(() => ({ message: "获取 PayPal 访问令牌失败" }))
+      throw new Error(errorData.message || "获取 PayPal 访问令牌失败")
+    }
+    
     const { access_token } = await tokenRes.json()
 
-    const captureRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders/${orderId}/capture`, {
+    const captureRes = await fetchWithRetry(`${PAYPAL_BASE}/v2/checkout/orders/${orderId}/capture`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${access_token}` },
     })
