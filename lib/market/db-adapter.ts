@@ -128,28 +128,23 @@ async function writeLocalRows(table: string, rows: RawRow[]) {
 export const dbAdapter = {
   async loadRows(table: string, filters: RawRow = {}): Promise<RawRow[]> {
     const REGION = getRegion()
-    console.log(`[dbAdapter.loadRows] 开始查询表 ${table}，区域: ${REGION}，过滤条件: ${JSON.stringify(filters)}`)
     // 1. Try Supabase if in INTL region
     if (REGION === "INTL") {
       const supabase = getSupabase()
       if (supabase) {
-        console.log(`[dbAdapter.loadRows] 使用 Supabase 查询表 ${table}`)
         try {
           let query = supabase.from(table).select("*").order("created_at", { ascending: false })
           const normalizedFilters = normalizeKeys(filters)
           for (const [k, v] of Object.entries(normalizedFilters)) query = query.eq(k, v)
           const { data, error } = await query
           if (error) {
-            console.error(`[dbAdapter.loadRows] Supabase 查询错误:`, error)
+            console.error(`[DB] 查询 ${table} 错误:`, error.message)
           } else if (data) {
-            console.log(`[dbAdapter.loadRows] Supabase 查询成功，返回 ${data.length} 条数据`)
             return data
           }
         } catch (error) {
-          console.error(`[dbAdapter.loadRows] Supabase 查询异常:`, error)
+          console.error(`[DB] 查询 ${table} 异常:`, error)
         }
-      } else {
-        console.log(`[dbAdapter.loadRows] Supabase 客户端未初始化`)
       }
     }
 
@@ -157,26 +152,20 @@ export const dbAdapter = {
     if (REGION === "CN") {
       const db = getCloudBase()
       if (db) {
-        console.log(`[dbAdapter.loadRows] 使用 CloudBase 查询表 ${table}`)
         try {
           const res = await db.collection(table).where(filters).get()
           if (Array.isArray(res.data)) {
-            console.log(`[dbAdapter.loadRows] CloudBase 查询成功，返回 ${res.data.length} 条数据`)
             return res.data
           }
         } catch (err) {
-          console.error(`[dbAdapter.loadRows] CloudBase 查询错误:`, err)
+          console.error(`[DB] CloudBase 查询 ${table} 错误:`, err)
         }
-      } else {
-        console.log(`[dbAdapter.loadRows] CloudBase 客户端未初始化`)
       }
     }
 
     // 3. Fallback to Local File
-    console.log(`[dbAdapter.loadRows] 回退到本地文件查询表 ${table}`)
     const rows = await readLocalRows(table)
     const filteredRows = rows.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v))
-    console.log(`[dbAdapter.loadRows] 本地文件查询成功，返回 ${filteredRows.length} 条数据`)
     return filteredRows
   },
 

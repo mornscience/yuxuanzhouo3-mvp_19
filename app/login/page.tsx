@@ -51,48 +51,35 @@ export default function LoginPage() {
     return () => clearTimeout(t)
   }, [smsCountdown])
 
-  // 检测是否在 WebView 内
-  const isInWebView = () => {
-    const userAgent = navigator.userAgent.toLowerCase()
-    // 检测常见的 WebView 特征
-    const isAndroidWebView = userAgent.includes('android') && userAgent.includes('wv')
-    const isiOSWebView = (userAgent.includes('iphone') || userAgent.includes('ipad')) && userAgent.includes('webkit') && !userAgent.includes('safari')
-    return isAndroidWebView || isiOSWebView
-  }
-
   const handleGoogleClick = () => {
-    // 统一使用 web 端的客户端 ID
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    // 检测是否为移动端环境
+    const isMobileApp = typeof window !== 'undefined' && (
+      (window as any).isMobileApp === true ||
+      /(Android|iPhone|iPad|Mobile|WebView)/i.test(navigator.userAgent) ||
+      new URLSearchParams(window.location.search).get('platform') === 'mobile'
+    )
+
+    // 选择对应的客户端ID
+    const clientId = isMobileApp
+      ? process.env.NEXT_PUBLIC_MOBILE_GOOGLE_CLIENT_ID
+      : process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
     if (!clientId) {
-      console.error('[Google OAuth] Client ID not configured')
+      console.error('[Google OAuth] Client ID not configured for', isMobileApp ? 'mobile' : 'web')
       return
     }
 
-    // 使用网页版的重定向 URI
+    // 始终用当前页面的 origin，避免构建时注入的环境变量不正确
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim()
     const redirectUri = encodeURIComponent(`${baseUrl}/api/auth/google/callback`)
-    
-    console.log("[Google OAuth] redirect_uri:", redirectUri)
-    console.log("[Google OAuth] clientId:", clientId)
+    console.log("[Google OAuth] redirect_uri:", `${baseUrl}/api/auth/google/callback`, "platform:", isMobileApp ? 'mobile' : 'web')
     const scope = encodeURIComponent("openid email profile")
     const state = JSON.stringify({
-      r: Math.random().toString(36).slice(2)
+      r: Math.random().toString(36).slice(2),
+      p: isMobileApp ? 'mobile' : 'web'  // 平台信息
     })
     sessionStorage.setItem("google_oauth_state", state)
-    
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${encodeURIComponent(state)}`
-    
-    // 检测是否在 WebView 内
-    if (isInWebView()) {
-      // 在 APP 内，提示用户并使用 window.open 打开
-      if (confirm('为保证登录安全，将使用系统浏览器登录')) {
-        window.open(googleAuthUrl, '_blank')
-      }
-    } else {
-      // 普通网页，正常跳转
-      window.location.href = googleAuthUrl
-    }
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${encodeURIComponent(state)}`
   }
 
   const sendSms = async () => {

@@ -170,6 +170,7 @@ export interface AcquisitionVCLead {
 
 export interface AcquisitionAd {
   id: string
+  _id?: string
   userId?: string // Who published this ad (Merchant)
   brand: string
   type: string // 视频广告, 互动广告, 横幅图片
@@ -198,6 +199,23 @@ export interface UserMarketProfile {
   totalEarnings: string
   balance: string
   adViewsCount: number // For "Real User" status (>= 3)
+  merchant_verify_status?: "pending" | "approved" | "rejected" | null
+  merchant_reject_reason?: string | null
+  // 商家认证相关字段
+  company_name?: string // 公司名称
+  brand_name?: string // 品牌名称
+  contact_person?: string // 联系人
+  contact_phone?: string // 联系电话
+  credit_code?: string // 统一社会信用代码
+  industry?: string // 所属行业
+  business_license_url?: string // 营业执照URL
+  // 企业数字画像字段
+  product_categories?: string // 产品品类（JSON字符串）
+  capacity?: string // 产能规模
+  price_range?: string // 价格区间
+  quality_certifications?: string // 质量认证（JSON字符串）
+  other_tags?: string // 其他标签（JSON字符串）
+  digital_portrait_updated_at?: string // 数字画像更新时间
 }
 
 // Participation records for ads
@@ -232,6 +250,17 @@ export interface CooperationApplication {
   status: "pending" | "approved" | "rejected" // 申请状态
   createdAt: string
   updatedAt: string
+}
+
+// User notification for verification results
+export interface UserNotification {
+  id: string
+  userId: string
+  type: "merchant_approved" | "merchant_rejected" | "influencer_approved" | "influencer_rejected"
+  title: string
+  message: string
+  read: boolean
+  createdAt: string
 }
 
 export interface AcquisitionBootstrapData {

@@ -1,0 +1,1216 @@
+
+
+-- ==========================
+-- 用户账号表
+-- ==========================
+CREATE TABLE users (
+  id VARCHAR(50) PRIMARY KEY,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(100) NOT NULL,
+  role VARCHAR(20) DEFAULT 'user',
+  provider VARCHAR(20) DEFAULT 'email',
+  google_id VARCHAR(100),
+  wechat_id VARCHAR(100),
+  openid VARCHAR(100),
+  unionid VARCHAR(100),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 用户基础资料表
+-- ==========================
+CREATE TABLE user_profiles (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  nickname VARCHAR(50),
+  avatar VARCHAR(255) DEFAULT '',
+  phone VARCHAR(20),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 用户市场画像表
+-- ==========================
+CREATE TABLE user_market_profiles (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  nickname VARCHAR(50),
+  avatar VARCHAR(255) DEFAULT '',
+  full_name VARCHAR(50),
+  id_number VARCHAR(50),
+  is_real_name_verified BOOLEAN DEFAULT FALSE,
+  is_influencer_verified BOOLEAN DEFAULT FALSE,
+  is_merchant_verified BOOLEAN DEFAULT FALSE,
+  is_real_influencer BOOLEAN DEFAULT FALSE,
+  is_real_merchant BOOLEAN DEFAULT FALSE,
+  platform VARCHAR(50),
+  platform_account VARCHAR(100),
+  platform_home_url VARCHAR(255),
+  followers VARCHAR(30),
+  cost VARCHAR(30),
+  commission VARCHAR(30),
+  company_name VARCHAR(100),
+  credit_code VARCHAR(50),
+  business_license_url VARCHAR(255),
+  brand_name VARCHAR(100),
+  contact_person VARCHAR(50),
+  contact_phone VARCHAR(20),
+  industry VARCHAR(50),
+  balance DECIMAL(10,2) DEFAULT 0,
+  total_earnings DECIMAL(10,2) DEFAULT 0,
+  ad_views_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 博主/达人线索表
+-- ==========================
+CREATE TABLE acquisition_bloggers (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(50),
+  platform VARCHAR(50),
+  followers VARCHAR(30),
+  email VARCHAR(100),
+  status VARCHAR(30) DEFAULT '未联系',
+  commission VARCHAR(30),
+  cost VARCHAR(30),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 企业线索表
+-- ==========================
+CREATE TABLE acquisition_b2b_leads (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  region VARCHAR(50),
+  contact VARCHAR(100),
+  email VARCHAR(100),
+  source VARCHAR(50),
+  status VARCHAR(50) DEFAULT '初步接触',
+  est_value VARCHAR(30),
+  type VARCHAR(20),
+  is_public BOOLEAN DEFAULT FALSE,
+  publish_at TIMESTAMP NULL,
+  cooperation_count INT DEFAULT 0,
+  description TEXT,
+  from_application_id VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- VC/融资线索表
+-- ==========================
+CREATE TABLE acquisition_vc_leads (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  region VARCHAR(50),
+  contact VARCHAR(100),
+  email VARCHAR(100),
+  source VARCHAR(50),
+  status VARCHAR(50) DEFAULT '待联系',
+  focus VARCHAR(100),
+  type VARCHAR(20),
+  is_public BOOLEAN DEFAULT FALSE,
+  publish_at TIMESTAMP NULL,
+  cooperation_count INT DEFAULT 0,
+  funding_amount VARCHAR(50),
+  funding_stage VARCHAR(30),
+  description TEXT,
+  from_application_id VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 广告任务表
+-- ==========================
+CREATE TABLE acquisition_ads (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  brand VARCHAR(100),
+  type VARCHAR(30),
+  duration VARCHAR(20),
+  reward VARCHAR(30),
+  status VARCHAR(30) DEFAULT '待审核',
+  views INT DEFAULT 0,
+  video_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 广告任务参与记录表
+-- ==========================
+CREATE TABLE ad_participations (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  ad_id VARCHAR(50) NOT NULL,
+  status VARCHAR(30) DEFAULT '进行中',
+  reward_earned VARCHAR(30),
+  completed_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 资金流水表
+-- ==========================
+CREATE TABLE user_transactions (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  type VARCHAR(30),
+  amount VARCHAR(30),
+  balance VARCHAR(30),
+  order_id VARCHAR(50),
+  status VARCHAR(30) DEFAULT 'success',
+  remark VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 合作申请记录表
+-- ==========================
+CREATE TABLE cooperation_applications (
+  id VARCHAR(50) PRIMARY KEY,
+  lead_id VARCHAR(50),
+  lead_type VARCHAR(20),
+  lead_owner_id VARCHAR(50),
+  applicant_id VARCHAR(50),
+  applicant_name VARCHAR(100),
+  applicant_contact VARCHAR(50),
+  applicant_email VARCHAR(100),
+  message TEXT,
+  status VARCHAR(30) DEFAULT 'pending',
+  applicant_visible BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ==========================
+-- 脚手架生成记录表
+-- ==========================
+CREATE TABLE scaffold_projects (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  project_name VARCHAR(100),
+  template VARCHAR(50),
+  zip_url VARCHAR(255),
+  status VARCHAR(30) DEFAULT 'completed',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+--blogger_collect_tasks（采集任务表）
+CREATE TABLE blogger_collect_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  task_name VARCHAR(100) COMMENT '任务名称',
+  platform VARCHAR(100) COMMENT '平台：抖音,小红书,YouTube',
+  keyword VARCHAR(100) COMMENT '领域关键词',
+  max_limit INT DEFAULT 1000 COMMENT '上限1000',
+  total_collect INT DEFAULT 0 COMMENT '已抓多少',
+  status VARCHAR(30) DEFAULT 'waiting',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--blogger_collect_temp（采集临时数据）
+CREATE TABLE blogger_collect_temp (
+  id VARCHAR(50) PRIMARY KEY,
+  task_id VARCHAR(50) NOT NULL,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100) COMMENT '博主昵称',
+  platform VARCHAR(50) COMMENT '平台',
+  followers VARCHAR(30) COMMENT '粉丝',
+  email VARCHAR(100) COMMENT '邮箱',
+  home_url VARCHAR(255) COMMENT '主页',
+  category VARCHAR(50) COMMENT '领域',
+  is_valid BOOLEAN DEFAULT TRUE,
+  is_sync BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+ALTER TABLE acquisition_bloggers
+ADD COLUMN task_id VARCHAR(50) DEFAULT '',
+ADD COLUMN platform VARCHAR(50) DEFAULT '',
+ADD COLUMN home_url VARCHAR(255) DEFAULT '',
+ADD COLUMN category VARCHAR(50) DEFAULT '',
+ADD COLUMN remark TEXT DEFAULT '';
+
+--blogger_email_templates（邮件模板）
+CREATE TABLE blogger_email_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  title VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- blogger_email_send_logs（发送日志）
+CREATE TABLE blogger_email_send_logs (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  template_id VARCHAR(50) NOT NULL,
+  email VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  status VARCHAR(30) DEFAULT 'success',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+--blogger_cooperation（合作确认表）
+CREATE TABLE blogger_cooperation (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  blogger_name VARCHAR(100),
+  platform VARCHAR(50),
+  email VARCHAR(100),
+  article_template_id VARCHAR(50),
+  publish_type VARCHAR(20) DEFAULT 'now',
+  publish_time TIMESTAMP NULL,
+  channels TEXT,
+  status VARCHAR(30) DEFAULT 'wait_publish',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- publish_channels（频道表）
+CREATE TABLE publish_channels (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  platform VARCHAR(50),
+  account VARCHAR(100),
+  token TEXT,
+  status VARCHAR(20) DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+--article_templates（文案模板）
+CREATE TABLE article_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  title VARCHAR(255),
+  content TEXT,
+  images TEXT,
+  tags VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--publish_tasks（发布任务明细表）
+CREATE TABLE publish_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  coop_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  article_id VARCHAR(50) NOT NULL,
+  channel_id VARCHAR(50) NOT NULL,
+  channel_name VARCHAR(100),
+  status VARCHAR(30) DEFAULT 'waiting',
+  post_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--允许所有人读取博主池
+ALTER TABLE acquisition_bloggers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE acquisition_b2b_leads DISABLE ROW LEVEL SECURITY;
+ALTER TABLE acquisition_vc_leads DISABLE ROW LEVEL SECURITY;
+ALTER TABLE acquisition_ads DISABLE ROW LEVEL SECURITY;
+ALTER TABLE ad_participations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_market_profiles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_transactions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE cooperation_applications DISABLE ROW LEVEL SECURITY;
+ALTER TABLE scaffold_projects DISABLE ROW LEVEL SECURITY;
+
+SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' AND tablename = 'acquisition_bloggers';
+
+SELECT COUNT(*) FROM public.acquisition_bloggers;
+SELECT * FROM public.acquisition_bloggers LIMIT 5;
+
+SELECT schemaname, tablename FROM pg_tables WHERE tablename = 'acquisition_bloggers';
+
+SELECT * FROM acquisition_bloggers LIMIT 10;
+SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename LIKE '%blogger%';
+
+UPDATE blogger_collect_tasks bt
+SET total_collect = (
+  SELECT COUNT(*) FROM blogger_collect_temp bct WHERE bct.task_id = bt.id
+);
+
+CREATE TABLE IF NOT EXISTS blogger_applications (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  blogger_name VARCHAR(100),
+  platform VARCHAR(50),
+  email VARCHAR(100),
+  cost VARCHAR(30),
+  commission VARCHAR(30),
+  status VARCHAR(20) DEFAULT 'pending',
+  message TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+-- 推广文章表（已有 article_templates，复用即可）
+-- 企业发布频道表（已有 publish_channels，复用即可）
+
+-- 合作推广任务表（记录哪篇文章发给了哪个博主）
+CREATE TABLE IF NOT EXISTS cooperation_publish_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  cooperation_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50),
+  blogger_name VARCHAR(100),
+  blogger_email VARCHAR(100),
+  article_id VARCHAR(50),
+  article_title VARCHAR(255),
+  article_content TEXT,
+  status VARCHAR(20) DEFAULT 'sent',
+  sent_at TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE blogger_applications ADD COLUMN IF NOT EXISTS blogger_owner_id VARCHAR(50);
+ALTER TABLE blogger_applications ADD COLUMN IF NOT EXISTS applicant_name VARCHAR(100);
+ALTER TABLE blogger_applications ADD COLUMN IF NOT EXISTS applicant_email VARCHAR(100);
+
+UPDATE cooperation_applications 
+SET lead_owner_id = (
+  SELECT user_id FROM acquisition_b2b_leads WHERE id = cooperation_applications.lead_id
+)
+WHERE lead_owner_id IS NULL AND lead_type = 'b2b';
+
+UPDATE acquisition_vc_leads v
+SET name = (
+  SELECT applicant_name FROM cooperation_applications 
+  WHERE id = v.from_application_id AND applicant_name IS NOT NULL
+)
+WHERE (name IS NULL OR name = '') AND from_application_id IS NOT NULL;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(20);
+
+--ssm
+create table if not exists sms_codes (
+  phone text primary key,
+  code text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz default now()
+);
+
+select * from discount_codes where code = 'INVITE002F6B';
+
+CREATE TABLE IF NOT EXISTS admins (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin',
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  last_login_at TIMESTAMPTZ
+);
+
+
+
+-- blogger_collect_tasks（采集任务表）
+CREATE TABLE blogger_collect_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  task_name VARCHAR(100),
+  platform VARCHAR(100),
+  keyword VARCHAR(100),
+  max_limit INT DEFAULT 1000,
+  total_collect INT DEFAULT 0,
+  status VARCHAR(30) DEFAULT 'waiting',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+COMMENT ON COLUMN blogger_collect_tasks.task_name IS '任务名称';
+COMMENT ON COLUMN blogger_collect_tasks.platform IS '平台：抖音,小红书,YouTube';
+COMMENT ON COLUMN blogger_collect_tasks.keyword IS '领域关键词';
+COMMENT ON COLUMN blogger_collect_tasks.max_limit IS '上限1000';
+COMMENT ON COLUMN blogger_collect_tasks.total_collect IS '已抓多少';
+
+-- blogger_collect_temp（采集临时数据）
+CREATE TABLE blogger_collect_temp (
+  id VARCHAR(50) PRIMARY KEY,
+  task_id VARCHAR(50) NOT NULL,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  platform VARCHAR(50),
+  followers VARCHAR(30),
+  email VARCHAR(100),
+  home_url VARCHAR(255),
+  category VARCHAR(50),
+  is_valid BOOLEAN DEFAULT TRUE,
+  is_sync BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+COMMENT ON COLUMN blogger_collect_temp.name IS '博主昵称';
+COMMENT ON COLUMN blogger_collect_temp.platform IS '平台';
+COMMENT ON COLUMN blogger_collect_temp.followers IS '粉丝';
+COMMENT ON COLUMN blogger_collect_temp.email IS '邮箱';
+COMMENT ON COLUMN blogger_collect_temp.home_url IS '主页';
+COMMENT ON COLUMN blogger_collect_temp.category IS '领域';
+
+-- 给 acquisition_bloggers 追加字段
+ALTER TABLE acquisition_bloggers
+ADD COLUMN IF NOT EXISTS task_id VARCHAR(50) DEFAULT '',
+ADD COLUMN IF NOT EXISTS platform VARCHAR(50) DEFAULT '',
+ADD COLUMN IF NOT EXISTS home_url VARCHAR(255) DEFAULT '',
+ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT '',
+ADD COLUMN IF NOT EXISTS remark TEXT DEFAULT '';
+
+-- blogger_email_templates（邮件模板）
+CREATE TABLE blogger_email_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  title VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- blogger_email_send_logs（发送日志）
+CREATE TABLE blogger_email_send_logs (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  template_id VARCHAR(50) NOT NULL,
+  email VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  status VARCHAR(30) DEFAULT 'success',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- blogger_cooperation（合作确认表）
+CREATE TABLE blogger_cooperation (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  blogger_name VARCHAR(100),
+  platform VARCHAR(50),
+  email VARCHAR(100),
+  article_template_id VARCHAR(50),
+  publish_type VARCHAR(20) DEFAULT 'now',
+  publish_time TIMESTAMPTZ NULL,
+  channels TEXT,
+  status VARCHAR(30) DEFAULT 'wait_publish',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- publish_channels（频道表）
+CREATE TABLE publish_channels (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  platform VARCHAR(50),
+  account VARCHAR(100),
+  token TEXT,
+  status VARCHAR(20) DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- article_templates（文案模板）
+CREATE TABLE article_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  title VARCHAR(255),
+  content TEXT,
+  images TEXT,
+  tags VARCHAR(255),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- publish_tasks（发布任务明细表）
+CREATE TABLE publish_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  coop_id VARCHAR(50) NOT NULL,
+  blogger_id VARCHAR(50) NOT NULL,
+  article_id VARCHAR(50) NOT NULL,
+  channel_id VARCHAR(50) NOT NULL,
+  channel_name VARCHAR(100),
+  status VARCHAR(30) DEFAULT 'waiting',
+  post_url VARCHAR(255),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
+--enterprise_collect_tasks（企业采集任务表）
+CREATE TABLE enterprise_collect_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  task_name VARCHAR(100),
+  platform VARCHAR(100),
+  keyword VARCHAR(100),
+  max_limit INT DEFAULT 1000,
+  total_collect INT DEFAULT 0,
+  status VARCHAR(30) DEFAULT 'waiting',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--enterprise_collect_temp（企业采集临时数据）
+CREATE TABLE enterprise_collect_temp (
+  id VARCHAR(50) PRIMARY KEY,
+  task_id VARCHAR(50) NOT NULL,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  region VARCHAR(50),
+  contact VARCHAR(100),
+  email VARCHAR(100),
+  source VARCHAR(50),
+  is_valid BOOLEAN DEFAULT TRUE,
+  is_sync BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+ALTER TABLE acquisition_b2b_leads
+ADD COLUMN IF NOT EXISTS task_id VARCHAR(50) DEFAULT '',
+ADD COLUMN IF NOT EXISTS remark TEXT DEFAULT '';
+
+--enterprise_email_templates（企业邮件模板）
+CREATE TABLE enterprise_email_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  title VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+--enterprise_email_send_logs（企业发送日志）
+CREATE TABLE enterprise_email_send_logs (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  enterprise_id VARCHAR(50) NOT NULL,
+  template_id VARCHAR(50) NOT NULL,
+  email VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  status VARCHAR(30) DEFAULT 'success',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+--enterprise_cooperation（企业合作确认表）
+CREATE TABLE enterprise_cooperation (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  enterprise_id VARCHAR(50) NOT NULL,
+  enterprise_name VARCHAR(100),
+  contact VARCHAR(100),
+  email VARCHAR(100),
+  status VARCHAR(30) DEFAULT 'wait_service',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--VC 采集任务表
+CREATE TABLE vc_collect_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  task_name VARCHAR(100),
+  platform VARCHAR(100),
+  keyword VARCHAR(100),
+  max_limit INT DEFAULT 1000,
+  total_collect INT DEFAULT 0,
+  status VARCHAR(30) DEFAULT 'waiting',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--VC 采集临时表
+CREATE TABLE vc_collect_temp (
+  id VARCHAR(50) PRIMARY KEY,
+  task_id VARCHAR(50) NOT NULL,
+  user_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100),
+  region VARCHAR(50),
+  contact VARCHAR(100),
+  email VARCHAR(100),
+  focus VARCHAR(100),
+  is_valid BOOLEAN DEFAULT TRUE,
+  is_sync BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+--VC 线索池升级（安全）
+ALTER TABLE acquisition_vc_leads
+ADD COLUMN IF NOT EXISTS task_id VARCHAR(50) DEFAULT '',
+ADD COLUMN IF NOT EXISTS remark TEXT DEFAULT '';
+
+--VC 邮件模板
+CREATE TABLE vc_email_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  title VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+--VC 邮件发送日志
+CREATE TABLE vc_email_send_logs (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  vc_id VARCHAR(50) NOT NULL,
+  template_id VARCHAR(50) NOT NULL,
+  email VARCHAR(100),
+  subject VARCHAR(255),
+  content TEXT,
+  status VARCHAR(30) DEFAULT 'success',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+--VC 合作确认表
+CREATE TABLE vc_cooperation (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  vc_id VARCHAR(50) NOT NULL,
+  institution VARCHAR(100),
+  contact VARCHAR(100),
+  email VARCHAR(100),
+  status VARCHAR(30) DEFAULT 'wait_feedback',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+--ai搜索表
+CREATE TABLE IF NOT EXISTS ai_search_leads (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  query TEXT NOT NULL,
+  name VARCHAR(255),
+  email VARCHAR(255),
+  website VARCHAR(255),
+  description TEXT,
+  type VARCHAR(20) NOT NULL DEFAULT 'blogger',
+  raw_content TEXT,
+  email_sent BOOLEAN DEFAULT FALSE,
+  email_sent_at TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+--ai使用记录表
+CREATE TABLE IF NOT EXISTS ai_search_usage (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  year_month VARCHAR(7) NOT NULL,  -- 格式: 2026-04
+  count INT DEFAULT 0,
+  cost DECIMAL(10,2) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, year_month)
+);
+
+
+CREATE TABLE IF NOT EXISTS ai_search_quota (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL UNIQUE,
+  balance DECIMAL(10,4) DEFAULT 0.1000,
+  total_used DECIMAL(10,4) DEFAULT 0,
+  call_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE ai_search_quota DISABLE ROW LEVEL SECURITY;
+
+
+
+
+--会员机制
+-- 会员套餐表
+CREATE TABLE IF NOT EXISTS membership_plans (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  region VARCHAR(10) NOT NULL, -- cn / intl
+  duration VARCHAR(20) NOT NULL, -- monthly / quarterly / biannual / annual
+  months INT NOT NULL,
+  base_price DECIMAL(10,2) NOT NULL,
+  discount DECIMAL(4,2) DEFAULT 1.00,
+  final_price DECIMAL(10,2) NOT NULL,
+  ai_quota DECIMAL(10,4) NOT NULL, -- 赠送 AI 额度
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE membership_plans DISABLE ROW LEVEL SECURITY;
+
+-- 折扣码表
+CREATE TABLE IF NOT EXISTS discount_codes (
+  id VARCHAR(50) PRIMARY KEY,
+  code VARCHAR(50) UNIQUE NOT NULL,
+  discount DECIMAL(4,2) NOT NULL, -- 0.9 = 九折
+  max_uses INT DEFAULT 100,
+  used_count INT DEFAULT 0,
+  expires_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE discount_codes DISABLE ROW LEVEL SECURITY;
+
+-- 用户会员记录表
+CREATE TABLE IF NOT EXISTS user_memberships (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  plan_id VARCHAR(50) NOT NULL,
+  plan_name VARCHAR(50),
+  region VARCHAR(10),
+  duration VARCHAR(20),
+  amount_paid DECIMAL(10,2),
+  currency VARCHAR(10) DEFAULT 'cny',
+  discount_code VARCHAR(50),
+  ai_quota_granted DECIMAL(10,4),
+  starts_at TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP,
+  payment_method VARCHAR(30),
+  payment_id VARCHAR(100),
+  status VARCHAR(20) DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE user_memberships DISABLE ROW LEVEL SECURITY;
+
+-- 插入默认套餐数据
+INSERT INTO membership_plans (id, name, region, duration, months, base_price, discount, final_price, ai_quota) VALUES
+('plan-cn-m',  '月度会员', 'cn', 'monthly',   1,  30.00, 1.00, 30.00,  60.0000),
+('plan-cn-q',  '季度会员', 'cn', 'quarterly',  3,  90.00, 0.90, 81.00, 180.0000),
+('plan-cn-h',  '半年会员', 'cn', 'biannual',   6, 180.00, 0.80,144.00, 360.0000),
+('plan-cn-y',  '年度会员', 'cn', 'annual',    12, 360.00, 0.70,252.00, 720.0000),
+('plan-intl-m','Monthly',  'intl','monthly',   1,  30.00, 1.00, 30.00,  60.0000),
+('plan-intl-q','Quarterly','intl','quarterly', 3,  90.00, 0.90, 81.00, 180.0000),
+('plan-intl-h','Biannual', 'intl','biannual',  6, 180.00, 0.80,144.00, 360.0000),
+('plan-intl-y','Annual',   'intl','annual',   12, 360.00, 0.70,252.00, 720.0000)
+ON CONFLICT (id) DO NOTHING;
+
+-- 插入测试折扣码
+INSERT INTO discount_codes (id, code, discount, max_uses, expires_at) VALUES
+('dc-001', 'WELCOME20', 0.80, 1000, '2027-12-31 23:59:59'),
+('dc-002', 'VIP10',     0.90, 500,  '2027-12-31 23:59:59')
+ON CONFLICT (id) DO NOTHING;
+
+
+--认证表market1_verify_requests 表留着是有用的，它现在的作用是：
+记录每次认证申请的历史（谁申请了什么、什么时候）
+将来你想开启手动审核时，只需要改认证 API 里的 status 从 approved 改成 pending，审核流程就自动生效了
+所以现在的状态是：
+用户申请 → 自动通过 → user_market_profiles 更新认证状态 + market1_verify_requests 写一条 status=approved 的记录
+market1 后台"已审核"列表能看到所有认证记录，reviewed_by=auto 表示系统自动通过
+将来开启手动审核：把认证 API 里的 status: "approved" 改成 status: "pending"，并去掉自动更新 user_market_profiles
+CREATE TABLE IF NOT EXISTS market1_verify_requests (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  verify_type VARCHAR(20) NOT NULL,
+  platform VARCHAR(50),
+  platform_account VARCHAR(100),
+  followers VARCHAR(30),
+  company_name VARCHAR(100),
+  credit_code VARCHAR(50),
+  industry VARCHAR(50),
+  status VARCHAR(20) DEFAULT 'pending',
+  reject_reason TEXT,
+  reviewed_by VARCHAR(50),
+  reviewed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE market1_verify_requests DISABLE ROW LEVEL SECURITY;
+
+--增加视频上传
+INSERT INTO storage.buckets (id, name, public) VALUES ('videos', 'videos', true);
+
+INSERT INTO storage.buckets (id, name, public) VALUES ('videos', 'videos', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Public read videos" ON storage.objects
+  FOR SELECT USING (bucket_id = 'videos');
+
+CREATE POLICY "Service role upload videos" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'videos');
+
+
+
+--营销
+-- 邀请关系表
+CREATE TABLE IF NOT EXISTS referral_relations (
+  id VARCHAR(50) PRIMARY KEY,
+  inviter_user_id VARCHAR(50) NOT NULL,
+  invited_user_id VARCHAR(50) NOT NULL,
+  share_code VARCHAR(64) NOT NULL,
+  status VARCHAR(20) DEFAULT 'bound', -- bound / activated
+  created_at TIMESTAMP DEFAULT NOW(),
+  activated_at TIMESTAMP
+);
+ALTER TABLE referral_relations DISABLE ROW LEVEL SECURITY;
+
+-- 邀请链接表
+CREATE TABLE IF NOT EXISTS referral_links (
+  id VARCHAR(50) PRIMARY KEY,
+  creator_user_id VARCHAR(50) NOT NULL,
+  share_code VARCHAR(64) UNIQUE NOT NULL,
+  click_count INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE referral_links DISABLE ROW LEVEL SECURITY;
+
+-- 用户资产账户表（统一钱包）
+CREATE TABLE IF NOT EXISTS market_asset_accounts (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  asset_type VARCHAR(20) NOT NULL, -- cash/points/ai_quota/vip_duration
+  available_balance DECIMAL(12,4) DEFAULT 0,
+  frozen_balance DECIMAL(12,4) DEFAULT 0,
+  lifetime_earned DECIMAL(12,4) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, asset_type)
+);
+ALTER TABLE market_asset_accounts DISABLE ROW LEVEL SECURITY;
+
+-- 资产流水表
+CREATE TABLE IF NOT EXISTS market_asset_ledgers (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  asset_type VARCHAR(20) NOT NULL,
+  direction VARCHAR(10) NOT NULL, -- credit/debit
+  amount DECIMAL(12,4) NOT NULL,
+  source_type VARCHAR(50),
+  remark TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE market_asset_ledgers DISABLE ROW LEVEL SECURITY;
+
+-- 提现申请表
+CREATE TABLE IF NOT EXISTS market_withdrawals (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  channel VARCHAR(30) DEFAULT 'manual',
+  status VARCHAR(20) DEFAULT 'pending',
+  review_note TEXT,
+  reviewed_by VARCHAR(50),
+  reviewed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE market_withdrawals DISABLE ROW LEVEL SECURITY;
+
+-- 营销任务模板表
+CREATE TABLE IF NOT EXISTS market_task_templates (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  event_type VARCHAR(50) NOT NULL,
+  reward_asset VARCHAR(20) DEFAULT 'points',
+  reward_amount DECIMAL(10,4) DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE market_task_templates DISABLE ROW LEVEL SECURITY;
+
+-- 用户任务进度表
+CREATE TABLE IF NOT EXISTS market_user_tasks (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id VARCHAR(50) NOT NULL,
+  template_id VARCHAR(50) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending',
+  completed_at TIMESTAMP,
+  reward_granted BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE market_user_tasks DISABLE ROW LEVEL SECURITY;
+
+-- 给 users 表加 referral_code 字段
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by VARCHAR(20);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code) WHERE referral_code IS NOT NULL;
+
+
+--折扣码
+CREATE TABLE IF NOT EXISTS referral_discount_codes (
+  id VARCHAR(50) PRIMARY KEY,
+  code VARCHAR(50) UNIQUE NOT NULL,
+  inviter_user_id VARCHAR(50) NOT NULL,
+  relation_id VARCHAR(50),
+  discount DECIMAL(4,2) NOT NULL,  -- 0.8 = 八折
+  max_uses INT DEFAULT 1,
+  used_count INT DEFAULT 0,
+  expires_at TIMESTAMP,
+  created_by VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+ALTER TABLE referral_discount_codes DISABLE ROW LEVEL SECURITY;
+
+
+
+-- ==============================================
+-- 视频演绎功能：存储桶 + 数据表 + 安全权限 一键创建
+-- ==============================================
+
+-- 1. 创建视频存储桶（自动处理已存在问题）
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'videos') THEN
+        INSERT INTO storage.buckets (id, name, public)
+        VALUES ('videos', 'videos', true);
+    END IF;
+END $$;
+
+-- 2. 存储桶权限：所有人可读
+DROP POLICY IF EXISTS "Public can view videos" ON storage.objects;
+CREATE POLICY "Public can view videos"
+ON storage.objects
+FOR SELECT
+USING (bucket_id = 'videos');
+
+-- 3. 存储桶权限：登录用户可上传
+DROP POLICY IF EXISTS "Authenticated can upload videos" ON storage.objects;
+CREATE POLICY "Authenticated can upload videos"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'videos');
+
+-- 4. 创建视频数据表（修复了updated_at的语法错误）
+CREATE TABLE IF NOT EXISTS public.video_deduction (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  video_url text NOT NULL,
+  file_path text,
+  is_active boolean NOT NULL DEFAULT false,
+  file_size bigint DEFAULT 0,
+  duration integer DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now() -- 这里修复了！
+);
+
+-- 5. 开启数据表安全保护（必须开！）
+ALTER TABLE public.video_deduction ENABLE ROW LEVEL SECURITY;
+
+-- 6. 数据表权限：所有人可看视频
+DROP POLICY IF EXISTS "Allow public read access" ON public.video_deduction;
+CREATE POLICY "Allow public read access"
+ON public.video_deduction
+FOR SELECT USING (true);
+
+-- 7. 数据表权限：登录用户可管理视频
+DROP POLICY IF EXISTS "Allow authenticated users to manage videos" ON public.video_deduction;
+CREATE POLICY "Allow authenticated users to manage videos"
+ON public.video_deduction
+FOR ALL TO authenticated USING (true);
+
+-- 8. 索引
+CREATE INDEX IF NOT EXISTS idx_video_active ON public.video_deduction(is_active);
+CREATE INDEX IF NOT EXISTS idx_video_created ON public.video_deduction(created_at DESC);
+
+
+-- 只创建 APK 存储桶 + 权限
+-- 视频表不动！
+
+-- 1. 创建 apks 存储桶
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'apks') THEN
+        INSERT INTO storage.buckets (id, name, public)
+        VALUES ('apks', 'apks', true);
+    END IF;
+END $$;
+
+-- 2. 所有人可下载 APK
+CREATE POLICY "Public can download apks"
+ON storage.objects
+FOR SELECT
+USING (bucket_id = 'apks');
+
+-- 3. 登录用户可上传 APK
+CREATE POLICY "Authenticated can upload apks"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'apks');
+
+-- 4. 登录用户可修改/删除 APK
+CREATE POLICY "Authenticated can update apks"
+ON storage.objects
+FOR UPDATE
+TO authenticated
+USING (bucket_id = 'apks');
+
+CREATE POLICY "Authenticated can delete apks"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (bucket_id = 'apks');
+
+
+-- 1. 先创建 update_updated_at_column 函数（必须！否则触发器报错）
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.updated_at = CURRENT_TIMESTAMP;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. 创建应用发布版本表
+CREATE TABLE IF NOT EXISTS public.app_releases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    platform VARCHAR(20) NOT NULL CHECK (platform IN ('android', 'ios', 'web', 'windows', 'macos', 'linux')),
+    version VARCHAR(50) NOT NULL,
+    build_number VARCHAR(50),
+    release_notes TEXT,
+    file_url TEXT NOT NULL,
+    file_size INTEGER,
+    is_mandatory BOOLEAN DEFAULT false,
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES public.admins(id) ON DELETE SET NULL
+);
+
+-- 3. 开启行级安全（必须！）
+ALTER TABLE public.app_releases ENABLE ROW LEVEL SECURITY;
+
+-- 4. 权限配置
+-- 所有人可查看已发布版本
+CREATE POLICY "Public can view published app releases"
+ON public.app_releases
+FOR SELECT
+USING (status = 'published');
+
+-- 登录用户可管理所有版本
+CREATE POLICY "Authenticated users can manage app releases"
+ON public.app_releases
+FOR ALL
+TO authenticated
+USING (true);
+
+-- 5. 注释
+COMMENT ON TABLE public.app_releases IS '应用发布版本表';
+COMMENT ON COLUMN public.app_releases.platform IS '平台: android, ios, web, windows, macos, linux';
+COMMENT ON COLUMN public.app_releases.status IS '状态: draft(草稿), published(已发布), archived(已归档)';
+
+-- 6. 索引
+CREATE INDEX IF NOT EXISTS idx_app_releases_platform ON public.app_releases(platform);
+CREATE INDEX IF NOT EXISTS idx_app_releases_status ON public.app_releases(status);
+CREATE INDEX IF NOT EXISTS idx_app_releases_created_at ON public.app_releases(created_at DESC);
+
+-- 7. 自动更新时间触发器
+CREATE TRIGGER update_app_releases_updated_at BEFORE UPDATE ON public.app_releases
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+
+-- 1. 删除旧的检查约束
+ALTER TABLE public.app_releases
+DROP CONSTRAINT IF EXISTS app_releases_platform_check;
+
+-- 2. 添加新的检查约束（加入 harmony）
+ALTER TABLE public.app_releases
+ADD CONSTRAINT app_releases_platform_check
+CHECK (platform IN ('android', 'ios', 'web', 'windows', 'macos', 'linux', 'harmony'));
+
+-- 3. 更新字段注释，加上 harmony
+COMMENT ON COLUMN public.app_releases.platform
+IS '平台: android, ios, web, windows, macos, linux, harmony';
+
+
+ALTER TABLE user_market_profiles 
+ADD COLUMN merchant_verify_status VARCHAR(20) DEFAULT NULL,
+ADD COLUMN merchant_reject_reason TEXT DEFAULT NULL;
+
+-- 创建用户通知表
+CREATE TABLE IF NOT EXISTS user_notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  read BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 添加索引以提高查询性能
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id ON user_notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_read ON user_notifications(read);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_created_at ON user_notifications(created_at);
+
+
+-- 为 user_market_profiles 表添加数字画像相关字段
+
+-- 1. 产品品类 (JSON 字符串)
+ALTER TABLE public.user_market_profiles 
+ADD COLUMN IF NOT EXISTS product_categories TEXT;
+
+COMMENT ON COLUMN public.user_market_profiles.product_categories IS '产品品类列表（JSON字符串）';
+
+-- 2. 产能规模
+ALTER TABLE public.user_market_profiles 
+ADD COLUMN IF NOT EXISTS capacity TEXT;
+
+COMMENT ON COLUMN public.user_market_profiles.capacity IS '产能规模描述';
+
+-- 3. 价格区间
+ALTER TABLE public.user_market_profiles 
+ADD COLUMN IF NOT EXISTS price_range TEXT;
+
+COMMENT ON COLUMN public.user_market_profiles.price_range IS '价格区间';
+
+-- 4. 质量认证 (JSON 字符串)
+ALTER TABLE public.user_market_profiles 
+ADD COLUMN IF NOT EXISTS quality_certifications TEXT;
+
+COMMENT ON COLUMN public.user_market_profiles.quality_certifications IS '质量认证列表（JSON字符串）';
+
+-- 5. 其他标签 (JSON 字符串)
+ALTER TABLE public.user_market_profiles 
+ADD COLUMN IF NOT EXISTS other_tags TEXT;
+
+COMMENT ON COLUMN public.user_market_profiles.other_tags IS '其他业务标签（JSON字符串）';
+
+-- 6. 数字画像更新时间
+ALTER TABLE public.user_market_profiles 
+ADD COLUMN IF NOT EXISTS digital_portrait_updated_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN public.user_market_profiles.digital_portrait_updated_at IS '数字画像最后更新时间';
+
+
+
+
+
+
+
+
+
+
+
+

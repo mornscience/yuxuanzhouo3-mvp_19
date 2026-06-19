@@ -118,7 +118,6 @@ export async function POST(req: NextRequest) {
       })
       const { access_token } = await tokenRes.json()
 
-      // 先创建订单，不包含 return_url
       const orderRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${access_token}` },
@@ -129,23 +128,12 @@ export async function POST(req: NextRequest) {
             description: `mornbusiness ${plan.name}`,
             custom_id: JSON.stringify({ userId, planId, membershipId, aiQuota: plan.ai_quota, expiresAt: expiresAt.toISOString() }),
           }],
-          application_context: {
-            cancel_url: `${baseUrl}/market/membership?cancelled=1`,
-            return_url: `${baseUrl}/api/market/membership/purchase/capture`,
-            user_action: "PAY_NOW",
-          },
         }),
       })
       const order = await orderRes.json()
       if (!orderRes.ok) throw new Error(order.message || "创建 PayPal 订单失败")
 
-      // 查找 PayPal 支付链接
-      const approvalUrl = order.links?.find((link: any) => link.rel === "approve")?.href
-      if (!approvalUrl) {
-        throw new Error("未找到 PayPal 支付链接")
-      }
-
-      return NextResponse.json({ ok: true, type: "paypal", url: approvalUrl })
+      return NextResponse.json({ ok: true, type: "paypal", orderId: order.id })
     }
 
     return NextResponse.json({ ok: false, message: "不支持的支付方式" }, { status: 400 })

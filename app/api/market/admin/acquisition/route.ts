@@ -43,9 +43,7 @@ export const dynamic = "force-dynamic"
 export async function GET(request: NextRequest) {
   const admin = verifyMarketingAdmin(request)
   const userId = getUserIdFromRequest(request)
-  
-  console.log("[DEBUG API] admin:", admin, "userId:", userId)
-  
+
   if (!admin) return errorJson("Unauthorized", "Unauthorized", 401)
 
   try {

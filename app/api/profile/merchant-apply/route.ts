@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       companyName,
       creditCode,
       businessLicenseUrl,
+      businessLicense,
       brandName,
       contactPerson,
       contactPhone,
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     const result = await applyMerchantVerification(userId, {
       companyName,
       creditCode,
-      businessLicenseUrl: businessLicenseUrl || "",
+      businessLicenseUrl: businessLicenseUrl || businessLicense || "",
       brandName: brandName || "",
       contactPerson,
       contactPhone,
@@ -63,9 +64,9 @@ export async function POST(request: NextRequest) {
         company_name: companyName,
         credit_code: creditCode,
         industry: industry || "",
-        status: "approved",
-        reviewed_by: "auto",
-        reviewed_at: new Date().toISOString(),
+        status: "pending",
+        reviewed_by: null,
+        reviewed_at: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      message: result.message
+      message: "商家认证申请已提交，等待管理员审核"
     })
 
   } catch (error: any) {

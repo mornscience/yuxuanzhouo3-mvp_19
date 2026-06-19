@@ -1,17 +1,5 @@
+import { cookies } from "next/headers"
 import type { AdminSession, SessionValidationResult } from "./types"
-
-// 统一的 cookies 获取函数，支持 Server Actions 和 Route Handlers
-async function getCookies() {
-  try {
-    // 尝试异步调用（Server Actions）
-    const { cookies: cookiesFn } = await import("next/headers")
-    return cookiesFn()
-  } catch {
-    // 回退到同步调用（Route Handlers）
-    const { cookies: cookiesFn } = require("next/headers")
-    return cookiesFn()
-  }
-}
 
 const COOKIE_NAME = "admin_session"
 const SESSION_EXPIRY = 24 * 60 * 60 // 24h
@@ -49,7 +37,7 @@ export function deserializeSession(serialized: string): AdminSession | null {
 }
 
 export async function setAdminSessionCookie(session: AdminSession): Promise<void> {
-  const store = await getCookies()
+  const store = await cookies()
   store.set(COOKIE_NAME, serializeSession(session), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -61,7 +49,7 @@ export async function setAdminSessionCookie(session: AdminSession): Promise<void
 
 export async function getAdminSession(): Promise<SessionValidationResult> {
   try {
-    const store = await getCookies()
+    const store = await cookies()
     const cookie = store.get(COOKIE_NAME)
     if (!cookie) return { valid: false, error: "未登录" }
     const session = deserializeSession(cookie.value)
@@ -80,6 +68,6 @@ export async function requireAdminSession(): Promise<AdminSession> {
 }
 
 export async function clearAdminSessionCookie(): Promise<void> {
-  const store = await getCookies()
+  const store = await cookies()
   store.delete(COOKIE_NAME)
 }

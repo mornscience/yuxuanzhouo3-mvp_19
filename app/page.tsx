@@ -28,7 +28,6 @@ import {
 export default function HomePage() {
   const [isDark, setIsDark] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
-  const [activeVideo, setActiveVideo] = useState<string | null>(null)
   const regionMode = (process.env.NEXT_PUBLIC_SITE_REGION ?? "auto").toLowerCase()
   const [lang, setLang] = useState<"en" | "zh">(() =>
     regionMode === "cn" ? "zh" : "en",
@@ -57,7 +56,7 @@ export default function HomePage() {
       // 如果localStorage中没有，再从cookie中获取
       if (!userId) {
         const cookieValue = document.cookie
-          .split('; ')
+          .split('; ')  
           .find(row => row.startsWith('market_user_id='))
           ?.split('=')[1]
         
@@ -92,20 +91,6 @@ export default function HomePage() {
     }
   }
 
-  // 获取激活的视频
-  const getActiveVideo = async () => {
-    try {
-      const response = await fetch('/api/admin/video-deduction/active')
-      const data = await response.json()
-      
-      if (data.success && data.data) {
-        setActiveVideo(data.data.video_url)
-      }
-    } catch (error) {
-      console.error('Error getting active video:', error)
-    }
-  }
-
   // 初始检查
   useEffect(() => {
     // 处理 Google 登录回调参数
@@ -122,7 +107,6 @@ export default function HomePage() {
       }
     }
     checkUserLogin()
-    getActiveVideo()
   }, [])
 
   // 监听 storage 变化，处理登录/登出事件
@@ -664,7 +648,7 @@ export default function HomePage() {
               </button>
               <div className="aspect-video bg-black rounded-lg overflow-hidden">
                 <video className="w-full h-full" controls autoPlay>
-                  <source src={activeVideo || "/videos/6c07be436fbc5b9f38fd0c38a02e5eff_raw.mp4"} type="video/mp4" />
+                  <source src="/videos/6c07be436fbc5b9f38fd0c38a02e5eff_raw.mp4" type="video/mp4" />
                   {lang === "en" ? "Your browser does not support the video tag." : "您的浏览器不支持视频播放。"}
                 </video>
               </div>

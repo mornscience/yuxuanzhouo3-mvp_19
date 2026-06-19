@@ -31,58 +31,40 @@ export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState('');
 
-  // 刷新函数（使用静态数据）
-  function loadReports() {
+  async function loadReports() {
     setLoading(true);
-    // 模拟加载延迟
-    setTimeout(() => {
+    try {
+      const params = new URLSearchParams();
+      if (filterStatus !== 'all') {
+        params.set('status', filterStatus);
+      }
+      if (searchQuery) {
+        params.set('search', searchQuery);
+      }
+
+      const response = await fetch(`/api/admin/reports?${params.toString()}`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`加载失败: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.ok) {
+        setReports(result.data);
+      } else {
+        console.error('加载举报记录失败:', result.error);
+      }
+    } catch (error) {
+      console.error('加载举报记录失败:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }
 
-  // 静态举报数据
-  const staticReports: Report[] = [
-    {
-      id: '1',
-      reporter_email: 'user1@example.com',
-      reported_user_email: 'user2@example.com',
-      report_type: 'spam',
-      description: '该用户发送垃圾信息',
-      status: 'pending',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      reporter_email: 'user3@example.com',
-      reported_user_email: 'user4@example.com',
-      report_type: 'harassment',
-      description: '该用户发送骚扰信息',
-      status: 'resolved',
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      resolved_at: new Date(Date.now() - 43200000).toISOString(),
-      resolution_notes: '已警告用户'
-    },
-    {
-      id: '3',
-      reporter_email: 'user5@example.com',
-      reported_user_email: 'user6@example.com',
-      report_type: 'inappropriate',
-      description: '该用户发布不当内容',
-      status: 'dismissed',
-      created_at: new Date(Date.now() - 172800000).toISOString(),
-      resolved_at: new Date(Date.now() - 129600000).toISOString(),
-      resolution_notes: '内容未违反规定'
-    }
-  ];
-
   useEffect(() => {
-    // 模拟加载延迟
-    const timer = setTimeout(() => {
-      setReports(staticReports);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    loadReports();
   }, []);
 
   const filteredReports = reports.filter(report => {
@@ -244,14 +226,14 @@ export default function ReportsPage() {
                       <td className="py-3 px-4">{getReportTypeBadge(report.report_type)}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                            <User className="h-3 w-3" />
-                            <span className="truncate max-w-[120px]">{report.reporter_email || '未知用户'}</span>
-                          </div>
+                          <User className="h-3 w-3" />
+                          <span className="truncate max-w-[120px]">{report.reporter_email || report.reporterId}</span>
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <UserX className="h-3 w-3" />
-                          <span className="truncate max-w-[120px]">{report.reported_user_email || '未知用户'}</span>
+                          <span className="truncate max-w-[120px]">{report.reported_user_email || report.reportedUserId}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 max-w-[200px] truncate">{report.description}</td>
@@ -339,8 +321,8 @@ export default function ReportsPage() {
                   <p>{getStatusBadge(selectedReport.status)}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">举报时间</h3>  
-                  <p>{formatDate(selectedReport.created_at)}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">举报时间</h3>
+                  <p>{formatDate(selectedReport.createdAt)}</p>
                 </div>
                 {selectedReport.resolved_at && (
                   <div>

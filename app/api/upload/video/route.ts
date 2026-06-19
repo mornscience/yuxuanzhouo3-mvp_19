@@ -27,6 +27,7 @@ async function uploadToCloudBase(buffer: Buffer, fileName: string, cloudPath: st
 
 async function uploadToSupabase(buffer: Buffer, fileName: string, cloudPath: string, bucket: string) {
   const { createClient } = await import("@supabase/supabase-js")
+  
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -40,6 +41,10 @@ async function uploadToSupabase(buffer: Buffer, fileName: string, cloudPath: str
   else if (ext === "hap") contentType = "application/vnd.huawei.app"
   else if (ext === "zip") contentType = "application/zip"
   else if (ext === "mp4") contentType = "video/mp4"
+  else if (ext === "jpg" || ext === "jpeg") contentType = "image/jpeg"
+  else if (ext === "png") contentType = "image/png"
+  else if (ext === "gif") contentType = "image/gif"
+  else if (ext === "pdf") contentType = "application/pdf"
 
   const { error } = await sb.storage.from(bucket).upload(cloudPath, buffer, {
     contentType,
@@ -60,14 +65,14 @@ export async function POST(request: NextRequest) {
     if (!file) return fail("请选择要上传的文件")
 
     // 获取存储桶和路径参数
-    const bucket = formData.get("bucket") as string || "videos"
+    const bucket = formData.get("bucket") as string || "VIDEOS"
     const customPath = formData.get("path") as string || ""
 
     // 检查文件类型
-    const allowedExtensions = ["mp4", "apk", "ipa", "hap", "zip"]
+    const allowedExtensions = ["mp4", "apk", "ipa", "hap", "zip", "jpg", "jpeg", "png", "gif", "pdf"]
     const ext = file.name.toLowerCase().split(".").pop()
     if (!ext || !allowedExtensions.includes(ext)) {
-      return fail("只支持上传 MP4、APK、IPA、HAP、ZIP 格式文件")
+      return fail("只支持上传 MP4、APK、IPA、HAP、ZIP、JPG、PNG、GIF、PDF 格式文件")
     }
 
     const MAX_SIZE = 200 * 1024 * 1024

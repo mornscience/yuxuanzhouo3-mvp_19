@@ -31,54 +31,32 @@ export default function SocialLinksPage() {
     status: 'active' as const,
   });
 
-  // 刷新函数（使用静态数据）
-  function loadLinks() {
+  async function loadLinks() {
     setLoading(true);
-    // 模拟加载延迟
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/admin/social-links', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`加载失败: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.ok) {
+        setLinks(result.data);
+      } else {
+        console.error('加载社交链接失败:', result.error);
+      }
+    } catch (error) {
+      console.error('加载社交链接失败:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }
 
-  // 静态社交链接数据
-  const staticLinks: SocialLink[] = [
-    {
-      id: '1',
-      platform: 'website',
-      url: 'https://www.example.com',
-      display_order: 1,
-      status: 'active',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      platform: 'github',
-      url: 'https://github.com/example',
-      display_order: 2,
-      status: 'active',
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      updated_at: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: '3',
-      platform: 'twitter',
-      url: 'https://twitter.com/example',
-      display_order: 3,
-      status: 'inactive',
-      created_at: new Date(Date.now() - 172800000).toISOString(),
-      updated_at: new Date(Date.now() - 172800000).toISOString()
-    }
-  ];
-
   useEffect(() => {
-    // 模拟加载延迟
-    const timer = setTimeout(() => {
-      setLinks(staticLinks);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    loadLinks();
   }, []);
 
   function formatDate(dateStr: string): string {

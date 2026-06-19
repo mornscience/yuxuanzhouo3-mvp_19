@@ -4,8 +4,6 @@ import { createClient } from "@supabase/supabase-js"
 import { requireAdminSession } from "@/lib/admin/session"
 import type { Advertisement, AdFilters, AdStats, CreateAdData, UpdateAdData } from "@/lib/admin/types"
 
-export type { Advertisement, AdFilters, AdStats, CreateAdData, UpdateAdData }
-
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,7 +16,7 @@ export async function listAds(filters: AdFilters = {}) {
     await requireAdminSession()
     const sb = getSupabase()
 
-    let query = sb.from("acquisition_ads").select("*", { count: "exact" })
+    let query = sb.from("advertisements").select("*", { count: "exact" })
 
     if (filters.status) {
       query = query.eq("status", filters.status)
@@ -30,10 +28,10 @@ export async function listAds(filters: AdFilters = {}) {
       query = query.eq("position", filters.position)
     }
     if (filters.search) {
-      query = query.ilike("brand", `%${filters.search}%`)
+      query = query.ilike("title", `%${filters.search}%`)
     }
 
-    query = query.order("created_at", { ascending: false })
+    query = query.order("priority", { ascending: false }).order("created_at", { ascending: false })
 
     if (filters.limit) {
       query = query.limit(filters.limit)
@@ -49,29 +47,10 @@ export async function listAds(filters: AdFilters = {}) {
       return { success: false, error: error.message }
     }
 
-    // 转换字段名以匹配前端类型定义
-    const items = (data || []).map((ad: any) => ({
-      id: ad.id,
-      title: ad.brand, // 使用 brand 作为 title
-      type: ad.type,
-      position: ad.position || "top", // 默认为 top
-      fileUrl: ad.video_url || "", // 使用 video_url 作为 fileUrl
-      linkUrl: ad.link_url || "",
-      priority: ad.priority || 0,
-      status: ad.status,
-      startDate: ad.start_date,
-      endDate: ad.end_date,
-      fileSize: ad.file_size || 0,
-      impression_count: ad.views || 0, // 使用 views 作为 impression_count
-      click_count: ad.clicks || 0,
-      created_at: ad.created_at,
-      updated_at: ad.updated_at
-    }))
-
     return {
       success: true,
       data: {
-        items,
+        items: data || [],
         total: count || 0,
         page: filters.offset ? Math.floor(filters.offset / (filters.limit || 10)) + 1 : 1,
         pageSize: filters.limit || 10,
@@ -95,10 +74,10 @@ export async function getAdStats() {
       { count: inactive },
       { data: adsData }
     ] = await Promise.all([
-      sb.from("acquisition_ads").select("*", { count: "exact", head: true }),
-      sb.from("acquisition_ads").select("*", { count: "exact", head: true }).eq("status", "投放中"),
-      sb.from("acquisition_ads").select("*", { count: "exact", head: true }).eq("status", "待审核"),
-      sb.from("acquisition_ads").select("type, views, clicks")
+      sb.from("advertisements").select("*", { count: "exact", head: true }),
+      sb.from("advertisements").select("*", { count: "exact", head: true }).eq("status", "active"),
+      sb.from("advertisements").select("*", { count: "exact", head: true }).eq("status", "inactive"),
+      sb.from("advertisements").select("type, impression_count, click_count")
     ])
 
     let totalImpressions = 0
@@ -106,9 +85,9 @@ export async function getAdStats() {
     const byType: Record<string, number> = { image: 0, video: 0 }
 
     if (adsData) {
-      adsData.forEach((ad: any) => {
-        totalImpressions += ad.views || 0
-        totalClicks += ad.clicks || 0
+      adsData.forEach(ad => {
+        totalImpressions += ad.impression_count || 0
+        totalClicks += ad.click_count || 0
         byType[ad.type] = (byType[ad.type] || 0) + 1
       })
     }
@@ -158,22 +137,21 @@ export async function createAd(formData: FormData) {
 
     const now = new Date().toISOString()
     const { data, error } = await sb
-      .from("acquisition_ads")
+      .from("advertisements")
       .insert({
-        brand: title, // 使用 brand 字段
+        title,
         type,
-        duration: "30", // 默认时长
-        reward: "10", // 默认奖励
-        status: "待审核", // 默认状态
-        views: 0,
-        video_url: fileUrl,
-        link_url: linkUrl || null,
         position,
+        file_url: fileUrl,
+        link_url: linkUrl || null,
         priority,
+        status,
         file_size: fileSize,
+        impression_count: 0,
+        click_count: 0,
         created_at: now,
         updated_at: now,
-        user_id: "admin"
+        created_by: session.adminId
       })
       .select()
       .single()
@@ -195,25 +173,12 @@ export async function updateAd(id: string, updateData: UpdateAdData) {
     await requireAdminSession()
     const sb = getSupabase()
 
-    // 转换字段名以匹配数据库表结构
-    const dbUpdateData: any = {
-      updated_at: new Date().toISOString()
-    }
-
-    if (updateData.title !== undefined) dbUpdateData.brand = updateData.title
-    if (updateData.type !== undefined) dbUpdateData.type = updateData.type
-    if (updateData.position !== undefined) dbUpdateData.position = updateData.position
-    if (updateData.fileUrl !== undefined) dbUpdateData.video_url = updateData.fileUrl
-    if (updateData.linkUrl !== undefined) dbUpdateData.link_url = updateData.linkUrl
-    if (updateData.priority !== undefined) dbUpdateData.priority = updateData.priority
-    if (updateData.status !== undefined) dbUpdateData.status = updateData.status
-    if (updateData.startDate !== undefined) dbUpdateData.start_date = updateData.startDate
-    if (updateData.endDate !== undefined) dbUpdateData.end_date = updateData.endDate
-    if (updateData.fileSize !== undefined) dbUpdateData.file_size = updateData.fileSize
-
     const { data, error } = await sb
-      .from("acquisition_ads")
-      .update(dbUpdateData)
+      .from("advertisements")
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
       .eq("id", id)
       .select()
       .single()
@@ -236,7 +201,7 @@ export async function deleteAd(id: string) {
     const sb = getSupabase()
 
     const { error } = await sb
-      .from("acquisition_ads")
+      .from("advertisements")
       .delete()
       .eq("id", id)
 
@@ -259,7 +224,7 @@ export async function toggleAdStatus(id: string) {
 
     // 先获取当前状态
     const { data: ad, error: fetchError } = await sb
-      .from("acquisition_ads")
+      .from("advertisements")
       .select("status")
       .eq("id", id)
       .single()
@@ -269,10 +234,10 @@ export async function toggleAdStatus(id: string) {
       return { success: false, error: fetchError.message }
     }
 
-    const newStatus = ad.status === "投放中" ? "待审核" : "投放中"
+    const newStatus = ad.status === "active" ? "inactive" : "active"
 
     const { data, error } = await sb
-      .from("acquisition_ads")
+      .from("advertisements")
       .update({
         status: newStatus,
         updated_at: new Date().toISOString()

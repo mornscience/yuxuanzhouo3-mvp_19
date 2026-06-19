@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { LoginPrompt } from "@/components/market/login-prompt"
 import { UserAvatarDropdown } from "@/components/market/user-avatar-dropdown"
+import { NotificationCenter } from "./notification-center"
 import {
   Pagination,
   PaginationContent,
@@ -157,10 +158,24 @@ function VerificationCard({ profile, onVerify }: { profile?: UserMarketProfile; 
             </div>
             <div>
               <p className="text-base font-bold text-slate-800">{t("merchant_verify")}</p>
-              <p className="text-sm text-slate-500 mt-0.5">{profile.isMerchantVerified ? (profile.isRealMerchant ? 'Gold Merchant' : t("merchant_verified")) : 'Not Verified'}</p>
+              <p className={`text-sm mt-0.5 ${profile.isMerchantVerified ? 'text-green-600' : profile.merchant_verify_status === 'rejected' ? 'text-red-600' : 'text-slate-500'}`}>
+                {profile.isMerchantVerified 
+                  ? (profile.isRealMerchant ? 'Gold Merchant' : t("merchant_verified")) 
+                  : profile.merchant_verify_status === 'pending' 
+                    ? 'Pending Review'
+                    : profile.merchant_verify_status === 'rejected'
+                      ? 'Rejected'
+                      : 'Not Verified'
+                }
+              </p>
+              {profile.merchant_verify_status === 'rejected' && profile.merchant_reject_reason && (
+                <p className="text-xs text-red-500 mt-1 line-clamp-2 max-w-[200px]" title={profile.merchant_reject_reason}>
+                  Reason: {profile.merchant_reject_reason}
+                </p>
+              )}
             </div>
           </div>
-          {!profile.isMerchantVerified && (
+          {!profile.isMerchantVerified && profile.merchant_verify_status !== 'rejected' && (
             <button 
               onClick={() => onVerify('merchant')}
               className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-slate-200 text-slate-700 hover:border-purple-300 hover:shadow-md transition-all duration-300"
@@ -168,10 +183,22 @@ function VerificationCard({ profile, onVerify }: { profile?: UserMarketProfile; 
               Verify
             </button>
           )}
+          {profile.merchant_verify_status === 'rejected' && (
+            <button 
+              onClick={() => onVerify('merchant')}
+              className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-red-200 text-red-600 hover:border-red-300 hover:shadow-md transition-all duration-300"
+            >
+              Reapply
+            </button>
+          )}
           {profile.isMerchantVerified && (
-            <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center">
-              <Check size={16} className="text-purple-500" />
-            </div>
+            <button 
+              onClick={() => window.location.href = '/market/acquisition/merchant-verify-detail'}
+              className="px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 transition-all duration-300 flex items-center gap-2"
+            >
+              <Building2 size={14} />
+              View Details
+            </button>
           )}
         </div>
       </div>
@@ -1598,14 +1625,10 @@ export function AcquisitionClient() {
     setError("")
     try {
       const response = await fetch("/api/market/admin/acquisition", { credentials: "include" })
-      console.log("[DEBUG] API response status:", response.status, response.statusText)
       const json = await response.json()
-      console.log("[DEBUG] API response:", json)
       if (!json.success) throw new Error(json.error || "Failed to load data")
-      
+
       const data: AcquisitionBootstrapData = json.data
-      console.log("[DEBUG] Parsed data:", data)
-      console.log("[DEBUG] Profile:", data.profile)
       setBloggers(data.bloggers)
       setAllBloggers(data.allBloggers || [])
       setB2bLeads(data.b2bLeads)
@@ -1630,18 +1653,16 @@ export function AcquisitionClient() {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'market_user') {
-        console.log('[DEBUG] market_user changed, refetching data')
         fetchBootstrap()
       }
     }
 
     // 添加 storage 事件监听器
     window.addEventListener('storage', handleStorageChange)
-    
+
     // 检查当前是否有用户登录（从 localStorage）
     const userStr = localStorage.getItem('market_user')
     if (userStr && !profile) {
-      console.log('[DEBUG] Found market_user in localStorage, refetching data')
       fetchBootstrap()
     }
 
@@ -1649,11 +1670,6 @@ export function AcquisitionClient() {
       window.removeEventListener('storage', handleStorageChange)
     }
   }, [fetchBootstrap, profile])
-
-  // 调试：监听 profile 变化
-  useEffect(() => {
-    console.log('[DEBUG] Profile state changed:', profile)
-  }, [profile])
 
   const postAction = useCallback(async (action: string, data: any) => {
     setActionLoading(true)
@@ -1734,10 +1750,41 @@ export function AcquisitionClient() {
         }
       } else if (type === "merchant") {
         try {
+          let businessLicenseUrl = ""
+          
+          // 如果有文件对象，先上传文件
+          const file = data['businessLicense_file']
+          if (file && typeof file === 'object' && file instanceof File) {
+            showToast("📤 正在上传营业执照...")
+            const uploadFormData = new FormData()
+            uploadFormData.append("file", file)
+            uploadFormData.append("bucket", "business-license")
+            
+            const uploadResponse = await fetch("/api/upload/video", {
+              method: "POST",
+              body: uploadFormData
+            })
+            const uploadResult = await uploadResponse.json()
+            if (uploadResult.ok) {
+              businessLicenseUrl = uploadResult.data.videoUrl
+            } else {
+              showToast(`❌ ${uploadResult.message || "文件上传失败"}`)
+              return
+            }
+          } else if (data['businessLicense']) {
+            // 如果是字符串，可能是已有的URL或者只是文件名
+            businessLicenseUrl = data['businessLicense']
+          }
+          
+          const submitData = {
+            ...data,
+            businessLicenseUrl
+          }
+          
           const response = await fetch("/api/profile/merchant-apply", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
+            body: JSON.stringify(submitData)
           })
           const result = await response.json()
           if (result.ok) {
@@ -1912,10 +1959,7 @@ export function AcquisitionClient() {
                 </div>
               </TooltipContent>
             </Tooltip>
-            <Button variant="outline" size="icon" className="rounded-full w-8 h-8 relative flex-shrink-0">
-              <Bell size={15} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
-            </Button>
+            <NotificationCenter isLoggedIn={isLoggedIn} />
             {isLoggedIn ? (
               <UserAvatarDropdown
                 user={{
@@ -2085,18 +2129,17 @@ export function AcquisitionClient() {
 function AddFormModal({ type, onClose, onSubmit, initialData }: {
   type: "blogger" | "b2b" | "b2b_follow" | "b2b_publish" | "vc" | "vc_follow" | "vc_publish" | "ad" | "realName" | "influencer" | "merchant" | "new_blogger"
   onClose: () => void
-  onSubmit: (data: Record<string, string>) => void
+  onSubmit: (data: Record<string, string | File>) => void
   initialData?: Record<string, string>
 }) {
-  console.log("[DEBUG] AddFormModal rendering with type:", type);
-  const [formData, setFormData] = useState<Record<string, string>>(initialData || {})
+  const [formData, setFormData] = useState<Record<string, string | File>>(initialData || {})
   const [publishToPool, setPublishToPool] = useState(false)
   // 视频上传状态
   const [videoUploading, setVideoUploading] = useState(false)
   const [videoUploadProgress, setVideoUploadProgress] = useState("")
   const videoInputRef = useRef<HTMLInputElement>(null)
 
-  const handleChange = (name: string, value: string) => setFormData((prev) => ({ ...prev, [name]: value }))
+  const handleChange = (name: string, value: string | File) => setFormData((prev) => ({ ...prev, [name]: value }))
 
   const handleVideoUpload = async (file: File) => {
     if (!file) return
@@ -2317,7 +2360,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
               <div key={field.name} className={`space-y-1.5 ${field.fullWidth ? "sm:col-span-2 col-span-1" : "col-span-1"}`}>
                 <Label className="font-semibold text-xs text-slate-500 uppercase tracking-wider ml-1">{field.label}</Label>
                 {field.type === "select" ? (
-                  <Select onValueChange={(value) => handleChange(field.name, value)} defaultValue={formData[field.name] || ""}>
+                  <Select onValueChange={(value) => handleChange(field.name, value)} defaultValue={(formData[field.name] as string) || ""}>
                     <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -2358,13 +2401,13 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                         </span>
                       )}
                     </div>
-                    {formData.videoUrl && (
+                    {typeof formData.videoUrl === 'string' && formData.videoUrl && (
                       <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Selected:" : "已选:"} {formData.videoUrl.split("/").pop()}</p>
                     )}
                     <Input
                       type="text"
                       placeholder={isIntl ? "Or paste video URL directly" : "或直接粘贴视频直链 URL"}
-                      value={formData[field.name] || ""}
+                      value={(formData[field.name] as string) || ""}
                       onChange={(e) => handleChange(field.name, e.target.value)}
                       className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-xs placeholder:text-slate-400"
                     />
@@ -2406,7 +2449,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                     </button>
                     {(formData[`${field.name}_preview`] as string) ? (
                       <div className="space-y-1">
-                        <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Preview:" : "预览:"} {formData[field.name]}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Preview:" : "预览:"} {(() => { const v = formData[field.name]; return typeof v === 'string' ? v : (v as File).name })()}</p>
                         <img 
                           src={formData[`${field.name}_preview`] as string} 
                           alt={isIntl ? "Business License Preview" : "营业执照预览"}
@@ -2414,7 +2457,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                         />
                       </div>
                     ) : formData[field.name] ? (
-                      <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Selected:" : "已选:"} {formData[field.name]}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{isIntl ? "Selected:" : "已选:"} {(() => { const v = formData[field.name]; return typeof v === 'string' ? v : (v as File).name })()}</p>
                     ) : null}
                   </div>
                 ) : (
@@ -2423,7 +2466,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
                     type={field.type}
                     placeholder={field.placeholder}
                     step={field.step}
-                    value={formData[field.name] || ""}
+                    value={(formData[field.name] as string) || ""}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     className="h-12 rounded-xl border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 placeholder:text-slate-400 transition-all"
                   />

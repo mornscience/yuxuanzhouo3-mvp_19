@@ -1,0 +1,68 @@
+[
+  {
+    "id": "124dd459-7212-4b1b-bd99-340e422aa2d6",
+    "userId": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "type": "merchant_rejected",
+    "title": "Merchant Verification Rejected",
+    "message": "Your merchant verification application was not approved. Reason: 没有营业执照",
+    "read": false,
+    "createdAt": "2026-06-18T18:20:53.019Z",
+    "created_at": "2026-06-18T18:20:53.021Z",
+    "updated_at": "2026-06-18T18:20:53.021Z"
+  },
+  {
+    "id": "b0434eda-89fd-4420-88cb-2aa423ce753b",
+    "userId": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "type": "merchant_rejected",
+    "title": "Merchant Verification Rejected",
+    "message": "Your merchant verification application was not approved. Reason: 没有营业执照",
+    "read": false,
+    "createdAt": "2026-06-18T18:18:22.436Z",
+    "created_at": "2026-06-18T18:18:22.438Z",
+    "updated_at": "2026-06-18T18:18:22.438Z"
+  },
+  {
+    "id": "d3b0ec3d-2b73-4404-9886-ec0a70a7a46f",
+    "userId": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "type": "merchant_approved",
+    "title": "Merchant Verification Approved",
+    "message": "Congratulations! Your merchant verification application has been approved. You can now post ads, manage leads, and more.",
+    "read": false,
+    "createdAt": "2026-06-18T18:17:03.955Z",
+    "created_at": "2026-06-18T18:17:03.958Z",
+    "updated_at": "2026-06-18T18:17:03.958Z"
+  },
+  {
+    "id": "806af3b1-4cf6-4214-9127-32ec6b0bc0d9",
+    "userId": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "type": "merchant_rejected",
+    "title": "Merchant Verification Rejected",
+    "message": "Your merchant verification application was not approved. Reason: 没有营业执照",
+    "read": false,
+    "createdAt": "2026-06-18T18:10:18.938Z",
+    "created_at": "2026-06-18T18:10:18.939Z",
+    "updated_at": "2026-06-18T18:10:18.939Z"
+  },
+  {
+    "id": "98baa50c-3875-4007-b34f-f56d0e5fd49c",
+    "userId": "afeed8af-2f74-4793-bf6f-46b76ba8acdf",
+    "type": "merchant_rejected",
+    "title": "商家认证被拒绝",
+    "message": "您的商家认证申请未通过审核。原因：不合格",
+    "read": false,
+    "createdAt": "2026-06-18T14:03:05.494Z",
+    "created_at": "2026-06-18T14:03:05.494Z",
+    "updated_at": "2026-06-18T14:03:05.494Z"
+  },
+  {
+    "id": "e8ad3ef0-a838-4bac-9f37-832183a4eaf5",
+    "userId": "afeed8af-2f74-4793-bf6f-46b76ba8acdf",
+    "type": "merchant_approved",
+    "title": "商家认证通过",
+    "message": "恭喜！您的商家认证申请已通过审核，现在可以发布广告、管理线索等。",
+    "read": false,
+    "createdAt": "2026-06-18T14:02:46.135Z",
+    "created_at": "2026-06-18T14:02:46.136Z",
+    "updated_at": "2026-06-18T14:02:46.136Z"
+  }
+]

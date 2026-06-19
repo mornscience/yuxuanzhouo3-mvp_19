@@ -2,11 +2,6 @@ import path from "node:path"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '100mb'
-    },
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -34,38 +29,6 @@ const nextConfig = {
     }
     return config
   },
-  // 添加 CSP 配置
-  headers: async () => [
-    {
-      source: '/(.*)',
-      headers: [
-        {
-          key: 'Content-Security-Policy',
-          value: [
-            "default-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://www.gstatic.com https://*.synchronycredit.com https://synchronycredit.com https://www.datadoghq-browser-agent.com",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://www.gstatic.com https://*.synchronycredit.com https://synchronycredit.com https://www.datadoghq-browser-agent.com",
-            "style-src 'self' 'unsafe-inline' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://www.gstatic.com https://*.synchronycredit.com https://synchronycredit.com https://www.datadoghq-browser-agent.com",
-            "img-src 'self' data: https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://www.gstatic.com https://*.synchronycredit.com https://synchronycredit.com https://www.datadoghq-browser-agent.com",
-            "connect-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://www.gstatic.com https://*.synchronycredit.com https://synchronycredit.com https://www.datadoghq-browser-agent.com https://c.paypal.com",
-            "frame-src https://*.paypal.com https://*.paypal.cn",
-            "font-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn",
-          ].join('; '),
-        },
-        {
-          key: 'Access-Control-Allow-Origin',
-          value: '*',
-        },
-        {
-          key: 'Access-Control-Allow-Methods',
-          value: 'GET, POST, PUT, DELETE, OPTIONS',
-        },
-        {
-          key: 'Access-Control-Allow-Headers',
-          value: 'Content-Type, Authorization',
-        },
-      ],
-    },
-  ],
 }
 
 export default nextConfig

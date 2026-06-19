@@ -385,7 +385,7 @@ export async function applyInfluencerVerification(userId: string, data: {
   }
 }
 
-// 商家认证（自动通过）
+// 商家认证（需要管理员审核）
 export async function applyMerchantVerification(userId: string, data: {
   companyName: string
   creditCode: string
@@ -415,7 +415,8 @@ export async function applyMerchantVerification(userId: string, data: {
         .limit(1)
 
       const patch = {
-        is_merchant_verified: true,
+        is_merchant_verified: false,
+        merchant_verify_status: "pending",
         company_name: data.companyName,
         credit_code: data.creditCode,
         business_license_url: data.businessLicenseUrl,

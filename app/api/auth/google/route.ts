@@ -13,11 +13,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, message: "Missing Google credential" }, { status: 400 })
     }
 
-    // 统一使用 web 端的客户端 ID
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    // 检测平台：优先使用显式平台参数，其次根据User-Agent判断
+    let platform: 'web' | 'mobile' = 'web'
+    if (explicitPlatform === 'mobile') {
+      platform = 'mobile'
+    } else {
+      const userAgent = request.headers.get('user-agent') || ''
+      const isMobileApp = /(Android|iPhone|iPad|Mobile|WebView)/i.test(userAgent)
+      if (isMobileApp) {
+        platform = 'mobile'
+      }
+    }
+
+    // 根据平台选择客户端ID
+    const clientId = platform === 'mobile'
+      ? process.env.NEXT_PUBLIC_MOBILE_GOOGLE_CLIENT_ID
+      : process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
     if (!clientId) {
-      return NextResponse.json({ ok: false, message: "Google client ID not configured" }, { status: 500 })
+      return NextResponse.json({ ok: false, message: `Google client ID not configured for ${platform}` }, { status: 500 })
     }
 
     // 验证 Google ID Token
