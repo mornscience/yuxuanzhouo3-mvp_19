@@ -469,53 +469,59 @@ export default function HomePage() {
               <p className="text-muted-foreground">{t.systems.subtitle}</p>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 hover:shadow-lg transition-shadow">
-                <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center mb-4">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{t.systems.blogger.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{t.systems.blogger.subtitle}</p>
-                <p className="text-sm text-muted-foreground mb-4">{t.systems.blogger.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {t.systems.blogger.features.map((feature) => (
-                    <span key={feature} className="px-2 py-1 bg-blue-200/50 rounded-md text-xs text-blue-700">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </Card>
+              <Link href="/market/acquisition?mode=influencer" className="no-underline">
+                <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+                  <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center mb-4">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{t.systems.blogger.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{t.systems.blogger.subtitle}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{t.systems.blogger.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {t.systems.blogger.features.map((feature) => (
+                      <span key={feature} className="px-2 py-1 bg-blue-200/50 rounded-md text-xs text-blue-700">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
+              </Link>
 
-              <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 hover:shadow-lg transition-shadow">
-                <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{t.systems.ceo.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{t.systems.ceo.subtitle}</p>
-                <p className="text-sm text-muted-foreground mb-4">{t.systems.ceo.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {t.systems.ceo.features.map((feature) => (
-                    <span key={feature} className="px-2 py-1 bg-purple-200/50 rounded-md text-xs text-purple-700">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </Card>
+              <Link href="/market/acquisition?mode=task" className="no-underline">
+                <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+                  <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center mb-4">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{t.systems.ceo.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{t.systems.ceo.subtitle}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{t.systems.ceo.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {t.systems.ceo.features.map((feature) => (
+                      <span key={feature} className="px-2 py-1 bg-purple-200/50 rounded-md text-xs text-purple-700">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
+              </Link>
 
-              <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100/50 hover:shadow-lg transition-shadow">
-                <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center mb-4">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{t.systems.investor.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{t.systems.investor.subtitle}</p>
-                <p className="text-sm text-muted-foreground mb-4">{t.systems.investor.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {t.systems.investor.features.map((feature) => (
-                    <span key={feature} className="px-2 py-1 bg-green-200/50 rounded-md text-xs text-green-700">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </Card>
+              <Link href="/market/acquisition?mode=merchant" className="no-underline">
+                <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100/50 hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+                  <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center mb-4">
+                    <DollarSign className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{t.systems.investor.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{t.systems.investor.subtitle}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{t.systems.investor.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {t.systems.investor.features.map((feature) => (
+                      <span key={feature} className="px-2 py-1 bg-green-200/50 rounded-md text-xs text-green-700">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
+              </Link>
             </div>
           </div>
         </section>
