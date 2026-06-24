@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       businessLicenseUrl,
       businessLicense,
       brandName,
+      companyWebsite,
       contactPerson,
       contactPhone,
       industry
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
       creditCode,
       businessLicenseUrl: businessLicenseUrl || businessLicense || "",
       brandName: brandName || "",
+      companyWebsite: companyWebsite || "",
       contactPerson,
       contactPhone,
       industry: industry || ""

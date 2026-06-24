@@ -187,7 +187,18 @@ function pickModel(mode: Mode, region: string) {
     return regionSpecificModel
   }
 
-  // Fallback to global DEFAULT_MODEL if no region-specific setting
+  // Fallback to provider-specific default models
+  const provider = process.env.DEFAULT_AI_PROVIDER || process.env.AI_PROVIDER
+  if (provider === 'tencent' && process.env.TENCENT_DEFAULT_MODEL) {
+    console.log(`[AI-Coder] Using Tencent model from TENCENT_DEFAULT_MODEL: ${process.env.TENCENT_DEFAULT_MODEL}`)
+    return process.env.TENCENT_DEFAULT_MODEL
+  }
+  if (provider === 'aliyun' && process.env.ALIYUN_DEFAULT_MODEL) {
+    console.log(`[AI-Coder] Using Aliyun model from ALIYUN_DEFAULT_MODEL: ${process.env.ALIYUN_DEFAULT_MODEL}`)
+    return process.env.ALIYUN_DEFAULT_MODEL
+  }
+
+  // Fallback to global DEFAULT_MODEL if no provider-specific setting
   const globalModel = process.env.DEFAULT_MODEL
   if (globalModel) {
     console.log(`[AI-Coder] Using global model from DEFAULT_MODEL env: ${globalModel}`)

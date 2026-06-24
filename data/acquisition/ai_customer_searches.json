@@ -1,0 +1,42 @@
+[
+  {
+    "id": "search_1781961565244_jqn099x1g",
+    "user_id": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "search_params": "{\"productCategories\":[\"Aluminum profiles\",\"Aluminum doors and windows\",\"Aluminum railings\",\"Aluminum curtain walls\",\"Industrial aluminum profiles\"],\"industry\":\"美妆\",\"country\":\"Japan\",\"city\":\"\",\"businessType\":\"agent\",\"certifications\":[\"ISO9001\",\"ISO14001\",\"GB/T5237\"],\"keywords\":[\"瓷砖\"]}",
+    "result_ids": "",
+    "total_count": 0,
+    "created_at": "2026-06-20T13:19:25.245Z",
+    "expires_at": "2026-06-20T13:49:25.244Z",
+    "updated_at": "2026-06-20T13:19:25.245Z"
+  },
+  {
+    "id": "search_1781961395925_6z987it0x",
+    "user_id": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "search_params": "{\"productCategories\":[\"Aluminum profiles\",\"Aluminum doors and windows\",\"Aluminum railings\",\"Aluminum curtain walls\",\"Industrial aluminum profiles\"],\"industry\":\"美妆\",\"country\":\"Japan\",\"city\":\"\",\"businessType\":\"agent\",\"certifications\":[\"ISO9001\",\"ISO14001\",\"GB/T5237\"],\"keywords\":[]}",
+    "result_ids": "",
+    "total_count": 0,
+    "created_at": "2026-06-20T13:16:35.925Z",
+    "expires_at": "2026-06-20T13:46:35.925Z",
+    "updated_at": "2026-06-20T13:16:35.925Z"
+  },
+  {
+    "id": "search_1781961385894_n5nmv5tx5",
+    "user_id": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "search_params": "{\"productCategories\":[\"Aluminum profiles\",\"Aluminum doors and windows\",\"Aluminum railings\",\"Aluminum curtain walls\",\"Industrial aluminum profiles\"],\"industry\":\"美妆\",\"country\":\"Japan\",\"city\":\"\",\"businessType\":\"\",\"certifications\":[\"ISO9001\",\"ISO14001\",\"GB/T5237\"],\"keywords\":[]}",
+    "result_ids": "",
+    "total_count": 0,
+    "created_at": "2026-06-20T13:16:25.895Z",
+    "expires_at": "2026-06-20T13:46:25.895Z",
+    "updated_at": "2026-06-20T13:16:25.895Z"
+  },
+  {
+    "id": "search_1781961362366_5ggx2hc1p",
+    "user_id": "b9157f43-073b-40e3-8078-60c05887d68c",
+    "search_params": "{\"productCategories\":[\"Aluminum profiles\",\"Aluminum doors and windows\",\"Aluminum railings\",\"Aluminum curtain walls\",\"Industrial aluminum profiles\"],\"industry\":\"美妆\",\"country\":\"Japan\",\"city\":\"\",\"businessType\":\"\",\"certifications\":[\"ISO9001\",\"ISO14001\",\"GB/T5237\"],\"keywords\":[]}",
+    "result_ids": "",
+    "total_count": 0,
+    "created_at": "2026-06-20T13:16:02.366Z",
+    "expires_at": "2026-06-20T13:46:02.366Z",
+    "updated_at": "2026-06-20T13:16:02.366Z"
+  }
+]

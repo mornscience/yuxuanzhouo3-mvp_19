@@ -27,6 +27,7 @@ interface MerchantApplication {
   business_license_url: string
   businessLicense: string
   brand_name: string
+  company_website: string
   contact_person: string
   contact_phone: string
   is_merchant_verified: boolean | null
@@ -307,6 +308,16 @@ export default function MerchantVerificationPage() {
                                   <div className="space-y-1">
                                     <Label className="text-xs text-slate-500">品牌名称</Label>
                                     <p className="text-sm font-medium">{app.brand_name || "-"}</p>
+                                  </div>
+                                  <div className="space-y-1 col-span-2">
+                                    <Label className="text-xs text-slate-500">官网地址</Label>
+                                    <p className="text-sm font-medium text-blue-600 break-all">
+                                      {app.company_website ? (
+                                        <a href={app.company_website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                          {app.company_website}
+                                        </a>
+                                      ) : "-"}
+                                    </p>
                                   </div>
                                   <div className="space-y-1">
                                     <Label className="text-xs text-slate-500">统一社会信用代码</Label>

@@ -48,6 +48,16 @@ export async function POST(request: NextRequest) {
           created_at: new Date().toISOString(),
         }, { onConflict: "id" })
 
+        // 更新用户资料的会员状态
+        await sb.from("user_market_profiles").upsert({
+          id: userId,
+          is_premium: true,
+          premium_expires_at: expiresAt,
+          premium_plan: planName,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" })
+        console.log(`[Stripe Webhook] 用户 ${userId} 会员状态已更新: ${planName}, 到期时间 ${expiresAt}`)
+
         // 增加 AI 额度
         const quotaToAdd = parseFloat(aiQuota || "0")
         if (quotaToAdd > 0) {

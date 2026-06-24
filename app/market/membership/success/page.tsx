@@ -12,11 +12,32 @@ function MembershipSuccessContent() {
   const sessionId = searchParams.get("session_id")
   const membershipId = searchParams.get("membership_id")
   const [done, setDone] = useState(false)
+  const [processing, setProcessing] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => setDone(true), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+    // 主动触发会员状态同步（防止webhook未触发）
+    const syncMembership = async () => {
+      if (sessionId) {
+        try {
+          await fetch("/api/market/membership/webhook", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId })
+          })
+        } catch (error) {
+          console.error("Failed to sync membership:", error)
+        }
+      }
+      
+      const timer = setTimeout(() => {
+        setProcessing(false)
+        setDone(true)
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+    
+    syncMembership()
+  }, [sessionId])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center px-4">

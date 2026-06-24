@@ -109,8 +109,21 @@ function getSystemPrompt(mode: Mode, language: string, naturalLang: "Chinese" | 
 
 function pickModel(mode: Mode, region: "cn" | "intl") {
   const regionKey = `DEFAULT_MODEL_${region.toUpperCase()}`
-  const byEnv = process.env[regionKey] || process.env.DEFAULT_MODEL
+  const byEnv = process.env[regionKey]
   if (byEnv) return byEnv
+
+  // Fallback to provider-specific default models
+  const provider = process.env.DEFAULT_AI_PROVIDER || process.env.AI_PROVIDER
+  if (provider === 'tencent' && process.env.TENCENT_DEFAULT_MODEL) {
+    return process.env.TENCENT_DEFAULT_MODEL
+  }
+  if (provider === 'aliyun' && process.env.ALIYUN_DEFAULT_MODEL) {
+    return process.env.ALIYUN_DEFAULT_MODEL
+  }
+
+  // Fallback to global DEFAULT_MODEL
+  if (process.env.DEFAULT_MODEL) return process.env.DEFAULT_MODEL
+
   if (region === "cn") {
     if (mode === "complete" || mode === "refactor") return "qwen-coder-turbo"
     return "qwen2.5-lite"

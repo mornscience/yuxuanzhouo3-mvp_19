@@ -118,6 +118,17 @@ function pickReviewModel(region: "cn" | "intl") {
   const regionKey = `REVIEW_MODEL_${region.toUpperCase()}`
   const specific = process.env[regionKey]
   if (specific) return specific
+
+  // Fallback to provider-specific default models
+  const provider = process.env.DEFAULT_AI_PROVIDER || process.env.AI_PROVIDER
+  if (provider === 'tencent' && process.env.TENCENT_DEFAULT_MODEL) {
+    return process.env.TENCENT_DEFAULT_MODEL
+  }
+  if (provider === 'aliyun' && process.env.ALIYUN_DEFAULT_MODEL) {
+    return process.env.ALIYUN_DEFAULT_MODEL
+  }
+
+  // Fallback to global REVIEW_MODEL or DEFAULT_MODEL
   const global = process.env.REVIEW_MODEL || process.env.DEFAULT_MODEL
   if (global) return global
   return region === "cn" ? "qwen-coder-turbo" : "gpt-4o-mini"

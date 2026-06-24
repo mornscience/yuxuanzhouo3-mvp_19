@@ -448,6 +448,11 @@ function mapProfileRow(row: RawRow): UserMarketProfile {
     totalEarnings: safeString(row?.totalEarnings ?? row?.total_earnings, "0"),
     balance: safeString(row?.balance, "0"),
     adViewsCount: Number(row?.adViewsCount ?? row?.ad_views_count ?? 0),
+    aiUsageCount: Number(row?.aiUsageCount ?? row?.ai_usage_count ?? 0),
+    // 会员相关字段
+    is_premium: !!(row?.is_premium ?? row?.isPremium ?? false),
+    premium_expires_at: safeString(row?.premium_expires_at) || undefined,
+    premium_plan: safeString(row?.premium_plan) || undefined,
   }
 }
 
@@ -541,6 +546,7 @@ export async function loadAcquisitionBootstrap(userId: string | null): Promise<A
       totalEarnings: "0",
       balance: "0",
       adViewsCount: 0,
+      aiUsageCount: 0,
     }
     await dbAdapter.insertRow(PROFILE_TABLE, profile)
   }

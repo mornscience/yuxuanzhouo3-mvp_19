@@ -11,9 +11,9 @@ const AD_PARTICIPATIONS_TABLE = "ad_participations"
 const USER_MARKET_PROFILES_TABLE = "user_market_profiles"
 
 /**
- * 从请求中获取用户ID
+ * 从请求中获取用户ID（兼容标准Request和NextRequest）
  */
-export function getUserIdFromRequest(request: NextRequest): string | null {
+export function getUserIdFromRequest(request: Request | NextRequest): string | null {
   const cookieHeader = request.headers.get("cookie") || ""
   const match = cookieHeader.match(/(?:^|;\s*)market_user_id=([^;]+)/)
   const userId = match ? decodeURIComponent(match[1]) : ""
@@ -21,9 +21,9 @@ export function getUserIdFromRequest(request: NextRequest): string | null {
 }
 
 /**
- * 验证用户是否已登录，返回用户ID或抛出错误
+ * 验证用户是否已登录，返回用户ID或抛出错误（兼容标准Request和NextRequest）
  */
-export function requireAuth(request: NextRequest): string {
+export function requireAuth(request: Request | NextRequest): string {
   const userId = getUserIdFromRequest(request)
   if (!userId) {
     throw new Error("用户未登录")
@@ -43,9 +43,9 @@ export async function getUserMarketProfile(userId: string): Promise<any> {
 }
 
 /**
- * 验证用户是否为商家（isMerchantVerified === true）
+ * 验证用户是否为商家（isMerchantVerified === true）（兼容标准Request和NextRequest）
  */
-export async function requireMerchant(request: NextRequest): Promise<string> {
+export async function requireMerchant(request: Request | NextRequest): Promise<string> {
   const userId = requireAuth(request)
   const marketProfile = await getUserMarketProfile(userId)
 
@@ -57,9 +57,9 @@ export async function requireMerchant(request: NextRequest): Promise<string> {
 }
 
 /**
- * 验证用户是否为达人（isInfluencerVerified === true）
+ * 验证用户是否为达人（isInfluencerVerified === true）（兼容标准Request和NextRequest）
  */
-export async function requireInfluencer(request: NextRequest): Promise<string> {
+export async function requireInfluencer(request: Request | NextRequest): Promise<string> {
   const userId = requireAuth(request)
   const marketProfile = await getUserMarketProfile(userId)
 

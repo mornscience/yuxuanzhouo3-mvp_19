@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Upload, FileText, Sparkles, CheckCircle, Loader2, X, Building2, Tag, TrendingUp, DollarSign, Award, ChevronRight } from "lucide-react"
+import { Upload, FileText, Sparkles, CheckCircle, Loader2, X, Building2, Tag, TrendingUp, DollarSign, Award, ChevronRight, Search, Users, MapPin, Briefcase, Phone, Mail, Globe, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import type { UserMarketProfile } from "@/lib/market/acquisition-types"
+import type { OverseasCustomer, CustomerMatchResult } from "@/lib/market/customer-types"
 
 interface ParsedData {
   productCategories: string[]
@@ -16,6 +17,9 @@ interface ParsedData {
   otherTags: string[]
 }
 
+const MAX_PDF_ANALYSIS_COUNT = 20
+const MAX_CUSTOMER_SEARCH_COUNT = 60
+
 export function MerchantVerifyDetail() {
   const [profile, setProfile] = useState<UserMarketProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -23,6 +27,12 @@ export function MerchantVerifyDetail() {
   const [parsedData, setParsedData] = useState<ParsedData | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [message, setMessage] = useState("")
+  const [aiUsageCount, setAiUsageCount] = useState(0)
+  
+  // 客户搜索相关状态
+  const [searchingCustomers, setSearchingCustomers] = useState(false)
+  const [matchedCustomers, setMatchedCustomers] = useState<CustomerMatchResult[]>([])
+  const [showCustomers, setShowCustomers] = useState(false)
 
   // 加载企业信息
   useEffect(() => {
@@ -37,6 +47,7 @@ export function MerchantVerifyDetail() {
       
       if (merchantInfoJson.ok && merchantInfoJson.data) {
         setProfile(merchantInfoJson.data)
+        setAiUsageCount(Number(merchantInfoJson.data.aiUsageCount ?? merchantInfoJson.data.ai_usage_count ?? 0))
         return
       }
       
@@ -46,6 +57,7 @@ export function MerchantVerifyDetail() {
       
       if (profileJson.success && profileJson.data?.profile) {
         setProfile(profileJson.data.profile)
+        setAiUsageCount(Number(profileJson.data.profile.aiUsageCount ?? profileJson.data.profile.ai_usage_count ?? 0))
       }
     } catch (error) {
       console.error("加载企业信息失败:", error)
@@ -59,11 +71,11 @@ export function MerchantVerifyDetail() {
     const file = e.target.files?.[0]
     if (file) {
       if (file.type !== "application/pdf") {
-        setMessage("Please upload PDF files only")
+        setMessage("请上传PDF格式文件")
         return
       }
-      if (file.size > 10 * 1024 * 1024) {
-        setMessage("File size cannot exceed 10MB")
+      if (file.size > 60 * 1024 * 1024) {
+        setMessage("文件大小不能超过60MB")
         return
       }
       setUploadedFile(file)
@@ -95,6 +107,10 @@ export function MerchantVerifyDetail() {
       const result = await response.json()
       if (result.ok && result.data) {
         setParsedData(result.data)
+        // 更新 AI 使用次数
+        if (result.aiUsageCount !== undefined) {
+          setAiUsageCount(result.aiUsageCount)
+        }
         setMessage("Analysis completed, saving to database...")
         
         // 自动保存到数据库
@@ -150,6 +166,43 @@ export function MerchantVerifyDetail() {
     } catch (error) {
       console.error("保存失败:", error)
       setMessage("Save failed")
+    }
+  }
+
+  // 搜索海外客户
+  const handleSearchCustomers = async () => {
+    const dataToUse = parsedData || {
+      productCategories: profile?.product_categories ? JSON.parse(profile.product_categories) : [],
+      qualityCertifications: profile?.quality_certifications ? JSON.parse(profile.quality_certifications) : [],
+      industry: profile?.industry || ''
+    }
+
+    setSearchingCustomers(true)
+    setShowCustomers(true)
+
+    try {
+      const response = await fetch("/api/market/match-customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          productCategories: dataToUse.productCategories,
+          certifications: dataToUse.qualityCertifications,
+          industry: dataToUse.industry
+        })
+      })
+
+      const result = await response.json()
+      if (result.ok && result.data) {
+        setMatchedCustomers(result.data)
+      } else {
+        setMessage(result.message || "Customer search failed")
+      }
+    } catch (error) {
+      console.error("搜索客户失败:", error)
+      setMessage("Customer search failed")
+    } finally {
+      setSearchingCustomers(false)
     }
   }
 
@@ -217,6 +270,54 @@ export function MerchantVerifyDetail() {
           </div>
         </div>
 
+        {/* AI 使用次数提示 */}
+        <div className="bg-white rounded-2xl p-4 shadow-lg mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500">PDF Analysis Usage</p>
+                <p className="font-semibold text-slate-800">
+                  {aiUsageCount} / {MAX_PDF_ANALYSIS_COUNT} times used
+                </p>
+              </div>
+            </div>
+            <div className="w-48">
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    aiUsageCount >= MAX_PDF_ANALYSIS_COUNT 
+                      ? 'bg-red-500' 
+                      : aiUsageCount >= MAX_PDF_ANALYSIS_COUNT * 0.8 
+                        ? 'bg-yellow-500' 
+                        : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                  }`}
+                  style={{ width: `${(aiUsageCount / MAX_PDF_ANALYSIS_COUNT) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-1 text-right">
+                {MAX_PDF_ANALYSIS_COUNT - aiUsageCount} remaining
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* AI精准寻客按钮 */}
+        <div className="mb-6">
+          <a href="/market/acquisition/ai-customer-search">
+            <Button 
+              size="lg" 
+              className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              AI Precision Customer Search
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </a>
+        </div>
+
         {/* 企业基本信息 */}
         <Card className="border-0 shadow-lg mb-6">
           <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b-0 pb-0">
@@ -242,6 +343,20 @@ export function MerchantVerifyDetail() {
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </div>
                 <p className="text-lg font-semibold text-slate-800">{getFieldValue('brand_name')}</p>
+              </div>
+              <div className="group p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl hover:shadow-md transition-all duration-300 lg:col-span-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Company Website</span>
+                  <ExternalLink className="w-4 h-4 text-slate-300" />
+                </div>
+                <a 
+                  href={getFieldValue('company_website')} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline break-all"
+                >
+                  {getFieldValue('company_website') || '-'}
+                </a>
               </div>
               <div className="group p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-2">
@@ -427,7 +542,7 @@ export function MerchantVerifyDetail() {
                 <FileText className="w-4 h-4 mr-2" />
                 Browse Files
               </Button>
-              <p className="text-xs text-slate-400 mt-4">Supported: PDF format only, max 10MB</p>
+              <p className="text-xs text-slate-400 mt-2">Supported format: PDF, max 50 pages / 60MB</p>
             </div>
 
             {/* 已上传文件 */}
@@ -597,6 +712,152 @@ export function MerchantVerifyDetail() {
                   Save Digital Profile
                 </Button>
               </div>
+
+              {/* 搜索客户按钮 */}
+              <div className="mt-4">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-2 border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400"
+                  onClick={handleSearchCustomers}
+                  disabled={searchingCustomers}
+                >
+                  <Search className="w-5 h-5 mr-2" />
+                  {searchingCustomers ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Searching Customers...
+                    </>
+                  ) : (
+                    "Search for Overseas Customers"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 海外客户搜索结果 */}
+        {showCustomers && (
+          <Card className="border-0 shadow-lg mt-6">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 to-white border-b-0 pb-0">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                Matched Overseas Customers
+                {matchedCustomers.length > 0 && (
+                  <Badge className="bg-indigo-500 text-white">{matchedCustomers.length} matches</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {searchingCustomers ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                </div>
+              ) : matchedCustomers.length > 0 ? (
+                <div className="space-y-4">
+                  {matchedCustomers.map((match, index) => (
+                    <div
+                      key={match.customer.id}
+                      className="p-6 bg-gradient-to-r from-white to-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="text-lg font-semibold text-slate-800">
+                              {match.customer.companyName}
+                            </h4>
+                            <Badge 
+                              className={`${
+                                match.matchScore >= 40 ? 'bg-green-500' : 
+                                match.matchScore >= 20 ? 'bg-yellow-500' : 'bg-orange-500'
+                              } text-white`}
+                            >
+                              Match: {match.matchScore}%
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-slate-500 mb-3">{match.customer.description}</p>
+                          
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex items-center gap-1 text-slate-600">
+                              <MapPin className="w-4 h-4 text-indigo-500" />
+                              <span>{match.customer.location}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-slate-600">
+                              <Briefcase className="w-4 h-4 text-indigo-500" />
+                              <span>{match.customer.businessType}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-slate-600">
+                              <Phone className="w-4 h-4 text-indigo-500" />
+                              <span>{match.customer.phone}</span>
+                            </div>
+                          </div>
+
+                          {/* 匹配的品类和认证 */}
+                          {match.matchedCategories.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs text-slate-500 mb-1">Matched Categories:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {match.matchedCategories.map((cat, i) => (
+                                  <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                                    {cat}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {match.matchedCertifications.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-slate-500 mb-1">Matched Certifications:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {match.matchedCertifications.map((cert, i) => (
+                                  <Badge key={i} variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                                    {cert}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-col gap-2 ml-4">
+                          {match.customer.email && (
+                            <a
+                              href={`mailto:${match.customer.email}`}
+                              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
+                            >
+                              <Mail className="w-4 h-4" />
+                              <span className="text-sm">Contact</span>
+                            </a>
+                          )}
+                          {match.customer.website && (
+                            <a
+                              href={match.customer.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                            >
+                              <Globe className="w-4 h-4" />
+                              <span className="text-sm">Website</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <Search className="w-10 h-10 text-slate-400" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-slate-700 mb-2">No Matching Customers Found</h4>
+                  <p className="text-slate-500">Try uploading a product catalog or adjusting your search criteria.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

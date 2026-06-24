@@ -178,8 +178,28 @@ export const dbAdapter = {
       const supabase = getSupabase()
       if (supabase) {
         const { data, error } = await supabase.from(table).insert(normalizeKeys(finalRow)).select("*").maybeSingle()
-        if (error) console.error(`[Supabase] insertRow ${table}:`, error.message)
-        else return data ?? finalRow
+        if (error) {
+          console.error(`[Supabase] insertRow ${table}:`, error.message)
+          // 如果表不存在，尝试创建表
+          if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+            console.warn(`[Supabase] Table ${table} does not exist, creating...`)
+            try {
+              // 创建表的简化版本
+              await supabase.rpc('create_overseas_customers_table')
+              // 重新插入
+              const { data: retryData, error: retryError } = await supabase.from(table).insert(normalizeKeys(finalRow)).select("*").maybeSingle()
+              if (retryError) {
+                console.error(`[Supabase] Retry insertRow ${table}:`, retryError.message)
+              } else {
+                return retryData ?? finalRow
+              }
+            } catch (createError) {
+              console.error(`[Supabase] Failed to create table ${table}:`, createError)
+            }
+          }
+        } else {
+          return data ?? finalRow
+        }
       }
     }
 

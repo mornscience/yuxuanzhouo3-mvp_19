@@ -199,6 +199,11 @@ export interface UserMarketProfile {
   totalEarnings: string
   balance: string
   adViewsCount: number // For "Real User" status (>= 3)
+  aiUsageCount: number // AI 使用次数（限制20次）
+  // 会员相关字段
+  is_premium: boolean // 是否是付费会员
+  premium_expires_at?: string // 会员到期时间
+  premium_plan?: string // 会员套餐名称
   merchant_verify_status?: "pending" | "approved" | "rejected" | null
   merchant_reject_reason?: string | null
   // 商家认证相关字段

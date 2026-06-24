@@ -391,6 +391,7 @@ export async function applyMerchantVerification(userId: string, data: {
   creditCode: string
   businessLicenseUrl: string
   brandName: string
+  companyWebsite: string
   contactPerson: string
   contactPhone: string
   industry: string
@@ -421,6 +422,7 @@ export async function applyMerchantVerification(userId: string, data: {
         credit_code: data.creditCode,
         business_license_url: data.businessLicenseUrl,
         brand_name: data.brandName,
+        company_website: data.companyWebsite,
         contact_person: data.contactPerson,
         contact_phone: data.contactPhone,
         industry: data.industry,
@@ -458,6 +460,7 @@ export async function applyMerchantVerification(userId: string, data: {
       creditCode: data.creditCode,
       businessLicenseUrl: data.businessLicenseUrl,
       brandName: data.brandName,
+      companyWebsite: data.companyWebsite,
       contactPerson: data.contactPerson,
       contactPhone: data.contactPhone,
       industry: data.industry,

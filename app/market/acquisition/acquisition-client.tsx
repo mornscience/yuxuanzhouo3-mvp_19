@@ -1940,7 +1940,7 @@ export function AcquisitionClient() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => window.location.href = '/market/ai-search'}
+                  onClick={() => window.location.href = '/market/acquisition/ai-customer-search'}
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md hover:from-violet-600 hover:to-purple-700 hover:shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5 transition-all duration-300"
                 >
                   🤖 <span className="hidden sm:inline">{t("ai_search")}</span><span className="sm:hidden">AI</span>
@@ -1956,6 +1956,27 @@ export function AcquisitionClient() {
                     <li>Support direct cooperation invitations</li>
                   </ul>
                   <p className="mt-2 text-xs text-slate-300">¥0.1 per search, 100 searches/month limit</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => window.location.href = '/market/acquisition/email-dashboard'}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  📊 <span className="hidden sm:inline">Email Analytics</span><span className="sm:hidden">Analytics</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs bg-slate-900 text-white p-3 rounded-lg">
+                <div className="font-medium mb-1">Email Analytics Dashboard</div>
+                <div className="text-xs text-slate-200 space-y-1">
+                  <p>Track your email campaign performance:</p>
+                  <ul className="list-disc list-inside text-xs space-y-0.5">
+                    <li>Sent, opened, replied statistics</li>
+                    <li>Open rate and reply rate trends</li>
+                    <li>Recent email activity</li>
+                  </ul>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -2313,6 +2334,7 @@ function AddFormModal({ type, onClose, onSubmit, initialData }: {
         { name: "creditCode", label: isIntl ? "Business Reg. No." : "统一社会信用代码", type: "text", placeholder: isIntl ? "Business registration number" : "输入18位统一社会信用代码", fullWidth: true },
         { name: "businessLicense", label: isIntl ? "Business License" : "上传营业执照", type: "file", placeholder: isIntl ? "Upload business license" : "上传营业执照图片", fullWidth: true },
         { name: "brandName", label: isIntl ? "Brand Name" : "品牌名称", type: "text", placeholder: isIntl ? "Your brand name" : "输入您的品牌名称" },
+        { name: "companyWebsite", label: isIntl ? "Company Website" : "官网地址", type: "text", placeholder: isIntl ? "Your company website URL" : "输入公司官网地址", fullWidth: true },
         { name: "contactPerson", label: isIntl ? "Contact Person" : "联系人", type: "text", placeholder: isIntl ? "Contact name" : "输入联系人姓名" },
         { name: "contactPhone", label: isIntl ? "Contact Phone" : "联系电话", type: "text", placeholder: isIntl ? "Contact phone number" : "输入联系电话" },
         { name: "industry", label: isIntl ? "Industry" : "所属行业", type: "text", placeholder: isIntl ? "e.g. Beauty / Food / Tech" : "如：美妆 / 食品 / 数码" },

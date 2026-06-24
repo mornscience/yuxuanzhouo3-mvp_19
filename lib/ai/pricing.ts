@@ -46,7 +46,7 @@ export function providersFor(region: Region): string[] {
   const regionSpecificProvider = process.env[regionSpecificKey]
 
   if (regionSpecificProvider) {
-    const validProviders = ["aliyun", "openai", "openrouter"]
+    const validProviders = ["aliyun", "openai", "openrouter", "tencent"]
     if (validProviders.includes(regionSpecificProvider)) {
       console.log(`[AI-Pricing] Using region-specific provider from ${regionSpecificKey}: ${regionSpecificProvider}`)
       return [regionSpecificProvider]
@@ -55,15 +55,15 @@ export function providersFor(region: Region): string[] {
     }
   }
 
-  // Fallback to global AI_PROVIDER if no region-specific setting
-  const globalProvider = process.env.AI_PROVIDER
+  // Fallback to global DEFAULT_AI_PROVIDER or AI_PROVIDER if no region-specific setting
+  const globalProvider = process.env.DEFAULT_AI_PROVIDER || process.env.AI_PROVIDER
   if (globalProvider) {
-    const validProviders = ["aliyun", "openai", "openrouter"]
+    const validProviders = ["aliyun", "openai", "openrouter", "tencent"]
     if (validProviders.includes(globalProvider)) {
-      console.log(`[AI-Pricing] Using global provider from AI_PROVIDER env: ${globalProvider}`)
+      console.log(`[AI-Pricing] Using global provider from DEFAULT_AI_PROVIDER/AI_PROVIDER env: ${globalProvider}`)
       return [globalProvider]
     } else {
-      console.log(`[AI-Pricing] Invalid AI_PROVIDER value: ${globalProvider}, falling back to default routing`)
+      console.log(`[AI-Pricing] Invalid provider value: ${globalProvider}, falling back to default routing`)
     }
   }
 

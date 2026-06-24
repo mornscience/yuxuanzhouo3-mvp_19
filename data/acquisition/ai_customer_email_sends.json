@@ -1,0 +1,109 @@
+[
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782021785816_nwwxvk5r0",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "status": "opened",
+    "open_time": "2026-06-21T08:12:32.145Z",
+    "created_at": "2026-06-21T08:12:32.145Z",
+    "updated_at": "2026-06-21T08:12:32.145Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782022901398_wh1d153j2",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "status": "opened",
+    "open_time": "2026-06-21T08:12:30.270Z",
+    "created_at": "2026-06-21T08:12:30.270Z",
+    "updated_at": "2026-06-21T08:12:30.270Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782023333455_jiruxu62q",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "status": "opened",
+    "open_time": "2026-06-21T08:12:26.537Z",
+    "created_at": "2026-06-21T08:12:26.537Z",
+    "updated_at": "2026-06-21T08:12:26.537Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782025277151_f22wchmav",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "status": "opened",
+    "open_time": "2026-06-21T07:01:42.675Z",
+    "created_at": "2026-06-21T07:01:42.676Z",
+    "updated_at": "2026-06-21T07:01:42.676Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782025277151_f22wchmav",
+    "draft_id": "draft_1782025237278_at6i2vkz6",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "customer_id": "test_company",
+    "from_email": "1171037136@qq.com",
+    "to_email": "730357683@qq.com",
+    "subject": "Exploring Partnership Opportunities in Aluminum Products",
+    "body": "Dear [Recipient's Name],\n\nI hope this message finds you well. My name is 红狼, and I represent 和平, a company specializing in plastic products, rubber products, hardware products, and machinery parts, with certifications including ISO9001 and CE. We have been following the work of 晨佑科技测试公司 in the metal products industry, particularly your focus on aluminum profiles, doors, and windows, and we believe there are strong complementary opportunities between our businesses.\n\nAt 和平, we understand the importance of quality and sustainability, which aligns well with your certifications of ISO9001 and ISO14001. We would love to explore how we can support your import needs with our range of high-quality products. We are confident that our offerings could add value to your product portfolio.\n\nWould you be available for a brief call or meeting at your earliest convenience? I would be happy to provide more details about our capabilities and discuss potential collaboration. Looking forward to your response.\n\nBest regards,\n红狼\nContact: 18104660410",
+    "status": "sent",
+    "send_time": "2026-06-21T07:01:18.366Z",
+    "tracking_pixel": "track_send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782025277151_f22wchmav",
+    "created_at": "2026-06-21T07:01:18.366Z",
+    "updated_at": "2026-06-21T07:01:18.366Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782024107152_zyyw2i8qw",
+    "draft_id": "draft_1782024059727_ka9relilo",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "customer_id": "test_company",
+    "from_email": "1171037136@qq.com",
+    "to_email": "730357683@qq.com",
+    "subject": "Exploring Partnership Opportunities in Aluminum Products",
+    "body": "Dear [Recipient's Name],\n\nI hope this message finds you well. My name is 红狼, and I represent 和平, a company specializing in the production of plastic products, rubber products, hardware products, and machinery parts. We are reaching out to explore potential collaboration opportunities with 晨佑科技测试公司, given your expertise as an importer in the metal products industry, particularly in aluminum profiles, doors, and windows.\n\nWe believe there is a strong alignment between our product offerings and your business needs. Our ISO9001 and CE certifications ensure high-quality standards, and we are confident that our range of products could complement your current portfolio. We would love the opportunity to discuss how we can support your operations and provide value to your customers.\n\nPlease feel free to contact me directly at 18104660410 or reply to this email to schedule a call or receive more information about our products. We look forward to the possibility of working together.\n\nBest regards,\n红狼",
+    "status": "sent",
+    "send_time": "2026-06-21T06:41:48.349Z",
+    "tracking_pixel": "track_send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782024107152_zyyw2i8qw",
+    "created_at": "2026-06-21T06:41:48.350Z",
+    "updated_at": "2026-06-21T06:41:48.350Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782023333455_jiruxu62q",
+    "draft_id": "draft_1782023294701_3850r6llc",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "customer_id": "test_company",
+    "from_email": "1171037136@qq.com",
+    "to_email": "730357683@qq.com",
+    "subject": "Exploring Partnership Opportunities in Aluminum Products",
+    "body": "Dear [Recipient's Name],\n\nI hope this message finds you well. My name is 红狼, and I represent 和平, a company specializing in the production of plastic products, rubber products, hardware products, and machinery parts. We are reaching out to explore potential collaboration opportunities with 晨佑科技测试公司, given your expertise as an importer in the metal products industry, particularly in aluminum profiles, doors, and windows.\n\nWe believe there is a strong alignment between our product offerings and your business needs. Our ISO9001 and CE certifications ensure high-quality standards, and we are confident that our range of products could complement your current portfolio. We would love the opportunity to discuss how we can support your operations and provide value to your customers.\n\nPlease feel free to contact me directly at 18104660410 or reply to this email to schedule a call or receive more information about our products. We look forward to the possibility of working together.\n\nBest regards,\n红狼",
+    "status": "sent",
+    "send_time": "2026-06-21T06:28:54.575Z",
+    "tracking_pixel": "track_send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782023333455_jiruxu62q",
+    "created_at": "2026-06-21T06:28:54.576Z",
+    "updated_at": "2026-06-21T06:28:54.576Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782022901398_wh1d153j2",
+    "draft_id": "draft_1782022857825_o8ugpjbjb",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "customer_id": "test_company",
+    "from_email": "1171037136@qq.com",
+    "to_email": "730357683@qq.com",
+    "subject": "Exploring Partnership Opportunities in Aluminum Products",
+    "body": "Dear [Recipient's Name],\n\nI hope this message finds you well. My name is 红狼, and I represent 和平, a company specializing in plastic products, rubber products, hardware products, and machinery parts, with certifications including ISO9001 and CE. We have been following 晨佑科技测试公司’s work in the metal products industry, particularly your expertise in aluminum profiles, doors, and windows, and we believe there are strong synergies between our businesses.\n\nAt 和平, we understand the importance of high-quality materials and sustainable practices, which aligns well with your certifications of ISO9001 and ISO14001. We would love to explore potential collaboration opportunities, such as supplying components or exploring joint ventures that could benefit both companies.\n\nIf you are interested in learning more about our product range and how we can support your operations, please feel free to contact me directly at 18104660410. I would be delighted to discuss further and provide any additional information you may need.\n\nLooking forward to your response.\n\nBest regards,\n红狼\n和平",
+    "status": "sent",
+    "send_time": "2026-06-21T06:21:42.568Z",
+    "tracking_pixel": "track_send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782022901398_wh1d153j2",
+    "created_at": "2026-06-21T06:21:42.568Z",
+    "updated_at": "2026-06-21T06:21:42.568Z"
+  },
+  {
+    "id": "send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782021785816_nwwxvk5r0",
+    "draft_id": "draft_1782021767342_b6xq8er3m",
+    "user_id": "fdb7d0f3-11e3-4323-8126-b6dfe028e798",
+    "customer_id": "test_company",
+    "from_email": "1171037136@qq.com",
+    "to_email": "730357683@qq.com",
+    "subject": "Exploring Partnership Opportunities in Aluminum Products",
+    "body": "Dear [Recipient's Name],\n\nI hope this message finds you well. My name is 红狼, and I represent 和平, a company specializing in the production of plastic products, rubber products, hardware products, and machinery parts. We are reaching out to connect with companies like 晨佑科技测试公司, which focuses on importing aluminum profiles, doors, and windows.\n\nWe noticed that your company holds ISO9001 and ISO14001 certifications, which aligns with our own commitment to quality and environmental standards. Our product range includes a variety of plastic and rubber components that could complement your aluminum product offerings, potentially enhancing your product portfolio and customer value.\n\nWe would love the opportunity to discuss how we can support your business needs. Please feel free to contact me directly at 18104660410 or reply to this email to schedule a call or further conversation. Looking forward to hearing from you.\n\nBest regards,\n红狼\n和平",
+    "status": "sent",
+    "send_time": "2026-06-21T06:03:06.971Z",
+    "tracking_pixel": "track_send_fdb7d0f3-11e3-4323-8126-b6dfe028e798_1782021785816_nwwxvk5r0",
+    "created_at": "2026-06-21T06:03:06.972Z",
+    "updated_at": "2026-06-21T06:03:06.972Z"
+  }
+]
