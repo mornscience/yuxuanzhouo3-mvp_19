@@ -3,7 +3,8 @@ import { requireAuth } from "@/lib/api-utils"
 import { searchCustomers, saveSearchRecord, getSearchResults, cleanupExpiredSearches } from "@/lib/market/customer-search"
 import { dbAdapter } from "@/lib/market/db-adapter"
 
-const MAX_CUSTOMER_SEARCH_COUNT = 60 // 精准寻客次数上限
+const MAX_CUSTOMER_SEARCH_COUNT_FREE = 30 // 普通用户精准寻客次数上限
+const MAX_CUSTOMER_SEARCH_COUNT_VIP = 60 // VIP用户精准寻客次数上限
 
 export async function POST(request: Request) {
   try {
@@ -29,9 +30,22 @@ export async function POST(request: Request) {
       return Response.json({ ok: false, message: "Please complete enterprise verification first" }, { status: 403 })
     }
     
+    // 根据用户类型确定搜索次数上限
+    const maxSearchCount = isPremium ? MAX_CUSTOMER_SEARCH_COUNT_VIP : MAX_CUSTOMER_SEARCH_COUNT_FREE
+    
+    // 如果用户之前使用次数超过当前限制，重置为上限值（兼容旧数据）
+    let adjustedSearchCount = customerSearchCount
+    if (customerSearchCount > maxSearchCount) {
+      adjustedSearchCount = maxSearchCount
+      await dbAdapter.updateRow("user_market_profiles", { id: userId }, {
+        customerSearchCount: maxSearchCount,
+        customer_search_count: maxSearchCount
+      })
+    }
+    
     // 检查使用次数
-    if (customerSearchCount >= MAX_CUSTOMER_SEARCH_COUNT) {
-      return Response.json({ ok: false, message: `Customer search limit reached (${MAX_CUSTOMER_SEARCH_COUNT} times)` }, { status: 403 })
+    if (adjustedSearchCount >= maxSearchCount) {
+      return Response.json({ ok: false, message: `Customer search limit reached (${maxSearchCount} times)` }, { status: 403 })
     }
     
     const body = await request.json()
@@ -57,11 +71,11 @@ export async function POST(request: Request) {
     console.log("[API] match-customers search params:", JSON.stringify(params, null, 2))
     console.log("[API] match-customers pagination: page=", page, "pageSize=", pageSize)
     
-    // 搜索客户（根据会员状态选择模型）
-    const { results, total, allCustomerIds } = await searchCustomers(params, page, pageSize, isPremium)
+    // 搜索客户（使用 Groq + Tavily 组合）
+    const { results, total, allCustomerIds, dbResults, aiResults } = await searchCustomers(params, page, pageSize, isPremium)
     
     // 调试日志
-    console.log("[API] match-customers search completed: total=", total, "returned=", results.length)
+    console.log("[API] match-customers search completed: total=", total, "returned=", results.length, "db=", dbResults.length, "ai=", aiResults.length)
     
     // 保存搜索记录（仅在第一页时保存）
     let searchId: string | null = null
@@ -84,9 +98,11 @@ export async function POST(request: Request) {
       pageSize,
       searchId,
       customerSearchCount: customerSearchCount + (page === 1 ? 1 : 0),
-      customerSearchLimit: MAX_CUSTOMER_SEARCH_COUNT,
+      customerSearchLimit: maxSearchCount,
       isPremium,
       premiumExpiresAt,
+      dbResults,
+      aiResults
     })
   } catch (error: any) {
     console.error("Customer match error:", error)

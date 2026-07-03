@@ -1,23 +1,46 @@
 import nodemailer from "nodemailer"
 
-/**
- * 发送邮件服务
- * 实际使用时需要配置环境变量中的 SMTP 参数
- */
 export async function sendEmail({ to, subject, body }: { to: string; subject: string; body: string }) {
-  const host = process.env.AUTH_EMAIL_SMTP_HOST
-  const port = parseInt(process.env.AUTH_EMAIL_SMTP_PORT || "465")
-  const user = process.env.AUTH_EMAIL_SMTP_USER
-  const pass = process.env.AUTH_EMAIL_SMTP_PASS
-  const from = process.env.AUTH_EMAIL_FROM || user
+  const provider = process.env.EMAIL_PROVIDER || 'smtp'
+  
+  let host: string, port: number, user: string, pass: string, from: string
+  
+  switch (provider) {
+    case 'qq':
+      host = process.env.AUTH_EMAIL_SMTP_HOST_QQ || ''
+      port = parseInt(process.env.AUTH_EMAIL_SMTP_PORT_QQ || "587")
+      user = process.env.AUTH_EMAIL_USER_QQ || ''
+      pass = process.env.AUTH_EMAIL_PASSWORD_QQ || ''
+      from = process.env.AUTH_EMAIL_FROM_QQ || user
+      break
+    case '126':
+      host = process.env.AUTH_EMAIL_SMTP_HOST_126 || ''
+      port = parseInt(process.env.AUTH_EMAIL_SMTP_PORT_126 || "465")
+      user = process.env.AUTH_EMAIL_USER_126 || ''
+      pass = process.env.AUTH_EMAIL_PASSWORD_126 || ''
+      from = process.env.AUTH_EMAIL_FROM_126 || user
+      break
+    case 'gmail':
+      host = process.env.AUTH_EMAIL_SMTP_HOST_GMAIL || ''
+      port = parseInt(process.env.AUTH_EMAIL_SMTP_PORT_GMAIL || "587")
+      user = process.env.AUTH_EMAIL_USER_GMAIL || ''
+      pass = process.env.AUTH_EMAIL_PASSWORD_GMAIL || ''
+      from = process.env.AUTH_EMAIL_FROM_GMAIL || user
+      break
+    default:
+      host = process.env.AUTH_EMAIL_SMTP_HOST || ''
+      port = parseInt(process.env.AUTH_EMAIL_SMTP_PORT || "465")
+      user = process.env.AUTH_EMAIL_USER || ''
+      pass = process.env.AUTH_EMAIL_PASSWORD || ''
+      from = process.env.AUTH_EMAIL_FROM || user
+  }
 
-  // 如果没有配置 SMTP，则回退到模拟发送
-  if (!host || !user || !pass) {
+  if (!pass) {
     console.log(`[模拟邮件发送] 到: ${to}, 主题: ${subject}`)
     console.log(`内容: ${body.substring(0, 100)}...`)
     return {
       success: true,
-      message: `邮件已发送至 ${to} (模拟模式，请配置 SMTP 环境变量以开启真实发送)`,
+      message: `邮件已发送至 ${to} (模拟模式，需配置 AUTH_EMAIL_SMTP_PASS 授权码以开启真实发送)`,
       mock: true
     }
   }

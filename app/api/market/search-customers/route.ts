@@ -16,12 +16,12 @@ export async function POST(request: Request) {
       keywords: body.keywords
     }
     
-    const results = searchCustomers(params)
+    const results = await searchCustomers(params)
     
     const response: CustomerSearchResult = {
       ok: true,
-      data: results.map(r => r.customer),
-      total: results.length
+      data: results.results.map(r => r.customer),
+      total: results.total
     }
     
     return NextResponse.json(response)
@@ -38,12 +38,12 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const results = searchCustomers({})
+    const results = await searchCustomers({})
     
     const response: CustomerSearchResult = {
       ok: true,
-      data: results.map(r => r.customer),
-      total: results.length
+      data: results.results.map(r => r.customer),
+      total: results.total
     }
     
     return NextResponse.json(response)

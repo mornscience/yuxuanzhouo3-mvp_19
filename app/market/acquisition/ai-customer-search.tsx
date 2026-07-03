@@ -34,14 +34,29 @@ const countries = [
   { value: 'UAE', label: 'UAE' }
 ]
 
-const MAX_CUSTOMER_SEARCH_COUNT = 60
+const MAX_CUSTOMER_SEARCH_COUNT_FREE = 30
+const MAX_CUSTOMER_SEARCH_COUNT_VIP = 60
+
+function formatWebsiteUrl(url: string): string {
+  if (!url) return ''
+  let formatted = url.trim()
+  formatted = formatted.replace(/`/g, '')
+  if (!formatted.startsWith('http://') && !formatted.startsWith('https://')) {
+    formatted = `https://${formatted}`
+  }
+  return formatted
+}
 
 export function AICustomerSearch() {
   const [profile, setProfile] = useState<UserMarketProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
   const [matchedCustomers, setMatchedCustomers] = useState<CustomerMatchResult[]>([])
+  const [dbResults, setDbResults] = useState<CustomerMatchResult[]>([])
+  const [aiResults, setAiResults] = useState<CustomerMatchResult[]>([])
   const [customerSearchCount, setCustomerSearchCount] = useState(0)
+  const [customerSearchLimit, setCustomerSearchLimit] = useState(MAX_CUSTOMER_SEARCH_COUNT_FREE)
+  const [savedCustomerIds, setSavedCustomerIds] = useState<Set<string>>(new Set())
   
   // 搜索条件
   const [searchKeywords, setSearchKeywords] = useState('')
@@ -86,9 +101,13 @@ export function AICustomerSearch() {
       if (result.ok && result.data) {
         setProfile(result.data)
         
-        // 获取精准寻客次数
+        // 获取精准寻客次数和限制
         const searchCount = Number(result.data.customerSearchCount ?? result.data.customer_search_count ?? 0)
         setCustomerSearchCount(searchCount)
+        
+        // 根据用户类型设置搜索次数上限
+        const isPremium = !!(result.data.is_premium ?? result.data.isPremium ?? false)
+        setCustomerSearchLimit(isPremium ? MAX_CUSTOMER_SEARCH_COUNT_VIP : MAX_CUSTOMER_SEARCH_COUNT_FREE)
         
         // 提取搜索条件
         const data = result.data
@@ -145,9 +164,19 @@ export function AICustomerSearch() {
         if (result.searchId) {
           setSearchId(result.searchId)
         }
-        // 更新使用次数
+        // 更新使用次数和限制
         if (result.customerSearchCount !== undefined) {
           setCustomerSearchCount(result.customerSearchCount)
+        }
+        if (result.customerSearchLimit !== undefined) {
+          setCustomerSearchLimit(result.customerSearchLimit)
+        }
+        // 保存本地库和AI检索结果
+        if (result.dbResults) {
+          setDbResults(result.dbResults)
+        }
+        if (result.aiResults) {
+          setAiResults(result.aiResults)
         }
       } else {
         alert(result.message || "Customer search failed")
@@ -280,14 +309,17 @@ export function AICustomerSearch() {
       }
       
       const result = await response.json()
-      if (!result.ok) {
+      if (result.ok) {
+        setSavedCustomerIds(prev => new Set([...prev, customer.id]))
+        await loadSavedCustomers()
+      } else {
         console.warn("[CustomerSave] Failed:", result.message)
       }
     } catch (error: any) {
       console.error("[CustomerSave] Error:", error.message)
     }
   }
-
+  
   // 加载已保存的客户
   const loadSavedCustomers = async () => {
     setLoadingSavedCustomers(true)
@@ -461,7 +493,7 @@ export function AICustomerSearch() {
               <div>
                 <p className="text-sm text-slate-500">Customer Search Usage</p>
                 <p className="font-semibold text-slate-800">
-                  {customerSearchCount} / {MAX_CUSTOMER_SEARCH_COUNT} times used
+                  {customerSearchCount} / {customerSearchLimit} times used
                 </p>
               </div>
             </div>
@@ -469,17 +501,17 @@ export function AICustomerSearch() {
               <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all duration-500 ${
-                    customerSearchCount >= MAX_CUSTOMER_SEARCH_COUNT 
+                    customerSearchCount >= customerSearchLimit 
                       ? 'bg-red-500' 
-                      : customerSearchCount >= MAX_CUSTOMER_SEARCH_COUNT * 0.8 
+                      : customerSearchCount >= customerSearchLimit * 0.8 
                         ? 'bg-yellow-500' 
                         : 'bg-gradient-to-r from-indigo-500 to-purple-500'
                   }`}
-                  style={{ width: `${(customerSearchCount / MAX_CUSTOMER_SEARCH_COUNT) * 100}%` }}
+                  style={{ width: `${(customerSearchCount / customerSearchLimit) * 100}%` }}
                 />
               </div>
               <p className="text-xs text-slate-400 mt-1 text-right">
-                {MAX_CUSTOMER_SEARCH_COUNT - customerSearchCount} remaining
+                {customerSearchLimit - customerSearchCount} remaining
               </p>
             </div>
           </div>
@@ -636,99 +668,358 @@ export function AICustomerSearch() {
               </div>
             ) : matchedCustomers.length > 0 ? (
               <>
-                <div className="space-y-4">
-                  {matchedCustomers.map((match, index) => (
-                  <div
-                    key={match.customer.id}
-                    className="p-6 bg-gradient-to-r from-white to-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all duration-300"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="text-lg font-semibold text-slate-800">
-                            {match.customer.companyName}
-                          </h4>
-                          <Badge 
-                            className={`${
-                              match.matchScore >= 40 ? 'bg-green-500' : 
-                              match.matchScore >= 20 ? 'bg-yellow-500' : 'bg-orange-500'
-                            } text-white`}
-                          >
-                            Match: {match.matchScore}%
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-slate-500 mb-3">{match.customer.description}</p>
-                        
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-1 text-slate-600">
-                            <MapPin className="w-4 h-4 text-indigo-500" />
-                            <span>{match.customer.location}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-slate-600">
-                            <Briefcase className="w-4 h-4 text-indigo-500" />
-                            <span>{match.customer.businessType}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-slate-600">
-                            <Phone className="w-4 h-4 text-indigo-500" />
-                            <span>{match.customer.phone}</span>
-                          </div>
-                        </div>
+                {/* AI检索客户区块 */}
+                {aiResults.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-5 h-5 text-purple-500" />
+                      <h3 className="text-lg font-semibold text-slate-800">AI Global Search Results</h3>
+                      <Badge className="bg-purple-500 text-white">{aiResults.length} results</Badge>
+                    </div>
+                    <div className="space-y-4">
+                      {aiResults.map((match, index) => (
+                        <div
+                          key={match.customer.id}
+                          className="p-6 bg-gradient-to-r from-white to-purple-50 rounded-xl border-2 border-purple-100 hover:shadow-md transition-all duration-300"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className="text-lg font-semibold text-slate-800">
+                                  {match.customer.companyName}
+                                </h4>
+                                <Badge className="bg-purple-100 text-purple-700 text-xs">AI Search</Badge>
+                                <Badge 
+                                  className={`${
+                                    match.matchScore >= 40 ? 'bg-green-500' : 
+                                    match.matchScore >= 20 ? 'bg-yellow-500' : 'bg-orange-500'
+                                  } text-white`}
+                                >
+                                  Match: {match.matchScore}%
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-slate-500 mb-3">{match.customer.description}</p>
+                              
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <div className="flex items-center gap-1 text-slate-600">
+                                  <MapPin className="w-4 h-4 text-indigo-500" />
+                                  <span>{match.customer.location}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-slate-600">
+                                  <Briefcase className="w-4 h-4 text-indigo-500" />
+                                  <span>{match.customer.businessType}</span>
+                                </div>
+                                {match.customer.phone && (
+                                  <div className="flex items-center gap-1 text-slate-600">
+                                    <Phone className="w-4 h-4 text-indigo-500" />
+                                    <span>{match.customer.phone}</span>
+                                  </div>
+                                )}
+                                {match.customer.email ? (
+                                  <div className="flex items-center gap-1 text-slate-600">
+                                    <Mail className="w-4 h-4 text-indigo-500" />
+                                    <span>{match.customer.email}</span>
+                                    {match.customer.emailVerification === 'verified' && (
+                                      <Badge className="bg-green-100 text-green-700 text-xs ml-1">✓ Verified</Badge>
+                                    )}
+                                    {match.customer.emailVerification === 'pending' && (
+                                      <Badge className="bg-yellow-100 text-yellow-700 text-xs ml-1">⌛ Pending</Badge>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 text-slate-500">
+                                    <Mail className="w-4 h-4 text-slate-400" />
+                                    <span className="text-slate-400">No email found</span>
+                                    <Badge className="bg-gray-100 text-gray-500 text-xs ml-1">Visit website</Badge>
+                                  </div>
+                                )}
+                              </div>
 
-                        {/* 匹配的品类和认证 */}
-                        {match.matchedCategories.length > 0 && (
-                          <div className="mt-3">
-                            <p className="text-xs text-slate-500 mb-1">Matched Categories:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {match.matchedCategories.map((cat, i) => (
-                                <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
-                                  {cat}
-                                </Badge>
-                              ))}
+                              {/* 匹配的品类和认证 */}
+                              {match.matchedCategories.length > 0 && (
+                                <div className="mt-3">
+                                  <p className="text-xs text-slate-500 mb-1">Matched Categories:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {match.matchedCategories.map((cat, i) => (
+                                      <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                                        {cat}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {match.matchedCertifications.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-slate-500 mb-1">Matched Certifications:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {match.matchedCertifications.map((cert, i) => (
+                                      <Badge key={i} variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                                        {cert}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex flex-col gap-2 ml-4">
+                              {match.customer.email && (
+                                <Button
+                                  size="sm"
+                                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90"
+                                  onClick={() => handleEmailClick(match)}
+                                >
+                                  <Send className="w-4 h-4 mr-2" />
+                                  Send Email
+                                </Button>
+                              )}
+                              {match.customer.website && (
+                                <a
+                                  href={formatWebsiteUrl(match.customer.website)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                                >
+                                  <Globe className="w-4 h-4" />
+                                  <span className="text-sm">Website</span>
+                                </a>
+                              )}
+                              {savedCustomerIds.has(match.customer.id) && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg">
+                                  <Check className="w-4 h-4" />
+                                  <span className="text-sm">Saved</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
-                        
-                        {match.matchedCertifications.length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-xs text-slate-500 mb-1">Matched Certifications:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {match.matchedCertifications.map((cert, i) => (
-                                <Badge key={i} variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
-                                  {cert}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-col gap-2 ml-4">
-                        {match.customer.email && (
-                          <Button
-                            size="sm"
-                            className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90"
-                            onClick={() => handleEmailClick(match)}
-                          >
-                            <Send className="w-4 h-4 mr-2" />
-                            Send Email
-                          </Button>
-                        )}
-                        {match.customer.website && (
-                          <a
-                            href={match.customer.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
-                          >
-                            <Globe className="w-4 h-4" />
-                            <span className="text-sm">Website</span>
-                          </a>
-                        )}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+
+                {/* 本地库客户区块 */}
+                {dbResults.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Building2 className="w-5 h-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold text-slate-800">Local Database Results</h3>
+                      <Badge className="bg-blue-500 text-white">{dbResults.length} results</Badge>
+                    </div>
+                    <div className="space-y-4">
+                      {dbResults.map((match, index) => (
+                        <div
+                          key={match.customer.id}
+                          className="p-6 bg-gradient-to-r from-white to-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all duration-300"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className="text-lg font-semibold text-slate-800">
+                                  {match.customer.companyName}
+                                </h4>
+                                <Badge className="bg-blue-100 text-blue-700 text-xs">Local DB</Badge>
+                                <Badge 
+                                  className={`${
+                                    match.matchScore >= 40 ? 'bg-green-500' : 
+                                    match.matchScore >= 20 ? 'bg-yellow-500' : 'bg-orange-500'
+                                  } text-white`}
+                                >
+                                  Match: {match.matchScore}%
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-slate-500 mb-3">{match.customer.description}</p>
+                              
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <div className="flex items-center gap-1 text-slate-600">
+                                  <MapPin className="w-4 h-4 text-indigo-500" />
+                                  <span>{match.customer.location}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-slate-600">
+                                  <Briefcase className="w-4 h-4 text-indigo-500" />
+                                  <span>{match.customer.businessType}</span>
+                                </div>
+                                {match.customer.phone && (
+                                  <div className="flex items-center gap-1 text-slate-600">
+                                    <Phone className="w-4 h-4 text-indigo-500" />
+                                    <span>{match.customer.phone}</span>
+                                  </div>
+                                )}
+                                {match.customer.email ? (
+                                  <div className="flex items-center gap-1 text-slate-600">
+                                    <Mail className="w-4 h-4 text-indigo-500" />
+                                    <span>{match.customer.email}</span>
+                                    {match.customer.emailVerification === 'verified' && (
+                                      <Badge className="bg-green-100 text-green-700 text-xs ml-1">✓ Verified</Badge>
+                                    )}
+                                    {match.customer.emailVerification === 'pending' && (
+                                      <Badge className="bg-yellow-100 text-yellow-700 text-xs ml-1">⌛ Pending</Badge>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 text-slate-500">
+                                    <Mail className="w-4 h-4 text-slate-400" />
+                                    <span className="text-slate-400">No email found</span>
+                                    <Badge className="bg-gray-100 text-gray-500 text-xs ml-1">Visit website</Badge>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 匹配的品类和认证 */}
+                              {match.matchedCategories.length > 0 && (
+                                <div className="mt-3">
+                                  <p className="text-xs text-slate-500 mb-1">Matched Categories:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {match.matchedCategories.map((cat, i) => (
+                                      <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                                        {cat}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {match.matchedCertifications.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-slate-500 mb-1">Matched Certifications:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {match.matchedCertifications.map((cert, i) => (
+                                      <Badge key={i} variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                                        {cert}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex flex-col gap-2 ml-4">
+                              {match.customer.email && (
+                                <Button
+                                  size="sm"
+                                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90"
+                                  onClick={() => handleEmailClick(match)}
+                                >
+                                  <Send className="w-4 h-4 mr-2" />
+                                  Send Email
+                                </Button>
+                              )}
+                              {match.customer.website && (
+                                <a
+                                  href={formatWebsiteUrl(match.customer.website)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                                >
+                                  <Globe className="w-4 h-4" />
+                                  <span className="text-sm">Website</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 如果没有分块数据，显示原有合并视图 */}
+                {dbResults.length === 0 && aiResults.length === 0 && matchedCustomers.length > 0 && (
+                  <div className="space-y-4">
+                    {matchedCustomers.map((match, index) => (
+                      <div
+                        key={match.customer.id}
+                        className="p-6 bg-gradient-to-r from-white to-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="text-lg font-semibold text-slate-800">
+                                {match.customer.companyName}
+                              </h4>
+                              <Badge 
+                                className={`${
+                                  match.matchScore >= 40 ? 'bg-green-500' : 
+                                  match.matchScore >= 20 ? 'bg-yellow-500' : 'bg-orange-500'
+                                } text-white`}
+                              >
+                                Match: {match.matchScore}%
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-slate-500 mb-3">{match.customer.description}</p>
+                            
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <div className="flex items-center gap-1 text-slate-600">
+                                <MapPin className="w-4 h-4 text-indigo-500" />
+                                <span>{match.customer.location}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-slate-600">
+                                <Briefcase className="w-4 h-4 text-indigo-500" />
+                                <span>{match.customer.businessType}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-slate-600">
+                                <Phone className="w-4 h-4 text-indigo-500" />
+                                <span>{match.customer.phone}</span>
+                              </div>
+                            </div>
+
+                            {/* 匹配的品类和认证 */}
+                            {match.matchedCategories.length > 0 && (
+                              <div className="mt-3">
+                                <p className="text-xs text-slate-500 mb-1">Matched Categories:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {match.matchedCategories.map((cat, i) => (
+                                    <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                                      {cat}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {match.matchedCertifications.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs text-slate-500 mb-1">Matched Certifications:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {match.matchedCertifications.map((cert, i) => (
+                                    <Badge key={i} variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                                      {cert}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 ml-4">
+                            {match.customer.email && (
+                              <Button
+                                size="sm"
+                                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90"
+                                onClick={() => handleEmailClick(match)}
+                              >
+                                <Send className="w-4 h-4 mr-2" />
+                                Send Email
+                              </Button>
+                            )}
+                            {match.customer.website && (
+                              <a
+                                href={formatWebsiteUrl(match.customer.website)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                              >
+                                <Globe className="w-4 h-4" />
+                                <span className="text-sm">Website</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               
               {/* 分页组件 */}
               {total > pageSize && (

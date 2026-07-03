@@ -1,6 +1,8 @@
 import { OverseasCustomer, CustomerSearchParams, CustomerMatchResult } from "./customer-types"
 import { dbAdapter } from "./db-adapter"
 import { getAIProvider } from "@/lib/ai/provider"
+import https from 'node:https'
+import dns from 'node:dns'
 
 // Mock数据（备用）
 const mockCustomers: OverseasCustomer[] = [
@@ -14,7 +16,7 @@ const mockCustomers: OverseasCustomer[] = [
     country: 'China',
     city: 'Shanghai',
     contactPerson: 'Zhang Wei',
-    email: 'info0623@126.com',
+    email: '730357683@qq.com',
     phone: '+86-138-0000-0000',
     website: 'www.mornscience-test.com',
     socialLinks: ['linkedin.com/company/mornscience-test'],
@@ -355,10 +357,36 @@ function isValidCustomer(item: any): boolean {
     }
   }
   
-  // 验证邮箱是否有完整域名（排除假邮箱）
+  // 定义有效域名后缀列表
+  const validTLDs = ['.com', '.net', '.org', '.edu', '.gov', '.io', '.co', '.biz', '.info', 
+                     '.us', '.uk', '.jp', '.de', '.fr', '.cn', '.au', '.ca', '.sg', '.ae',
+                     '.co.jp', '.co.uk', '.com.cn', '.ne.jp']
+  
+  // 验证网站必须有有效域名（必须有网站）
+  const website = item.website || ''
+  if (!website || !website.startsWith('http')) {
+    console.log("[AI Search] Filtered invalid website:", website, "for company:", companyName)
+    return false
+  }
+  
+  // 检查网站域名是否有效
+  const websiteDomain = website.replace(/^https?:\/\//, '').split('/')[0]
+  const websiteHasValidTLD = validTLDs.some(tld => websiteDomain.endsWith(tld))
+  if (!websiteHasValidTLD) {
+    console.log("[AI Search] Filtered invalid website domain:", websiteDomain, "for company:", companyName)
+    return false
+  }
+  
+  // 验证联系方式：至少有邮箱或电话之一（不再要求两者都有）
   const email = item.email || ''
-  if (email && !email.includes('@') && !email.includes('.')) {
-    console.log("[AI Search] Filtered invalid email:", email, "for company:", companyName)
+  const rawPhone = item.phone || ''
+  
+  const hasValidEmail = email.includes('@') && email.includes('.') && 
+                       validTLDs.some(tld => email.split('@')[1]?.endsWith(tld))
+  const hasValidPhone = rawPhone.length >= 8 && /^[\d\s\-\+()]+$/.test(rawPhone)
+  
+  if (!hasValidEmail && !hasValidPhone) {
+    console.log("[AI Search] Filtered missing contact info - email:", email, "phone:", rawPhone, "for company:", companyName)
     return false
   }
   
@@ -417,30 +445,1074 @@ function hasSpecificFilter(params: CustomerSearchParams): boolean {
   return hasCountryFilter || hasBusinessTypeFilter
 }
 
-// AI外网搜索功能 - 根据会员状态选择模型
-async function searchWithAI(params: CustomerSearchParams, isPremium: boolean = false): Promise<OverseasCustomer[]> {
-  console.log("[AI Search] Starting AI web search with params:", params)
-  console.log("[AI Search] Using premium model:", isPremium)
+// 中文行业术语到英文的映射
+const chineseIndustryMap: Record<string, string> = {
+  '建筑声学装饰': 'architectural acoustic decoration',
+  '建筑装饰': 'architectural decoration',
+  '金属制品': 'metal products',
+  '塑料制品': 'plastic products',
+  '机械设备': 'machinery equipment',
+  '建材': 'building materials',
+  '五金': 'hardware',
+  '化工': 'chemical industry',
+  '电子': 'electronics',
+  '纺织': 'textile',
+  '食品': 'food',
+  '医疗': 'medical',
+  '汽车': 'automotive',
+  '能源': 'energy',
+  '环保': 'environmental protection'
+}
+
+// 将中文行业术语转换为英文
+function translateIndustryToEnglish(chineseIndustry: string): string {
+  if (!chineseIndustry) return 'business'
   
-  // 根据会员状态选择模型和API
-  const usePremium = isPremium && process.env.ENABLE_PREMIUM_AI === 'true'
+  if (chineseIndustryMap[chineseIndustry]) {
+    return chineseIndustryMap[chineseIndustry]
+  }
   
-  if (usePremium) {
-    console.log("[AI Search] Using premium AI model (Perplexity)")
-    return searchWithPremiumModel(params)
-  } else {
-    // 默认使用 qwen-turbo（带联网搜索）作为主要模型
-    console.log("[AI Search] Using primary AI model (Qwen-Turbo with web search)")
-    const qwenResults = await searchWithQwenModel(params, hasSpecificFilter(params))
+  for (const [chinese, english] of Object.entries(chineseIndustryMap)) {
+    if (chineseIndustry.includes(chinese)) {
+      return english
+    }
+  }
+  
+  return 'business'
+}
+
+function isProductsRelevantToIndustry(productKeywords: string, industryKeyword: string): boolean {
+  const productLower = productKeywords.toLowerCase()
+  const industryLower = industryKeyword.toLowerCase()
+  
+  const industryProductMap: Record<string, string[]> = {
+    'architectural acoustic': ['acoustic', 'sound', 'noise', 'insulation', 'absorption', 'panel', 'foam', 'board', 'felt'],
+    'construction': ['steel', 'pipe', 'concrete', 'cement', 'brick', 'building', 'material', 'glass', 'aluminum'],
+    'automotive': ['auto', 'car', 'vehicle', 'parts', 'component'],
+    'electronics': ['electronic', 'circuit', 'chip', 'component', 'device'],
+    'food': ['food', 'beverage', 'grain', 'snack', 'drink'],
+    'textile': ['fabric', 'textile', 'clothing', 'garment', 'fiber'],
+    'chemical': ['chemical', 'plastic', 'polymer', 'resin', 'paint'],
+    'medical': ['medical', 'pharmaceutical', 'healthcare', 'hospital', 'equipment'],
+    'energy': ['energy', 'power', 'solar', 'wind', 'battery'],
+    'machinery': ['machine', 'equipment', 'tool', 'industrial', 'engine'],
+    'furniture': ['furniture', 'wood', 'chair', 'table', 'sofa'],
+    'paper': ['paper', 'packaging', 'printing', 'cardboard'],
+    'rubber': ['rubber', 'tire', 'latex', 'seal'],
+    'ceramic': ['ceramic', 'tile', 'pottery', 'porcelain'],
+    'leather': ['leather', 'bag', 'shoe', 'wallet'],
+    'metal': ['metal', 'steel', 'iron', 'aluminum', 'copper'],
+    'plastics': ['plastic', 'polymer', 'resin', 'pipe', 'container'],
+    'glass': ['glass', 'window', 'bottle', 'mirror'],
+    'stone': ['stone', 'marble', 'granite', 'tile'],
+    'wood': ['wood', 'timber', 'lumber', 'furniture'],
+  }
+  
+  for (const [industry, relevantWords] of Object.entries(industryProductMap)) {
+    if (industryLower.includes(industry) || industry.includes(industryLower)) {
+      for (const word of relevantWords) {
+        if (productLower.includes(word)) {
+          return true
+        }
+      }
+      return false
+    }
+  }
+  
+  return true
+}
+
+// 使用 Tavily Search API 获取海外企业网页内容
+async function searchWithTavily(params: CustomerSearchParams): Promise<any[]> {
+  const apiKey = process.env.TAVILY_API_KEY
+  if (!apiKey) {
+    console.warn("[AI Search] Tavily API key not configured")
+    return []
+  }
+  
+  const targetCountry = params.country || 'global'
+  const businessType = params.businessType || 'importer'
+  
+  // 将中文行业术语转换为英文，便于海外搜索
+  const industryKeyword = translateIndustryToEnglish(params.industry) || 'construction'
+  
+  // 构建搜索查询：行业作为主体，产品作为补充
+  // 搜索词不能太长，否则Tavily返回0结果
+  const MAX_PRODUCT_KEYWORDS = 3
+  const productCategories = params.productCategories || []
+  
+  // 只取前几个核心产品关键词，避免搜索词过长
+  const topProductKeywords = productCategories.slice(0, MAX_PRODUCT_KEYWORDS).join(' ')
+  
+  let query = `${businessType} ${industryKeyword}`
+  
+  // 如果产品类别与行业相关，添加少量核心产品词
+  if (topProductKeywords && isProductsRelevantToIndustry(topProductKeywords, industryKeyword)) {
+    query += ` ${topProductKeywords}`
+  }
+  
+  query += ` companies in ${targetCountry}`
+  console.log("[AI Search] Tavily search query:", query)
+  
+  try {
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: query,
+        search_depth: "advanced",
+        max_results: 8,
+        include_answer: false,
+        include_raw_content: true,
+        include_images: false
+      })
+    })
     
-    // 如果 qwen-turbo 返回结果为空或失败，降级到 GLM
-    if (qwenResults.length === 0) {
-      console.warn("[AI Search] Qwen-Turbo returned no results, falling back to GLM")
-      return searchWithGLMModel(params, hasSpecificFilter(params))
+    const data = await response.json()
+    console.log("[AI Search] Tavily search results count:", data.results?.length || 0)
+    
+    if (!data.results || !Array.isArray(data.results)) {
+      return []
     }
     
-    return qwenResults
+    return data.results
+  } catch (error) {
+    console.error("[AI Search] Tavily search failed:", error)
+    return []
   }
+}
+
+async function verifyEmailDomain(email: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const domain = email.split('@')[1]
+    if (!domain) {
+      resolve(false)
+      return
+    }
+    
+    dns.resolveMx(domain, (err, addresses) => {
+      if (err || !addresses || addresses.length === 0) {
+        console.log(`[AI Search] Email domain ${domain} has no MX records`)
+        resolve(false)
+      } else {
+        console.log(`[AI Search] Email domain ${domain} has MX records: ${addresses.map(a => a.exchange).join(', ')}`)
+        resolve(true)
+      }
+    })
+  })
+}
+
+async function searchCompanyEmail(companyName: string, companyWebsite: string = ''): Promise<{ email: string; verified: boolean } | null> {
+  const apiKey = process.env.TAVILY_API_KEY
+  if (!apiKey) {
+    return null
+  }
+  
+  let websiteDomain = ''
+  if (companyWebsite) {
+    try {
+      const url = new URL(companyWebsite)
+      websiteDomain = url.hostname.toLowerCase().replace('www.', '')
+    } catch {
+      websiteDomain = companyWebsite.toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
+    }
+    console.log(`[AI Search] Company website domain: ${websiteDomain}`)
+  }
+  
+  const dataPlatformDomains = [
+    'seair.co.in', 'importgenius.com', 'panjiva.com', 'zoominfo.com',
+    'dnb.com', 'experian.com', 'lexisnexis.com', 'businessforsale.com',
+    'alibaba.com', 'made-in-china.com', 'globalsources.com', 'tradeindia.com',
+    'indiamart.com', 'exportgenius.in', 'infodriveindia.com', 'trademap.org',
+    'oec.world', 'comtrade.un.org', 'econdb.com', 'statista.com'
+  ]
+  
+  if (websiteDomain && dataPlatformDomains.some(domain => websiteDomain === domain || websiteDomain.endsWith('.' + domain))) {
+    console.log(`[AI Search] Skipping email search - website is data platform: ${websiteDomain}`)
+    return null
+  }
+  
+  const templatePlaceholders = [
+    /^f\.last$/, /^first\.last$/, /^firstlast$/, /^first_last$/,
+    /^j\.doe$/, /^john\.doe$/, /^johndoe$/, /^john_doe$/,
+    /^jane\.doe$/, /^janedoe$/, /^jane_doe$/,
+    /^jdoe$/, /^flast$/, /^last$/, /^first$/,
+    /^yourname$/, /^your\.name$/, /^youremail$/, /^email$/,
+    /^name$/, /^fullname$/, /^username$/, /^user$/,
+    /^guest$/, /^test$/, /^demo$/, /^example$/,
+    /^noreply$/, /^donotreply$/, /^no\.reply$/
+  ]
+  
+  const queries = websiteDomain 
+    ? [
+        `${companyName} contact email site:${websiteDomain}`,
+        `${companyName} info email site:${websiteDomain}`,
+        `${companyName} sales email site:${websiteDomain}`,
+        `${companyName} business email site:${websiteDomain}`
+      ]
+    : [
+        `${companyName} official contact email`,
+        `${companyName} info email address`,
+        `${companyName} sales email contact`,
+        `${companyName} business email address`
+      ]
+  
+  const validateEmail = (email: string): boolean => {
+    const emailLocal = email.split('@')[0]?.toLowerCase() || ''
+    const emailDomain = email.split('@')[1]?.toLowerCase() || ''
+    
+    const isTemplate = templatePlaceholders.some(pattern => emailLocal.match(pattern))
+    if (isTemplate) {
+      console.log(`[AI Search] Skipping template email: ${email}`)
+      return false
+    }
+    
+    if (emailLocal.length < 3 || emailLocal.length > 64) {
+      return false
+    }
+    
+    if (!websiteDomain) return true
+    
+    if (emailDomain === websiteDomain || emailDomain.endsWith('.' + websiteDomain)) {
+      return true
+    }
+    
+    const companyLower = companyName.toLowerCase().replace(/\s+/g, '')
+    if (emailDomain.includes(companyLower) || websiteDomain.includes(emailDomain.split('.')[0])) {
+      return true
+    }
+    
+    return false
+  }
+  
+  for (const query of queries) {
+    try {
+      console.log(`[AI Search] Searching email with query: ${query}`)
+      
+      const response = await fetch("https://api.tavily.com/search", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          query: query,
+          search_depth: "advanced",
+          max_results: 5,
+          include_answer: false,
+          include_raw_content: true,
+          include_images: false
+        })
+      })
+      
+      const data = await response.json()
+      if (!data.results || !Array.isArray(data.results)) {
+        continue
+      }
+        
+        for (const result of data.results) {
+          const content = result.raw_content || result.content || result.snippet || ''
+          const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+          const emails = content.match(emailPattern) || []
+          
+          for (const email of emails) {
+            if (validateEmail(email)) {
+              const hasMxRecords = await verifyEmailDomain(email)
+              console.log(`[AI Search] Found email ${email} for ${companyName}, MX verified: ${hasMxRecords}`)
+              return { email, verified: hasMxRecords }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`[AI Search] Email search failed for ${companyName}:`, error)
+      }
+  }
+  
+  if (companyWebsite) {
+    const contactPaths = ['/contact', '/contact-us', '/about', '/about-us', '/contact.html', '/about.html', '/info']
+    for (const path of contactPaths) {
+      try {
+        const contactUrl = companyWebsite.replace(/\/$/, '') + path
+        console.log(`[AI Search] Checking contact page: ${contactUrl}`)
+        
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 8000)
+        
+        const response = await fetch(contactUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; MornHub/1.0)'
+          }
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (response.ok) {
+          const content = await response.text()
+          const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+          const emails = content.match(emailPattern) || []
+          
+          for (const email of emails) {
+            if (validateEmail(email)) {
+              const hasMxRecords = await verifyEmailDomain(email)
+              console.log(`[AI Search] Found email ${email} for ${companyName} from contact page, MX verified: ${hasMxRecords}`)
+              return { email, verified: hasMxRecords }
+            }
+          }
+        }
+      } catch (error) {
+        console.log(`[AI Search] Contact page ${path} not accessible for ${companyName}`)
+      }
+    }
+  }
+  
+  console.log(`[AI Search] No email found for ${companyName}`)
+  return null
+}
+
+// 使用 LLM 模型从网页内容中提取结构化企业数据
+// 优先级：Replicate > Groq > Together AI > OpenRouter (qwen-turbo 已停用)
+async function extractWithGroq(webResults: any[], params: CustomerSearchParams): Promise<OverseasCustomer[]> {
+  const togetherApiKey = process.env.TOGETHER_API_KEY
+  const openrouterApiKey = process.env.OPENROUTER_API_KEY
+  const aliyunApiKey = process.env.ALIYUN_DASHSCOPE_API_KEY
+  const groqApiKey = process.env.GROQ_API_KEY
+  
+  console.log("[AI Search] TOGETHER_API_KEY loaded:", togetherApiKey ? togetherApiKey.substring(0, 6) + "..." : "NOT SET")
+  console.log("[AI Search] OPENROUTER_API_KEY loaded:", openrouterApiKey ? openrouterApiKey.substring(0, 6) + "..." : "NOT SET")
+  console.log("[AI Search] ALIYUN_API_KEY loaded:", aliyunApiKey ? aliyunApiKey.substring(0, 6) + "..." : "NOT SET")
+  console.log("[AI Search] GROQ_API_KEY loaded:", groqApiKey ? groqApiKey.substring(0, 6) + "..." : "NOT SET")
+  
+  if (!togetherApiKey && !openrouterApiKey && !aliyunApiKey && !groqApiKey) {
+    console.warn("[AI Search] No LLM API key configured")
+    return []
+  }
+  
+  if (!webResults || webResults.length === 0) {
+    return []
+  }
+  
+  const targetCountry = params.country || 'global'
+  
+  const maxSourceCount = 4
+  const maxContentLength = 3000
+  const limitedResults = webResults.slice(0, maxSourceCount)
+  
+  const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+  const companyEmailMap: Map<string, string> = new Map()
+  
+  for (const result of limitedResults) {
+    const content = (result.raw_content || result.content || result.snippet || '').substring(0, maxContentLength)
+    const emails = content.match(emailPattern) || []
+    
+    const companyNamePattern = /(?:company|corporation|inc\.?|llc|ltd\.?|limited|group|co\.)\s*[A-Z][a-zA-Z0-9\s&-]+(?:company|corporation|inc\.?|llc|ltd\.?|limited|group|co\.)?/gi
+    const companyNames = content.match(companyNamePattern) || []
+    
+    for (const email of emails) {
+      const emailLower = email.toLowerCase()
+      if (emailLower.includes('@gmail.com') || emailLower.includes('@yahoo.com') || 
+          emailLower.includes('@hotmail.com') || emailLower.includes('@outlook.com')) {
+        continue
+      }
+      
+      const emailDomain = email.split('@')[1]?.toLowerCase() || ''
+      if (!emailDomain || emailDomain.length < 3) continue
+      
+      let matched = false
+      for (const companyName of companyNames) {
+        const cleanCompanyName = companyName.toLowerCase().replace(/\s+/g, '')
+        const emailLocal = email.split('@')[0]?.toLowerCase() || ''
+        
+        if (emailDomain.includes(cleanCompanyName.substring(0, 10)) ||
+            cleanCompanyName.includes(emailDomain.split('.')[0]) ||
+            emailLocal.includes(cleanCompanyName.substring(0, 8))) {
+          companyEmailMap.set(companyName.trim(), email)
+          matched = true
+          break
+        }
+      }
+      
+      if (!matched) {
+        const words = content.toLowerCase().split(/[\s,.()<>]/)
+        for (const word of words) {
+          if (word.length >= 4 && emailDomain.includes(word)) {
+            companyEmailMap.set(word, email)
+            break
+          }
+        }
+      }
+    }
+  }
+  
+  console.log(`[AI Search] Extracted ${companyEmailMap.size} email(s) from raw content`)
+  
+  const context = limitedResults.map((result, index) => {
+    const content = (result.raw_content || result.content || result.snippet || '').substring(0, maxContentLength)
+    return `[SOURCE ${index + 1}]
+URL: ${result.url}
+Title: ${result.title}
+Content: ${content}
+`
+  }).join('\n')
+  
+  console.log("[AI Search] Context length:", context.length, "sources:", limitedResults.length)
+  
+  const systemMessage = "CRITICAL INSTRUCTIONS: You are a STRICT information extractor. ONLY extract data that EXPLICITLY appears in the provided web page content. UNDER NO CIRCUMSTANCES should you invent, guess, or fabricate any information including company names, emails, phone numbers, addresses, or any other details. If a piece of information is not clearly visible in the source content, LEAVE IT EMPTY. Return ONLY valid JSON array format. No preamble, no explanation, just the JSON."
+  
+  const targetBusinessType = params.businessType || 'importer'
+  const userMessage = `Extract company information from the web page content below. RULES:
+1. ONLY extract data that is EXPLICITLY shown in the source content
+2. NEVER invent, guess, or fabricate ANY information
+3. IMPORTANT: The website field MUST be the company's OWN official website URL, NOT a data aggregator, directory, or trade platform URL.
+4. DO NOT use URLs from these data platforms: seair.co.in, importgenius.com, panjiva.com, zoominfo.com, dnb.com, businessforsale.com, alibaba.com, made-in-china.com
+5. CRITICAL: NEVER fabricate or invent website URLs. ONLY include a website URL if it is EXPLICITLY shown in the source content. If no official website is found in the content, leave website field completely empty.
+6. CRITICAL: ONLY extract companies whose business type matches: ${targetBusinessType}. Companies that are manufacturers, factories, or producers should NOT be extracted unless they also clearly identify as ${targetBusinessType}.
+7. CRITICAL: ONLY extract companies that are CLEARLY LOCATED in ${targetCountry}. Check for country indicators like: Japanese address, .jp domain website, Japanese phone number (+81), or explicit mention of operations in ${targetCountry}. If a company is not clearly in ${targetCountry}, EXCLUDE it.
+8. Look for keywords indicating ${targetBusinessType}: import, importation, distributor, wholesale, trading company, supply, procurement, sourcing agent
+
+Extract these fields for each valid company:
+- companyName
+- companyNameEn
+- industry
+- location
+- country
+- city
+- contactPerson (only if explicitly mentioned)
+- email (only if explicitly shown in content, leave empty if not found)
+- phone (only if explicitly mentioned)
+- website (MUST be company's OWN official website, NOT data platform URL)
+- businessType (must be ${targetBusinessType} if mentioned, otherwise leave empty)
+- productCategories (array - only categories explicitly mentioned)
+- certifications (array - only if explicitly mentioned)
+- description (only text from source)
+
+Web Page Content:\n${context}\n\nReturn ONLY a JSON array. Example format: [{"id":"1","companyName":"ABC Corp","companyNameEn":"ABC Corporation","industry":"Trading","location":"123 Main St, Tokyo","country":"Japan","city":"Tokyo","contactPerson":"","email":"","phone":"","website":"https://www.abccorp.com","businessType":"importer","productCategories":["steel pipes"],"certifications":[],"description":"Import and distribute steel pipes"}]`
+  
+  async function callLLM(hostname: string, path: string, apiKey: string, model: string, extraHeaders: any = {}): Promise<any> {
+    const requestBody = JSON.stringify({
+      model: model,
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: userMessage }
+      ],
+      temperature: 0.05,
+      max_tokens: 8192
+    })
+    
+    console.log(`[AI Search] Calling ${hostname} - model: ${model}`)
+    console.log("[AI Search] Request body size:", requestBody.length)
+    
+    return new Promise<any>((resolve, reject) => {
+      const options = {
+        hostname: hostname,
+        path: path,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+          'Content-Length': Buffer.byteLength(requestBody),
+          ...extraHeaders
+        }
+      }
+      
+      const req = https.request(options, (res) => {
+        let body = ''
+        res.on('data', (chunk) => { body += chunk })
+        res.on('end', () => {
+          console.log(`[AI Search] ${hostname} response status:`, res.statusCode)
+          try {
+            const parsed = JSON.parse(body)
+            resolve({ status: res.statusCode, data: parsed })
+          } catch (e) {
+            reject(new Error(`JSON parse error: ${e}`))
+          }
+        })
+      })
+      
+      req.on('error', (e) => reject(e))
+      req.write(requestBody)
+      req.end()
+    })
+  }
+  
+  async function callReplicate(apiKey: string, model: string): Promise<string> {
+    const prompt = `<|begin_of_sorted|><system>${systemMessage}</system><user>${userMessage}</user><|end_of_sorted|>`
+    
+    const requestBody = JSON.stringify({
+      input: {
+        prompt: prompt,
+        max_tokens: 8192,
+        temperature: 0.05,
+        stop: ["<|end_of_sorted|>"]
+      },
+      stream: false
+    })
+    
+    console.log(`[AI Search] Calling Replicate - model: ${model}`)
+    console.log("[AI Search] Request body size:", requestBody.length)
+    
+    const createResponse = await new Promise<any>((resolve, reject) => {
+      const options = {
+        hostname: 'api.replicate.com',
+        path: `/v1/models/${model}/predictions`,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Content-Length': Buffer.byteLength(requestBody)
+        }
+      }
+      
+      const req = https.request(options, (res) => {
+        let body = ''
+        res.on('data', (chunk) => { body += chunk })
+        res.on('end', () => {
+          console.log('[AI Search] Replicate create prediction status:', res.statusCode)
+          try {
+            const parsed = JSON.parse(body)
+            if (res.statusCode === 201) {
+              resolve(parsed)
+            } else {
+              reject(new Error(`Replicate API error: ${parsed.detail || body}`))
+            }
+          } catch (e) {
+            reject(new Error(`JSON parse error: ${e}`))
+          }
+        })
+      })
+      
+      req.on('error', (e) => reject(e))
+      req.write(requestBody)
+      req.end()
+    })
+    
+    const predictionId = createResponse.id
+    console.log(`[AI Search] Replicate prediction created: ${predictionId}`)
+    
+    for (let i = 0; i < 60; i++) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      const result = await new Promise<any>((resolve, reject) => {
+        const options = {
+          hostname: 'api.replicate.com',
+          path: `/v1/predictions/${predictionId}`,
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          }
+        }
+        
+        const req = https.request(options, (res) => {
+          let body = ''
+          res.on('data', (chunk) => { body += chunk })
+          res.on('end', () => {
+            try {
+              const parsed = JSON.parse(body)
+              resolve(parsed)
+            } catch (e) {
+              reject(new Error(`JSON parse error: ${e}`))
+            }
+          })
+        })
+        
+        req.on('error', (e) => reject(e))
+        req.end()
+      })
+      
+      if (result.status === 'succeeded') {
+        const output = result.output
+        if (Array.isArray(output)) {
+          return output.join('\n')
+        }
+        return String(output)
+      }
+      
+      if (result.status === 'failed') {
+        throw new Error(`Replicate prediction failed: ${result.error || 'unknown error'}`)
+      }
+      
+      console.log(`[AI Search] Replicate status: ${result.status}, polling...`)
+    }
+    
+    throw new Error('Replicate prediction timeout')
+  }
+  
+  let data: any
+  let provider = ''
+  const replicateApiKey = process.env.REPLICATE_API_KEY
+  
+  if (replicateApiKey) {
+    try {
+      provider = 'Replicate'
+      console.log('[AI Search] Calling Replicate API...')
+      const replicateModel = process.env.REPLICATE_MODEL || 'meta/meta-llama-3-70b-instruct'
+      const replicateResult = await callReplicate(replicateApiKey, replicateModel)
+      
+      if (replicateResult) {
+        data = { choices: [{ message: { content: replicateResult } }] }
+        console.log(`[AI Search] Replicate succeeded! Response length:`, replicateResult.length)
+      }
+    } catch (error) {
+      console.error(`[AI Search] Replicate failed:`, error)
+    }
+  }
+  
+  if (!data) {
+    if (groqApiKey) {
+      try {
+        provider = 'Groq'
+        console.log('[AI Search] Calling Groq with fetch()...')
+        const groqRequestBody = JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: "system", content: systemMessage },
+            { role: "user", content: userMessage }
+          ],
+          temperature: 0.05,
+          max_tokens: 8192
+        })
+        
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          },
+          body: groqRequestBody
+        })
+        
+        console.log('[AI Search] Groq fetch response status:', groqResponse.status)
+        if (groqResponse.ok) {
+          data = await groqResponse.json()
+          console.log(`[AI Search] Groq succeeded! Response length:`, JSON.stringify(data).length)
+        } else {
+          const errorBody = await groqResponse.text()
+          console.error(`[AI Search] Groq HTTP error: ${groqResponse.status} - ${errorBody}`)
+        }
+      } catch (error) {
+        console.error(`[AI Search] Groq fetch failed:`, error)
+      }
+    }
+  }
+  
+  if (!data) {
+    const providers = []
+    if (togetherApiKey) providers.push({ name: 'Together', hostname: 'api.together.ai', path: '/v1/chat/completions', apiKey: togetherApiKey, model: process.env.TOGETHER_MODEL || 'meta-llama/Llama-3.3-70B-Instruct-Turbo' })
+    if (openrouterApiKey) providers.push({ name: 'OpenRouter', hostname: 'openrouter.ai', path: '/api/v1/chat/completions', apiKey: openrouterApiKey, model: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct', headers: { 'HTTP-Referer': 'https://localhost:3000' } })
+    if (aliyunApiKey) providers.push({ name: 'Aliyun', hostname: 'dashscope.aliyuncs.com', path: '/compatible-mode/v1/chat/completions', apiKey: aliyunApiKey, model: 'qwen-turbo' })
+    
+    for (const p of providers) {
+      try {
+        provider = p.name
+        const result = await callLLM(p.hostname, p.path, p.apiKey, p.model, p.headers || {})
+        data = result.data
+        console.log(`[AI Search] ${provider} response received:`, JSON.stringify(data, null, 2).substring(0, 1000))
+        
+        if (result.status === 200 && !data.error) {
+          console.log(`[AI Search] ${provider} succeeded!`)
+          break
+        }
+        
+        console.error(`[AI Search] ${provider} API error:`, data?.error?.message)
+        
+      } catch (error) {
+        console.error(`[AI Search] ${provider} failed:`, error)
+      }
+      
+      if (p.name !== providers[providers.length - 1].name) {
+        console.log(`[AI Search] Falling back to next provider...`)
+      }
+    }
+  }
+  
+  if (!data) {
+    console.error("[AI Search] All LLM providers failed")
+    return []
+  }
+  
+  if (data.error) {
+    console.error("[AI Search] LLM API error:", data.error.message)
+    return []
+  }
+  
+  if (!data.choices || data.choices.length === 0) {
+    console.warn("[AI Search] LLM returned empty choices")
+    return []
+  }
+  
+  const responseText = data.choices[0].message?.content?.trim() || ''
+  console.log("[AI Search] LLM response length:", responseText.length)
+  
+  if (!responseText) {
+    console.warn("[AI Search] LLM returned empty content")
+    return []
+  }
+  
+  let cleanResponse = responseText
+  if (cleanResponse.startsWith("```json")) cleanResponse = cleanResponse.slice(7)
+  if (cleanResponse.endsWith("```")) cleanResponse = cleanResponse.slice(0, -3)
+  
+  const firstBracket = cleanResponse.indexOf('[')
+  const lastBracket = cleanResponse.lastIndexOf(']')
+  
+  if (firstBracket === -1 || lastBracket === -1) {
+    console.warn("[AI Search] LLM response format error - no brackets found")
+    console.warn("[AI Search] Raw response:", cleanResponse.substring(0, 500))
+    return []
+  }
+  
+  cleanResponse = cleanResponse.substring(firstBracket, lastBracket + 1)
+  console.log("[AI Search] Cleaned response:", cleanResponse.substring(0, 500))
+  
+  let results
+  try {
+    results = JSON.parse(cleanResponse)
+  } catch (parseError) {
+    console.error("[AI Search] LLM JSON parse error:", parseError)
+    return []
+  }
+  
+  if (!Array.isArray(results)) {
+    console.warn("[AI Search] LLM response is not an array")
+    return []
+  }
+  
+  console.log("[AI Search] LLM extracted companies:", results.length)
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  
+  const companiesWithEmail: any[] = []
+  const companiesWithoutEmail: any[] = []
+  
+  for (const item of results) {
+    const email = item.email || ''
+    if (email && emailRegex.test(email)) {
+      companiesWithEmail.push(item)
+    } else {
+      companiesWithoutEmail.push(item)
+    }
+  }
+  
+  console.log(`[AI Search] Companies with email: ${companiesWithEmail.length}, without email: ${companiesWithoutEmail.length}`)
+  
+  const companiesWithVerifiedEmail: any[] = []
+  
+  for (const item of companiesWithEmail) {
+    const email = item.email || ''
+    const emailFoundInSource = limitedResults.some((source) => {
+      const content = source.raw_content || source.content || source.snippet || ''
+      return content.toLowerCase().includes(email.toLowerCase())
+    })
+    
+    if (emailFoundInSource) {
+      companiesWithVerifiedEmail.push(item)
+    } else {
+      console.log(`[AI Search] Filtered out: email ${email} not found in source content`)
+    }
+  }
+  
+  console.log(`[AI Search] Companies with verified email from source: ${companiesWithVerifiedEmail.length}`)
+  
+  if (companiesWithoutEmail.length > 0) {
+    console.log(`[AI Search] Searching email for ${companiesWithoutEmail.length} companies...`)
+    
+    const dataPlatformDomains = [
+      'seair.co.in', 'importgenius.com', 'panjiva.com', 'zoominfo.com',
+      'dnb.com', 'experian.com', 'lexisnexis.com', 'businessforsale.com',
+      'alibaba.com', 'made-in-china.com', 'globalsources.com', 'tradeindia.com'
+    ]
+    
+    let emailSearchCount = 0
+    const maxEmailSearches = 5
+    
+    for (const company of companiesWithoutEmail) {
+      const companyName = company.companyNameEn || company.companyName
+      if (!companyName) continue
+      
+      let cleanWebsite = company.website || ''
+      if (cleanWebsite) {
+        try {
+          const url = new URL(cleanWebsite)
+          const domain = url.hostname.toLowerCase().replace('www.', '')
+          if (dataPlatformDomains.some(d => domain === d || domain.endsWith('.' + d))) {
+            cleanWebsite = ''
+            console.log(`[AI Search] Removed data platform URL for ${companyName}`)
+          }
+        } catch {
+          cleanWebsite = ''
+        }
+      }
+      company.website = cleanWebsite
+      
+      let foundEmail = false
+      const companyNameLower = companyName.toLowerCase().replace(/\s+/g, '')
+      
+      for (const [key, email] of companyEmailMap) {
+        const keyLower = key.toLowerCase().replace(/\s+/g, '')
+        if (companyNameLower.includes(keyLower.substring(0, Math.min(keyLower.length, 8))) ||
+            keyLower.includes(companyNameLower.substring(0, Math.min(companyNameLower.length, 8)))) {
+          const emailDomain = email.split('@')[1]?.toLowerCase() || ''
+          const foundInSource = limitedResults.some((source) => {
+            const content = source.raw_content || source.content || source.snippet || ''
+            return content.toLowerCase().includes(email.toLowerCase())
+          })
+          
+          if (foundInSource) {
+            console.log(`[AI Search] Found email from raw content for ${companyName}: ${email}`)
+            company.email = email
+            company.emailVerification = 'verified'
+            foundEmail = true
+            break
+          }
+        }
+      }
+      
+      if (!foundEmail && emailSearchCount < maxEmailSearches) {
+        const emailResult = await searchCompanyEmail(companyName, cleanWebsite)
+        emailSearchCount++
+        if (emailResult) {
+          console.log(`[AI Search] Found email for ${companyName}: ${emailResult.email}, MX verified: ${emailResult.verified}`)
+          company.email = emailResult.email
+          company.emailVerification = emailResult.verified ? 'verified' : 'pending'
+        } else {
+          console.log(`[AI Search] No email found for ${companyName}, keeping company with website`)
+          company.email = ''
+          company.emailVerification = 'pending'
+        }
+      } else if (!foundEmail) {
+        console.log(`[AI Search] Skipping email search for ${companyName} (limit reached)`)
+        company.email = ''
+        company.emailVerification = 'pending'
+      }
+      companiesWithVerifiedEmail.push(company)
+    }
+  }
+  
+  console.log("[AI Search] Total companies found:", companiesWithVerifiedEmail.length)
+  
+  return companiesWithVerifiedEmail.map((item: any, index: number) => ({
+    id: item.id || `llm_${Date.now()}_${index}`,
+    companyName: item.companyName || item.name || '',
+    companyNameEn: item.companyNameEn || item.companyName || '',
+    industry: item.industry || '',
+    subIndustry: item.subIndustry || '',
+    location: item.location || '',
+    country: item.country || targetCountry,
+    city: item.city || '',
+    contactPerson: item.contactPerson || '',
+    email: item.email || '',
+    phone: item.phone || '',
+    website: item.website || '',
+    socialLinks: [],
+    businessType: item.businessType || '',
+    productCategories: item.productCategories || [],
+    certifications: item.certifications || [],
+    description: item.description || '',
+    source: 'ai_web_search',
+    sourceUrl: item.website || '',
+    emailVerification: item.emailVerification || 'pending',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }))
+}
+
+// 清洗和验证网站URL
+function cleanAndValidateWebsite(website: string): string {
+  if (!website) return ''
+  
+  let cleaned = website.trim()
+  
+  cleaned = cleaned.replace(/`/g, '')
+  cleaned = cleaned.replace(/['"]/g, '')
+  cleaned = cleaned.replace(/^https?:\/\//i, '')
+  cleaned = cleaned.split('/')[0]
+  
+  if (!cleaned.includes('.')) return ''
+  
+  const safeProtocols = ['http://', 'https://']
+  if (!safeProtocols.some(p => website.toLowerCase().startsWith(p))) {
+    cleaned = `https://${cleaned}`
+  }
+  
+  return cleaned
+}
+
+// 检查网站域名是否安全（过滤成人/垃圾网站）
+function isWebsiteSafe(website: string): boolean {
+  if (!website) return true
+  
+  const unsafeKeywords = [
+    'porn', 'xxx', 'adult', 'sex', 'dating', 'escort', 'camgirl', 'hookup',
+    'porno', 'erotic', 'nudity', 'babe', 'teen', 'tube', 'video',
+    'casino', 'gambling', 'bet', 'lottery', 'crypto', 'token',
+    'viagra', 'pharmacy', 'drug', 'medication', 'buyonline',
+    'clickbank', 'affiliate', 'adnetwork', 'advertise', 'popup',
+    'redirect', 'tracking', 'spyware', 'malware', 'virus'
+  ]
+  
+  const domain = website.toLowerCase()
+  for (const keyword of unsafeKeywords) {
+    if (domain.includes(keyword)) {
+      console.log("[AI Search] Filtered unsafe website:", website, "- contains:", keyword)
+      return false
+    }
+  }
+  
+  return true
+}
+
+// 过滤不安全网站的客户
+function filterUnsafeWebsites(customers: OverseasCustomer[]): OverseasCustomer[] {
+  return customers.filter(customer => {
+    if (!customer.website) return true
+    const safe = isWebsiteSafe(customer.website)
+    if (!safe) {
+      console.log("[AI Search] Removed customer with unsafe website:", customer.companyName)
+      customer.website = ''
+    }
+    return safe
+  })
+}
+
+async function verifyWebsiteExists(website: string): Promise<boolean | null> {
+  if (!website) return null
+  
+  const url = website.startsWith('http') ? website : `https://${website}`
+  
+  for (const method of ['HEAD', 'GET']) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      
+      const response = await fetch(url, {
+        method: method,
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; MornHub/1.0)'
+        }
+      })
+      
+      clearTimeout(timeoutId)
+      
+      const status = response.status
+      if (status >= 200 && status < 400) {
+        return true
+      }
+      
+      if (status >= 400 && status < 500) {
+        console.log("[AI Search] Website confirmed not exists:", url, "status:", status)
+        return false
+      }
+      
+      console.log("[AI Search] Website verification uncertain:", url, "status:", status)
+      return null
+    } catch (error: any) {
+      const errorCode = error.code || (error.cause && error.cause.code)
+      if (errorCode === 'ERR_TLS_CERT_ALTNAME_INVALID' || 
+          errorCode === 'ERR_TLS_CERT_INVALID') {
+        console.log("[AI Search] Website TLS cert mismatch (not necessarily fake):", url)
+        return null
+      }
+      
+      if (errorCode === 'ERR_CONNECTION_REFUSED' || 
+          errorCode === 'ENOTFOUND') {
+        console.log("[AI Search] Website connection failed:", url, errorCode)
+        return false
+      }
+      
+      console.log("[AI Search] Website verification error (retrying):", url, errorCode)
+    }
+  }
+  
+  return null
+}
+
+async function validateAndCleanWebsites(customers: OverseasCustomer[]): Promise<OverseasCustomer[]> {
+  for (const customer of customers) {
+    if (!customer.website) continue
+    
+    const exists = await verifyWebsiteExists(customer.website)
+    
+    if (exists === false) {
+      console.log("[AI Search] Clearing fake website for:", customer.companyName, "-", customer.website)
+      customer.website = ''
+    } else if (exists === null) {
+      console.log("[AI Search] Could not verify website, keeping:", customer.companyName, "-", customer.website)
+    }
+  }
+  
+  return customers
+}
+
+// AI外网搜索功能 - 使用 Groq + Tavily 免费海外组合（停用 qwen-turbo）
+// 业务流程：Tavily抓取海外企业官网 → Groq提取结构化数据 → 返回真实客户信息
+async function searchWithAI(params: CustomerSearchParams, isPremium: boolean = false): Promise<OverseasCustomer[]> {
+  console.log("[AI Search] Starting AI web search with params:", params)
+  console.log("[AI Search] Using Groq + Tavily FREE combination (qwen-turbo disabled)")
+  
+  // 步骤1：使用 Tavily Search API 抓取海外真实企业官网内容
+  const webResults = await searchWithTavily(params)
+  
+  if (webResults.length === 0) {
+    console.log("[AI Search] Tavily returned no results, returning empty (no mock fallback)")
+    return []
+  }
+  
+  // 步骤2：使用 Groq llama-3.3-70b-versatile 模型从网页内容中提取结构化企业数据
+  const extractedCustomers = await extractWithGroq(webResults, params)
+  
+  // 步骤3：过滤非目标国家的公司
+  const targetCountry = params.country || ''
+  let filteredCustomers = extractedCustomers
+  
+  if (targetCountry && targetCountry.toLowerCase() !== 'all' && targetCountry.toLowerCase() !== 'global') {
+    filteredCustomers = extractedCustomers.filter(customer => {
+      const country = (customer.country || '').toLowerCase()
+      const location = (customer.location || '').toLowerCase()
+      const website = (customer.website || '').toLowerCase()
+      const email = (customer.email || '').toLowerCase()
+      
+      const targetLower = targetCountry.toLowerCase()
+      
+      const isMatch = country.includes(targetLower) ||
+                      location.includes(targetLower) ||
+                      website.includes(`.${targetLower}`) ||
+                      email.includes(`@`) && email.split('@')[1]?.toLowerCase().includes(`.${targetLower}`)
+      
+      if (!isMatch) {
+        console.log("[AI Search] Filtered out non-target country:", customer.companyName, "- country:", customer.country)
+      }
+      return isMatch
+    })
+  }
+  
+  console.log("[AI Search] Groq + Tavily search completed, found", filteredCustomers.length, "real customers (after country filter)")
+  
+  // 步骤4：过滤不安全网站
+  filteredCustomers = filterUnsafeWebsites(filteredCustomers)
+  
+  // 步骤5：清洗所有网站URL格式
+  filteredCustomers.forEach(c => {
+    if (c.website) {
+      c.website = cleanAndValidateWebsite(c.website)
+    }
+  })
+  
+  // 步骤6：验证网站真实性（过滤404等无效网站）
+  filteredCustomers = await validateAndCleanWebsites(filteredCustomers)
+  
+  console.log("[AI Search] After website safety filter:", filteredCustomers.length, "real customers")
+  return filteredCustomers
 }
 
 // 基础版搜索（GLM模型）
@@ -658,8 +1730,8 @@ Do NOT include any other text. Return ONLY valid JSON.`
     console.log("[AI Search] Total valid real results after deduplication:", uniqueResults.length)
     
     if (uniqueResults.length === 0) {
-      console.warn("[AI Search] No valid real data found from GLM, falling back to Qwen-Turbo")
-      return searchWithQwenModel(params, glmMaxResults)
+      console.warn("[AI Search] No valid real data found from GLM (qwen-turbo disabled)")
+      return []
     }
     
     // GLM模型：根据筛选条件返回结果
@@ -667,8 +1739,8 @@ Do NOT include any other text. Return ONLY valid JSON.`
     // - 选择全部 → 返回12条
     return uniqueResults.slice(0, glmMaxResults)
   } catch (error) {
-    console.error("[AI Search] GLM search failed, falling back to Qwen-Turbo:", error)
-    return searchWithQwenModel(params, glmMaxResults)
+    console.error("[AI Search] GLM search failed (qwen-turbo disabled):", error)
+    return []
   }
 }
 
@@ -957,18 +2029,20 @@ async function searchWithQwenModel(params: CustomerSearchParams, maxResults: num
           messages: [
             {
               role: "system",
-              content: "你是专业的B2B贸易研究员。请搜索互联网上真实、可验证的海外公司信息。只提供准确的信息。返回格式为JSON数组。"
+              content: "你是专业的B2B贸易研究员。搜索互联网上真实存在的海外公司，返回准确的企业信息。严禁虚构任何企业、地址、电话、邮箱。如果信息不完整，可以留空但必须保证已填写的信息真实有效。返回格式为JSON数组。"
             },
             {
               role: "user",
-              content: `查找 ${targetCountry} 的 ${industryKeyword} 行业中使用 ${productKeywords} 的 ${businessType} 公司，返回10-15家真实存在的公司。JSON格式：[{"id":"xxx","companyName":"公司名","companyNameEn":"英文名","industry":"行业","location":"地址","country":"国家","city":"城市","contactPerson":"联系人","email":"邮箱","phone":"电话","website":"网站","businessType":"业务类型","productCategories":["品类"],"certifications":["认证"],"description":"描述"}]`
+              content: `查找位于 ${targetCountry} 的 ${industryKeyword} 行业中使用 ${productKeywords} 的 ${businessType} 公司，返回10-15家真实存在的公司。每个公司应包含：公司名、英文名、行业、地址、国家（必须为${targetCountry}）、城市、联系人、邮箱、电话、官网地址、业务类型、产品品类、认证、描述。\n\n如果找不到完整信息，可以只提供你能找到的部分，但必须保证真实。\n\nJSON格式：[{"id":"xxx","companyName":"公司名","companyNameEn":"英文名","industry":"行业","location":"地址","country":"${targetCountry}","city":"城市","contactPerson":"联系人","email":"邮箱","phone":"电话","website":"网站","businessType":"业务类型","productCategories":["品类"],"certifications":["认证"],"description":"描述"}]`
             }
           ]
         },
         parameters: {
           max_tokens: 8192,
-          temperature: 0.7,
-          enable_search: true  // 启用联网搜索！
+          temperature: 0.2,
+          enable_search: true,
+          forced_search: true,
+          region: "global"
         }
       })
     })
@@ -979,6 +2053,8 @@ async function searchWithQwenModel(params: CustomerSearchParams, maxResults: num
     }
     
     const data = await response.json()
+    console.log("[AI Search] Qwen-Turbo FULL raw response:", JSON.stringify(data, null, 2))
+    
     if (!data.output || !data.output.text) {
       console.warn("[AI Search] Qwen-Turbo returned empty response")
       return searchWithOpenRouter(params)
@@ -1004,6 +2080,12 @@ async function searchWithQwenModel(params: CustomerSearchParams, maxResults: num
     if (!Array.isArray(results)) {
       console.warn("[AI Search] Qwen-Turbo response is not an array")
       return searchWithOpenRouter(params)
+    }
+    
+    // 打印原始返回数据用于调试
+    console.log("[AI Search] Qwen-Turbo raw results count:", results.length)
+    if (results.length > 0) {
+      console.log("[AI Search] Qwen-Turbo raw sample:", JSON.stringify(results.slice(0, 3), null, 2))
     }
     
     // 验证并转换结果
@@ -1316,12 +2398,18 @@ export async function searchCustomers(
   page: number = 1,
   pageSize: number = 10,
   isPremium: boolean = false
-): Promise<{ results: CustomerMatchResult[]; total: number; allCustomerIds: string[] }> {
+): Promise<{ 
+  results: CustomerMatchResult[]; 
+  total: number; 
+  allCustomerIds: string[];
+  dbResults: CustomerMatchResult[];
+  aiResults: CustomerMatchResult[];
+}> {
   // 调试日志
   console.log("[Customer Search] Search params:", JSON.stringify(params, null, 2))
   console.log("[Customer Search] User is Premium:", isPremium)
   
-  // 1. 使用AI进行外网搜索（根据会员状态选择模型）
+  // 1. 使用AI进行外网搜索（使用 Groq + Tavily 组合）
   const aiCustomers = await searchWithAI(params, isPremium)
   
   // 调试日志
@@ -1394,6 +2482,14 @@ export async function searchCustomers(
   // 获取所有匹配的客户ID（用于保存搜索记录）
   const allCustomerIds = uniqueMatches.map(m => m.customer.id)
   
+  // 区分本地库客户和AI检索客户
+  const aiResultIds = new Set(aiCustomers.map(c => c.id))
+  const dbResults = uniqueMatches.filter(m => !aiResultIds.has(m.customer.id))
+  const aiResults = uniqueMatches.filter(m => aiResultIds.has(m.customer.id))
+  
+  // 调试日志
+  console.log("[Customer Search] DB results:", dbResults.length, "AI results:", aiResults.length)
+  
   // 分页处理（使用去重后的结果）
   const start = (page - 1) * pageSize
   const end = start + pageSize
@@ -1405,7 +2501,9 @@ export async function searchCustomers(
   return {
     results: paginatedResults,
     total: uniqueMatches.length,
-    allCustomerIds
+    allCustomerIds,
+    dbResults,
+    aiResults
   }
 }
 

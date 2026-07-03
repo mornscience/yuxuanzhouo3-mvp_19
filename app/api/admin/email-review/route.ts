@@ -151,15 +151,27 @@ async function sendEmail(draft: any) {
   let fromName: string
 
   if (provider === "qq") {
-    // 使用QQ邮箱配置
     smtpHost = process.env.AUTH_EMAIL_SMTP_HOST_QQ || "smtp.qq.com"
     smtpPort = parseInt(process.env.AUTH_EMAIL_SMTP_PORT_QQ || "587")
     smtpUser = process.env.AUTH_EMAIL_USER_QQ || ""
     smtpPass = process.env.AUTH_EMAIL_PASSWORD_QQ || ""
     fromEmail = process.env.AUTH_EMAIL_FROM_QQ || smtpUser
     fromName = process.env.AUTH_EMAIL_NAME_QQ || "MornHub"
+  } else if (provider === "126") {
+    smtpHost = process.env.AUTH_EMAIL_SMTP_HOST_126 || "smtp.126.com"
+    smtpPort = parseInt(process.env.AUTH_EMAIL_SMTP_PORT_126 || "465")
+    smtpUser = process.env.AUTH_EMAIL_USER_126 || ""
+    smtpPass = process.env.AUTH_EMAIL_PASSWORD_126 || ""
+    fromEmail = process.env.AUTH_EMAIL_FROM_126 || smtpUser
+    fromName = process.env.AUTH_EMAIL_NAME_126 || "MornHub"
+  } else if (provider === "gmail") {
+    smtpHost = process.env.AUTH_EMAIL_SMTP_HOST_GMAIL || "smtp.gmail.com"
+    smtpPort = parseInt(process.env.AUTH_EMAIL_SMTP_PORT_GMAIL || "587")
+    smtpUser = process.env.AUTH_EMAIL_USER_GMAIL || ""
+    smtpPass = process.env.AUTH_EMAIL_PASSWORD_GMAIL || ""
+    fromEmail = process.env.AUTH_EMAIL_FROM_GMAIL || smtpUser
+    fromName = process.env.AUTH_EMAIL_NAME_GMAIL || "MornHub"
   } else {
-    // 使用企业邮箱配置
     smtpHost = process.env.AUTH_EMAIL_SMTP_HOST || "smtp.qq.com"
     smtpPort = parseInt(process.env.AUTH_EMAIL_SMTP_PORT || "587")
     smtpUser = process.env.AUTH_EMAIL_USER || process.env.AUTH_EMAIL_SMTP_USER || ""
