@@ -103,12 +103,13 @@ export async function getCosSignedUrl(key: string, expires = 3600): Promise<stri
 // 前端拿到这个 URL 后可以直接用 PUT 方法上传文件，绕过 Vercel body size 限制
 export async function getCosPresignedUploadUrl(key: string, expires = 1800): Promise<{ url: string; key: string; bucket: string; region: string }> {
   return new Promise((resolve, reject) => {
-    // 使用 getAuthUrl 生成预签名 URL（比 getObjectUrl 更可靠，支持所有 HTTP 方法）
-    cos.getAuthUrl({
+    // 使用 getObjectUrl + Method:'put' 生成 PUT 预签名 URL
+    // cos-nodejs-sdk-v5 内部会根据 Method 自动选择正确的 Action (PutObject / GetObject)
+    cos.getObjectUrl({
       Bucket: BUCKET,
       Region: REGION,
       Key: key,
-      Method: 'PUT',
+      Method: 'put',
       Sign: true,
       Expires: expires,
       Headers: {
@@ -119,12 +120,10 @@ export async function getCosPresignedUploadUrl(key: string, expires = 1800): Pro
         console.error('[COS] 获取预签名URL失败:', err.message || err)
         reject(new Error('获取预签名URL失败: ' + (err.message || String(err))))
       } else {
-        // cos.getAuthUrl 返回的是预签名 URL 字符串
-        const urlStr = typeof data === 'string' 
-          ? data 
-          : (data?.Url || data?.url || String(data))
+        // getObjectUrl 返回 { Url: '...' } 格式
+        const urlStr = data?.Url || ''
         
-        if (!urlStr || urlStr === '[object Object]') {
+        if (!urlStr) {
           reject(new Error('获取预签名URL失败: 返回数据异常 ' + JSON.stringify(data).substring(0, 200)))
         } else {
           console.log('[COS] 预签名URL生成成功, Key:', key, '有效期:', expires, '秒')
