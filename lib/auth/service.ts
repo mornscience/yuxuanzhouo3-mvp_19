@@ -1,4 +1,5 @@
 import { dbAdapter, isCN } from "@/lib/db-adapter"
+import { getSupabase } from "@/lib/db-adapter"
 import { randomUUID } from "crypto"
 
 // 表名常量
@@ -11,8 +12,7 @@ const AI_SEARCH_QUOTA_TABLE = "ai_search_quota"
 async function grantInitialAIQuota(userId: string) {
   try {
     if (!isCN()) {
-      const { createClient } = await import("@supabase/supabase-js")
-      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+      const sb = getSupabase()
       await sb.from(AI_SEARCH_QUOTA_TABLE).upsert({
         id: `quota-${randomUUID().slice(0, 8)}`,
         user_id: userId,
@@ -118,9 +118,7 @@ export async function registerUser(email: string, password: string, options?: { 
     // 注意：cookie 在服务端注册接口里读取，这里通过参数传入
     if (options?.referralCode) {
       try {
-        const { createClient } = await import("@supabase/supabase-js")
-        const { randomUUID } = await import("crypto")
-        const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+        const sb = getSupabase()
         // 找邀请人
         const { data: inviter } = await sb.from("users").select("id").eq("referral_code", options.referralCode).maybeSingle()
         if (inviter?.id && inviter.id !== userId) {
@@ -266,14 +264,7 @@ export async function updateUserProfile(userId: string, data: { nickname?: strin
       return { ok: false, message: "没有需要更新的字段" }
     }
 
-    console.log("[DEBUG updateUserProfile] userId:", userId, "updateData:", updateData)
-
-    // 先查询看看记录是否存在
-    const existingRows = await dbAdapter.loadRows(USER_PROFILES_TABLE, { userId })
-    console.log("[DEBUG updateUserProfile] existing rows:", existingRows.length, existingRows)
-
     const result = await dbAdapter.updateRow(USER_PROFILES_TABLE, { userId }, updateData)
-    console.log("[DEBUG updateUserProfile] update result:", result)
 
     if (!result) {
       return { ok: false, message: "用户资料不存在" }
@@ -302,11 +293,7 @@ export async function applyInfluencerVerification(userId: string, data: {
 
     // 直接用 Supabase 原生更新，绕过 dbAdapter 的字段名转换问题
     if (!isCN()) {
-      const { createClient } = await import("@supabase/supabase-js")
-      const sb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
+      const sb = getSupabase()
 
       // 先查记录（同时尝试 id 和 user_id）
       const { data: rows } = await sb
@@ -314,8 +301,6 @@ export async function applyInfluencerVerification(userId: string, data: {
         .select("id")
         .or(`id.eq.${userId},user_id.eq.${userId}`)
         .limit(1)
-
-      console.log("[influencer-apply] userId:", userId, "found rows:", rows)
 
       const patch = {
         is_influencer_verified: true,
@@ -331,7 +316,6 @@ export async function applyInfluencerVerification(userId: string, data: {
       if (rows && rows.length > 0) {
         const pk = rows[0].id
         const { error } = await sb.from("user_market_profiles").update(patch).eq("id", pk)
-        console.log("[influencer-apply] update error:", error)
         if (error) return { ok: false, message: error.message }
         return { ok: true, message: "达人认证成功" }
       }
@@ -350,7 +334,6 @@ export async function applyInfluencerVerification(userId: string, data: {
         is_real_influencer: false,
         is_real_merchant: false,
       })
-      console.log("[influencer-apply] insert error:", insertError)
       if (insertError) return { ok: false, message: insertError.message }
       return { ok: true, message: "达人认证成功" }
     }
@@ -403,11 +386,7 @@ export async function applyMerchantVerification(userId: string, data: {
 
     // 直接用 Supabase 原生更新，绕过 dbAdapter 的字段名转换问题
     if (!isCN()) {
-      const { createClient } = await import("@supabase/supabase-js")
-      const sb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
+      const sb = getSupabase()
 
       const { data: rows } = await sb
         .from("user_market_profiles")

@@ -94,13 +94,98 @@ const cbAdapter = {
 // ══════════════════════════════════════════════════════
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 
+/**
+ * 带重试机制的 fetch 包装器
+ * 解决 Clash/透明代理节点首次 TLS 证书重写失败的问题（后续请求通常会命中正确节点）
+ */
+function createFetchWithRetry(baseFetch?: typeof fetch): typeof fetch {
+  const retrier = async (input: RequestInfo | URL, init?: RequestInit, attempt = 1): Promise<Response> => {
+    const maxAttempts = parseInt(process.env.SUPABASE_FETCH_RETRIES || "3", 10)
+    const initialDelay = parseInt(process.env.SUPABASE_FETCH_RETRY_DELAY || "500", 10)
+    try {
+      const fetcher = baseFetch || (globalThis as any).fetch || fetch
+      return await fetcher(input, init)
+    } catch (err: any) {
+      const msg = String(err?.message || err || "")
+      const isTlsOrNetworkError =
+        msg.includes("ERR_TLS_CERT_ALTNAME_INVALID") ||
+        msg.includes("certificate") ||
+        msg.includes("CERT") ||
+        msg.includes("fetch failed") ||
+        msg.includes("ECONNRESET") ||
+        msg.includes("ETIMEDOUT") ||
+        msg.includes("socket hang up") ||
+        msg.includes("ENOTFOUND")
+
+      if (isTlsOrNetworkError && attempt < maxAttempts) {
+        const delay = initialDelay * Math.pow(2, attempt - 1)
+        console.warn(`[Supabase] fetch 第 ${attempt} 次失败: ${msg.slice(0, 120)}。${delay}ms 后重试...`)
+        await new Promise(r => setTimeout(r, delay))
+        return retrier(input, init, attempt + 1)
+      }
+      throw err
+    }
+  }
+  return retrier as typeof fetch
+}
+
+/**
+ * 根据环境变量决定是否允许 TLS 宽松校验（仅本地开发/测试使用）
+ * 生产环境建议保持严格校验（不设置 SUPABASE_ALLOW_INSECURE_TLS）
+ */
+function shouldAllowInsecureTls(): boolean {
+  const v = process.env.SUPABASE_ALLOW_INSECURE_TLS
+  return v === "1" || v === "true" || v === "yes"
+}
+
 let _supabase: SupabaseClient | null = null
-function getSupabase(): SupabaseClient {
+export function getSupabase(): SupabaseClient {
   if (_supabase) return _supabase
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) throw new Error("Supabase 环境变量未配置：NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY")
-  _supabase = createClient(url, key)
+
+  // 构建自定义 fetch：先包装重试，再注入 TLS 选项（仅在需要时）
+  let customFetch = createFetchWithRetry()
+
+  if (shouldAllowInsecureTls()) {
+    try {
+      // Node.js 环境下通过 undici 构造一个禁用 TLS 校验的 dispatcher
+      const require = (0, eval)("require")
+      const undici = require("undici")
+      const { Agent, ProxyAgent, setGlobalDispatcher, getGlobalDispatcher } = undici
+      const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+
+      const dispatcher = proxy
+        ? new ProxyAgent({
+            uri: proxy,
+            tls: { rejectUnauthorized: false, checkServerIdentity: () => undefined as any },
+          })
+        : new Agent({
+            tls: { rejectUnauthorized: false, checkServerIdentity: () => undefined as any },
+          })
+
+      // 把 dispatcher 注入到自定义 fetch 中
+      const origFetch = customFetch
+      customFetch = ((input: any, init: any = {}) => {
+        init.dispatcher = init.dispatcher || dispatcher
+        return origFetch(input, init)
+      }) as typeof fetch
+
+      console.log("[Supabase] 已启用 TLS 宽松校验（仅本地开发使用）")
+    } catch (e: any) {
+      console.warn("[Supabase] 无法启用 TLS 宽松校验，使用默认 fetch:", e?.message || e)
+    }
+  }
+
+  _supabase = createClient(url, key, {
+    global: { fetch: customFetch },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  })
   return _supabase
 }
 
@@ -209,17 +294,21 @@ const sbAdapter = {
       if (v === undefined || v === null) continue
       query = query.eq(k, v)
     }
-    // 无 filter 时加 neq 避免 PostgREST 空查询问题
     const hasFilters = Object.keys(normalized).length > 0
     if (!hasFilters) {
       query = (query as any).gt("id", "")
     }
-    const { data, error } = await query
-    if (error) {
-      if (error.code === "42P01") return []
-      throw new Error(`[Supabase] loadRows ${table}: ${error.message}`)
+    try {
+      const { data, error } = await query
+      if (error) {
+        if (error.code === "42P01") return []
+        throw new Error(`[Supabase] loadRows ${table}: ${error.message}`)
+      }
+      return restoreRows(data || [])
+    } catch (fetchError: any) {
+      console.error(`[Supabase] loadRows ${table} failed:`, fetchError.message)
+      throw fetchError
     }
-    return restoreRows(data || [])
   },
 
   async insertRow(table: string, row: Record<string, any>): Promise<any> {
@@ -234,7 +323,6 @@ const sbAdapter = {
       created_at: now,
       updated_at: now,
     }
-    console.log(`[Supabase] insertRow ${table}`, JSON.stringify(finalRow).slice(0, 200))
     const { data, error } = await sb.from(table).insert(finalRow).select().single()
     if (error) throw new Error(`[Supabase] insertRow ${table}: ${error.message}`)
     return restoreCamelCase(data)

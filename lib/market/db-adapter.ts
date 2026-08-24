@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
+// 复用统一的 Supabase 单例（带重试 + TLS 兼容），避免重复创建客户端
+import { getSupabase as getSharedSupabase } from "@/lib/db-adapter"
 
 // 动态导入 CloudBase SDK，只在服务端使用
 let cloudbase: any = null
@@ -54,6 +56,16 @@ function normalizeKeys(obj: Record<string, any>): Record<string, any> {
 // ==========================================
 let supabaseInstance: any = null
 function getSupabase() {
+  // 优先复用 lib/db-adapter 中已经配置好重试和 TLS 兼容的共享单例
+  try {
+    const shared = getSharedSupabase()
+    if (shared) {
+      supabaseInstance = shared
+      return shared
+    }
+  } catch (_) {
+    // 共享单例创建失败（通常是环境变量缺失），退回到本文件原有的创建逻辑
+  }
   if (supabaseInstance) return supabaseInstance
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
@@ -165,7 +177,13 @@ export const dbAdapter = {
 
     // 3. Fallback to Local File
     const rows = await readLocalRows(table)
-    const filteredRows = rows.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v))
+    // 本地文件通常使用 id 字段，但路由可能使用 user_id 过滤
+    // 兼容处理：如果过滤条件中包含 user_id，也同时匹配 id 字段
+    const normalizedFilters = { ...filters }
+    if (normalizedFilters.user_id && !normalizedFilters.id) {
+      normalizedFilters.id = normalizedFilters.user_id
+    }
+    const filteredRows = rows.filter(r => Object.entries(normalizedFilters).every(([k, v]) => r[k] === v))
     return filteredRows
   },
 
@@ -271,7 +289,11 @@ export const dbAdapter = {
 
     // Local fallback
     const rows = await readLocalRows(table)
-    const index = rows.findIndex(r => Object.entries(filters).every(([k, v]) => r[k] === v))
+    const normalizedFilters = { ...filters }
+    if (normalizedFilters.user_id && !normalizedFilters.id) {
+      normalizedFilters.id = normalizedFilters.user_id
+    }
+    const index = rows.findIndex(r => Object.entries(normalizedFilters).every(([k, v]) => r[k] === v))
     if (index === -1) return null
     rows[index] = { ...rows[index], ...finalPatch }
     await writeLocalRows(table, rows)
@@ -306,8 +328,12 @@ export const dbAdapter = {
 
     // Local fallback
     const rows = await readLocalRows(table)
+    const normalizedFilters = { ...filters }
+    if (normalizedFilters.user_id && !normalizedFilters.id) {
+      normalizedFilters.id = normalizedFilters.user_id
+    }
     const initialLen = rows.length
-    const filtered = rows.filter(r => !Object.entries(filters).every(([k, v]) => r[k] === v))
+    const filtered = rows.filter(r => !Object.entries(normalizedFilters).every(([k, v]) => r[k] === v))
     if (filtered.length === initialLen) return false
     await writeLocalRows(table, filtered)
     return true

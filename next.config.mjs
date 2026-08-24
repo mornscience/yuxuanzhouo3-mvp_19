@@ -13,7 +13,7 @@ const nextConfig = {
     ],
   },
   // 这些包只在服务端使用
-  serverExternalPackages: ['@cloudbase/node-sdk'],
+  serverExternalPackages: ['@cloudbase/node-sdk', 'undici'],
   webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,

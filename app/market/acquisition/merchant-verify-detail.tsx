@@ -18,7 +18,7 @@ interface ParsedData {
 }
 
 const MAX_PDF_ANALYSIS_COUNT = 20
-const MAX_CUSTOMER_SEARCH_COUNT = 60
+const MAX_CUSTOMER_SEARCH_COUNT = 100
 
 export function MerchantVerifyDetail() {
   const [profile, setProfile] = useState<UserMarketProfile | null>(null)
@@ -83,7 +83,7 @@ export function MerchantVerifyDetail() {
     }
   }
 
-  // AI 解析 PDF
+  // AI 解析 PDF（新流程：前端直传 COS）
   const handleParse = async () => {
     if (!uploadedFile) {
       setMessage("Please upload a PDF file first")
@@ -94,14 +94,51 @@ export function MerchantVerifyDetail() {
     setMessage("")
 
     try {
-      const formData = new FormData()
-      formData.append("file", uploadedFile)
-      formData.append("type", "merchant_profile")
+      // Step 1: 获取预签名上传 URL
+      setMessage("正在获取上传地址...")
+      const urlResponse = await fetch("/api/ai/parse-pdf/get-upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ filename: uploadedFile.name })
+      })
 
+      if (!urlResponse.ok) {
+        const errText = await urlResponse.text()
+        throw new Error("获取上传地址失败: " + errText)
+      }
+
+      const urlResult = await urlResponse.json()
+      if (!urlResult.ok || !urlResult.uploadUrl) {
+        throw new Error(urlResult.message || "获取上传地址失败")
+      }
+
+      const { uploadUrl, key } = urlResult
+
+      // Step 2: 直传文件到 COS（用 PUT 方法）
+      setMessage("正在上传文件到云端...")
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Length": String(uploadedFile.size),
+        },
+        body: uploadedFile,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error("文件上传到 COS 失败: HTTP " + uploadResponse.status)
+      }
+
+      console.log('[PDF Parse] 文件直传 COS 成功, Key:', key)
+
+      // Step 3: 调用后端解析接口（只传 Key，后端自动拼 URL，不传文件）
+      setMessage("正在分析文件内容...")
       const response = await fetch("/api/ai/parse-pdf", {
         method: "POST",
-        body: formData,
-        credentials: "include"
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ cosKey: key })
       })
 
       const result = await response.json()
@@ -137,9 +174,9 @@ export function MerchantVerifyDetail() {
       } else {
         setMessage(result.message || "Analysis failed")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("解析失败:", error)
-      setMessage("Analysis failed, please try again")
+      setMessage("Analysis failed: " + (error.message || "Please try again"))
     } finally {
       setParsing(false)
     }
@@ -159,6 +196,9 @@ export function MerchantVerifyDetail() {
 
       const result = await response.json()
       if (result.ok) {
+        setMessage("Saved successfully! Reloading data...")
+        // 重新加载企业信息以显示最新数据
+        await loadProfile()
         setMessage("Saved successfully!")
       } else {
         setMessage(result.message || "Save failed")

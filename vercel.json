@@ -2,6 +2,14 @@
   "buildCommand": "pnpm run build",
   "framework": "nextjs",
   "env": {
-    "FORCE_REBUILD": "20260414-2"
+    "FORCE_REBUILD": "20260414-3"
+  },
+  "functions": {
+    "app/api/ai/parse-pdf/get-upload-url/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/ai/parse-pdf/route.ts": {
+      "maxDuration": 60
+    }
   }
 }
